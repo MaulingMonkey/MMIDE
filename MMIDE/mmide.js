@@ -104,7 +104,7 @@ var Brainfuck;
                     break;
             }
         }
-        console.log("Ran", instructionsRan, "instructions (IP=", vm.codePtr, "(", vm.code[vm.codePtr], ") DP=", vm.dataPtr, "(", vm.data[vm.dataPtr], "))");
+        //console.log("Ran",instructionsRan,"instructions (IP=", vm.codePtr, "(", vm.code[vm.codePtr],") DP=", vm.dataPtr, "(", vm.data[vm.dataPtr] ,"))");
     }
     function createDebugger(code, stdout) {
         var vm = createVm(code);
@@ -116,7 +116,7 @@ var Brainfuck;
         var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
         var getState = function () {
             return vm === undefined ? DebugState.Detatched
-                : vm.dataPtr >= vm.data.length ? DebugState.Done
+                : vm.codePtr >= vm.code.length ? DebugState.Done
                     : runHandle !== undefined ? DebugState.Running
                         : DebugState.Paused;
         };
@@ -129,79 +129,147 @@ var Brainfuck;
     }
     Brainfuck.createDebugger = createDebugger;
 })(Brainfuck || (Brainfuck = {}));
-var debug = undefined;
-function restartBrainfuck(startPaused) {
-    if (debug !== undefined)
-        debug.stop();
-    Output.outputs().forEach(function (o) { return o.clear(); });
-    var editor = document.getElementsByClassName("editor");
-    console.assert(editor.length == 1);
-    debug = Brainfuck.createDebugger(editor.item(0).textContent, function (stdout) {
-        Output.outputs().forEach(function (o) { return o.write(stdout); });
-    });
-    if (!startPaused)
-        debug.continue();
-}
-window.addEventListener("load", function (e) {
-    restartBrainfuck(true);
-});
-var Output = (function () {
-    function Output(element) {
-        this._element = element;
-        this._col = 0;
-    }
-    Output.prototype.write = function (data) {
-        //let maxCol = 120; // TODO: Replace with this.element data?
-        var maxCol = 180; // TODO: Replace with this.element data?
-        var col = this._col;
-        data = data.replace("\r", ""); // only care about \n
-        var i = 0;
-        var buf = "";
-        while (i < data.length) {
-            var nextSplit = data.indexOf("\n", i);
-            if (nextSplit === -1)
-                nextSplit = data.length;
-            while (i < nextSplit) {
-                console.assert(col <= maxCol - 1);
-                var append = data.substr(i, Math.min(nextSplit - i, maxCol - col));
-                console.assert(append.length >= 1);
-                buf += append;
-                col += append.length;
-                i += append.length;
-                if (col == maxCol) {
+var UI;
+(function (UI) {
+    var Debug;
+    (function (Debug) {
+        var theDebugger = undefined;
+        function Start(paused) {
+            UI.Output.outputs().forEach(function (o) { return o.clear(); });
+            var editor = document.getElementsByClassName("editor");
+            console.assert(editor.length == 1);
+            theDebugger = Brainfuck.createDebugger(editor.item(0).textContent, function (stdout) {
+                UI.Output.outputs().forEach(function (o) { return o.write(stdout); });
+            });
+            if (!paused)
+                theDebugger.continue();
+            setDebugState(theDebugger.state());
+        }
+        Debug.Start = Start;
+        function Stop() {
+            theDebugger.stop();
+            theDebugger = undefined;
+            setDebugState(DebugState.Detatched);
+        }
+        Debug.Stop = Stop;
+        function Continue() {
+            theDebugger.continue();
+            setDebugState(theDebugger.state());
+        }
+        Debug.Continue = Continue;
+        function Pause() {
+            theDebugger.pause();
+            setDebugState(theDebugger.state());
+        }
+        Debug.Pause = Pause;
+        function Restart(paused) {
+            if (theDebugger !== undefined)
+                Stop();
+            Start(paused);
+        }
+        Debug.Restart = Restart;
+        function toggleClassVisibility(class_, visible) {
+            var es = document.getElementsByClassName(class_);
+            //console.log(class_, "(", es.length, ") :=", visible);
+            for (var i = 0; i < es.length; ++i) {
+                var e = es.item(i);
+                e.style.display = visible ? "" : "none";
+            }
+        }
+        var prevState = undefined;
+        function setDebugState(state) {
+            if (prevState == state)
+                return;
+            var styles = "debug-state-detatched debug-state-done debug-state-running debug-state-paused".split(' ');
+            var visibleStyle = "";
+            switch (state) {
+                case DebugState.Detatched:
+                    visibleStyle = "debug-state-detatched";
+                    break;
+                case DebugState.Done:
+                    visibleStyle = "debug-state-done";
+                    break;
+                case DebugState.Running:
+                    visibleStyle = "debug-state-running";
+                    break;
+                case DebugState.Paused:
+                    visibleStyle = "debug-state-paused";
+                    break;
+            }
+            console.log("state :=", visibleStyle);
+            //console.assert(styles.indexOf(visibleStyle) !== -1);
+            styles.forEach(function (style) { if (style !== visibleStyle)
+                toggleClassVisibility(style, false); });
+            toggleClassVisibility(visibleStyle, true);
+            prevState = state;
+        }
+        addEventListener("load", function (e) {
+            setDebugState(DebugState.Detatched);
+            setInterval(function () { setDebugState(theDebugger === undefined ? DebugState.Detatched : theDebugger.state()); }, 100);
+        });
+    })(Debug = UI.Debug || (UI.Debug = {}));
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Output = (function () {
+        function Output(element) {
+            this._element = element;
+            this._col = 0;
+        }
+        Output.prototype.write = function (data) {
+            //let maxCol = 120; // TODO: Replace with this.element data?
+            var maxCol = 180; // TODO: Replace with this.element data?
+            var col = this._col;
+            data = data.replace("\r", ""); // only care about \n
+            var i = 0;
+            var buf = "";
+            while (i < data.length) {
+                var nextSplit = data.indexOf("\n", i);
+                if (nextSplit === -1)
+                    nextSplit = data.length;
+                while (i < nextSplit) {
+                    console.assert(col <= maxCol - 1);
+                    var append = data.substr(i, Math.min(nextSplit - i, maxCol - col));
+                    console.assert(append.length >= 1);
+                    buf += append;
+                    col += append.length;
+                    i += append.length;
+                    if (col == maxCol) {
+                        buf += "\n";
+                        col = 0;
+                    }
+                }
+                if (nextSplit < data.length) {
                     buf += "\n";
                     col = 0;
                 }
+                console.assert(i === nextSplit);
+                i = nextSplit + 1; // skip EOL
             }
-            if (nextSplit < data.length) {
-                buf += "\n";
-                col = 0;
-            }
-            console.assert(i === nextSplit);
-            i = nextSplit + 1; // skip EOL
-        }
-        this._element.textContent += buf;
-        this._col = col;
-    };
-    Output.prototype.clear = function () {
-        this._element.textContent = "";
-        this._col = 0;
-    };
-    Output.outputs = function () {
-        var outputElements = [];
-        var _outputElements = document.getElementsByClassName("output");
-        for (var i = 0; i < _outputElements.length; ++i)
-            outputElements.push(_outputElements.item(i));
-        outputElements.forEach(function (e) {
-            if (!Output._outputs.some(function (o) { return o._element === e; })) {
-                Output._outputs.push(new Output(e));
-            }
-        });
-        Output._outputs = Output._outputs.filter(function (o) { return outputElements.indexOf(o._element) !== -1; });
-        return Output._outputs;
-    };
-    Output._outputs = [];
-    return Output;
-})();
-;
+            this._element.textContent += buf;
+            this._col = col;
+        };
+        Output.prototype.clear = function () {
+            this._element.textContent = "";
+            this._col = 0;
+        };
+        Output.outputs = function () {
+            var outputElements = [];
+            var _outputElements = document.getElementsByClassName("output");
+            for (var i = 0; i < _outputElements.length; ++i)
+                outputElements.push(_outputElements.item(i));
+            outputElements.forEach(function (e) {
+                if (!Output._outputs.some(function (o) { return o._element === e; })) {
+                    Output._outputs.push(new Output(e));
+                }
+            });
+            Output._outputs = Output._outputs.filter(function (o) { return outputElements.indexOf(o._element) !== -1; });
+            return Output._outputs;
+        };
+        Output._outputs = [];
+        return Output;
+    })();
+    UI.Output = Output;
+    ;
+})(UI || (UI = {}));
 //# sourceMappingURL=mmide.js.map

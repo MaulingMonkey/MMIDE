@@ -29,7 +29,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="lang\brainfuck.ts" />
     <TypeScriptCompile Include="lang\_debugger.ts" />
-    <TypeScriptCompile Include="mmide.ts" />
+    <TypeScriptCompile Include="ui\debug.ts" />
     <TypeScriptCompile Include="ui\output.ts" />
   </ItemGroup>
   <ItemGroup>

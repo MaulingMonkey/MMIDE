@@ -64,7 +64,7 @@
 				default:		++vm.codePtr;	break;
 			}
 		}
-		console.log("Ran",instructionsRan,"instructions (IP=", vm.codePtr, "(", vm.code[vm.codePtr],") DP=", vm.dataPtr, "(", vm.data[vm.dataPtr] ,"))");
+		//console.log("Ran",instructionsRan,"instructions (IP=", vm.codePtr, "(", vm.code[vm.codePtr],") DP=", vm.dataPtr, "(", vm.data[vm.dataPtr] ,"))");
 	}
 
 	export function createDebugger(code: string, stdout: (b: string) => void): Debugger {
@@ -76,7 +76,7 @@
 		let doStop		= () => { doPause(); vm.dataPtr = vm.data.length; }
 		let getState	= () =>
 			vm === undefined ?					DebugState.Detatched
-			: vm.dataPtr >= vm.data.length ?	DebugState.Done
+			: vm.codePtr >= vm.code.length ?	DebugState.Done
 			: runHandle !== undefined ?			DebugState.Running
 			:									DebugState.Paused;
 

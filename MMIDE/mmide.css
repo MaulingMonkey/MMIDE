@@ -1,10 +1,21 @@
 ﻿body
 {
-	background: #DDD;
+	background: #BBB;
 }
 
 h1	{ font-family: Consolas; text-align: center; }
 h2	{ font-family: Consolas; text-align: center; }
+
+.controls
+{
+	font:			8pt Consolas;
+	padding:		5px;
+	margin:			5px;
+	border-radius:	5px;
+	background:		#DDD;
+	color:			#000;
+	height:			16px;
+}
 
 .editor
 {
