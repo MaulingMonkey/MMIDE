@@ -1,0 +1,56 @@
+﻿body
+{
+	background: #DDD;
+}
+
+h1	{ font-family: Consolas; text-align: center; }
+h2	{ font-family: Consolas; text-align: center; }
+
+.editor
+{
+	font:			8pt Consolas;
+	padding:		5px;
+	margin:			5px;
+	border-radius:	5px;
+	background:		#FFF;
+	color:			#000;
+	white-space:	pre;
+
+	min-height:		200px;
+	flex-grow:		2;
+	flex-shrink:	2;
+	flex-basis:		500px; /* <-- */
+	display:		block;
+	overflow-y:		auto;
+}
+
+.output
+{
+	font:			8pt Consolas;
+	padding:		5px;
+	margin:			5px;
+	border-radius:	5px;
+	background:		#000;
+	color:			#FFF;
+	white-space:	pre;
+
+	min-height:		200px;
+	flex-grow:		1;
+	flex-shrink:	1;
+	flex-basis:		300px; /* <-- */
+	display:		block;
+	overflow-y:		auto;
+}
+
+.fullscreen
+{
+	position:	absolute;
+	margin:		0;
+	padding:	0;
+	top:		0;
+	left:		0;
+	width:		100vw;
+	height:		100vh;
+}
+
+.fullscreen td { padding: 0; }
