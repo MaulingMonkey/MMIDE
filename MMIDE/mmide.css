@@ -6,6 +6,7 @@
 h1	{ font-family: Consolas; text-align: center; }
 h2	{ font-family: Consolas; text-align: center; }
 
+.controls table { font: 8pt Consolas; }
 .controls
 {
 	font:			8pt Consolas;

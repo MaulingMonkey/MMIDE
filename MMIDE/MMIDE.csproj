@@ -27,6 +27,7 @@
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="examples.ts" />
     <TypeScriptCompile Include="lang\brainfuck.ts" />
     <TypeScriptCompile Include="lang\_debugger.ts" />
     <TypeScriptCompile Include="ui\debug.ts" />
