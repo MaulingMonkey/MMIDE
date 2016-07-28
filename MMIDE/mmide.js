@@ -132,8 +132,15 @@ var Brainfuck;
         var doPause = function () { if (runHandle !== undefined)
             clearInterval(runHandle); runHandle = undefined; };
         var doContinue = function () { if (runHandle === undefined)
-            runHandle = setInterval(function () { return runSome(vm, 1000000, stdout, doPause); }, 0); }; // Increase instruction limit after fixing loop perf?
+            runHandle = setInterval(function () { return runSome(vm, 100000, stdout, doPause); }, 0); }; // Increase instruction limit after fixing loop perf?
         var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
+        var getRegisters = function () { return [
+            [" code", vm.codePtr.toString()],
+            ["*code", (vm.code[vm.codePtr] || "??").replace("\n", "\\n").replace("\r", "\\r").toString()],
+            [" data", vm.dataPtr.toString()],
+            ["*data", (vm.data[vm.dataPtr] || "??").toString()],
+        ]; };
+        var getThreads = function () { return [{ registers: getRegisters }]; };
         var getState = function () {
             return vm === undefined ? DebugState.Detatched
                 : vm.codePtr >= vm.code.length ? DebugState.Done
@@ -142,6 +149,7 @@ var Brainfuck;
         };
         return {
             state: getState,
+            threads: getThreads,
             pause: doPause,
             continue: doContinue,
             stop: doStop,
@@ -225,7 +233,10 @@ var UI;
         }
         addEventListener("load", function (e) {
             setDebugState(DebugState.Detatched);
-            setInterval(function () { setDebugState(theDebugger === undefined ? DebugState.Detatched : theDebugger.state()); }, 100);
+            setInterval(function () {
+                setDebugState(theDebugger === undefined ? DebugState.Detatched : theDebugger.state());
+                UI.Registers.update(theDebugger === undefined ? [] : theDebugger.threads()[0].registers());
+            }, 10);
         });
     })(Debug = UI.Debug || (UI.Debug = {}));
 })(UI || (UI = {}));
@@ -291,5 +302,24 @@ var UI;
     })();
     UI.Output = Output;
     ;
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Registers;
+    (function (Registers) {
+        function update(registers) {
+            var flat = "";
+            var lpad = "      ";
+            var rpad = "      ";
+            registers.forEach(function (reg) { return flat += reg[0] + lpad.substring(reg[0].length) + " := " + rpad.substring(reg[1].length) + reg[1] + "\n"; });
+            flat = flat.substr(0, flat.length - 1);
+            var els = document.getElementsByClassName("registers");
+            for (var elI = 0; elI < els.length; ++elI) {
+                var el = els.item(elI);
+                el.textContent = flat;
+            }
+        }
+        Registers.update = update;
+    })(Registers = UI.Registers || (UI.Registers = {}));
 })(UI || (UI = {}));
 //# sourceMappingURL=mmide.js.map

@@ -71,7 +71,10 @@
 
 		addEventListener("load", (e) => {
 			setDebugState(DebugState.Detatched);
-			setInterval(function() { setDebugState(theDebugger === undefined ? DebugState.Detatched : theDebugger.state()); }, 100);
+			setInterval(function() {
+				setDebugState(theDebugger === undefined ? DebugState.Detatched : theDebugger.state());
+				UI.Registers.update(theDebugger === undefined ? [] : theDebugger.threads()[0].registers());
+			}, 10);
 		});
 	}
 }

@@ -32,6 +32,7 @@
     <TypeScriptCompile Include="lang\_debugger.ts" />
     <TypeScriptCompile Include="ui\debug.ts" />
     <TypeScriptCompile Include="ui\output.ts" />
+    <TypeScriptCompile Include="ui\registers.ts" />
   </ItemGroup>
   <ItemGroup>
     <None Include="web.Debug.config">

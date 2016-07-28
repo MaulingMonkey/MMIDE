@@ -5,8 +5,15 @@
 	Done,
 }
 
+type RegistersList = [string,string][];
+
+interface DebuggerThread {
+	registers():	RegistersList;
+}
+
 interface Debugger {
-	state(): DebugState;
+	state():		DebugState;
+	threads():		DebuggerThread[];
 
 	stop();					// Running, Paused	-> None
 	continue();				// Paused			-> Running

@@ -71,10 +71,17 @@
 		let vm = createVm(code);
 		let runHandle : number = undefined;
 
-		let doPause		= () => { if (runHandle !== undefined) clearInterval(runHandle); runHandle = undefined; };
-		let doContinue	= () => { if (runHandle === undefined) runHandle = setInterval(() => runSome(vm, 1000000, stdout, doPause), 0); }; // Increase instruction limit after fixing loop perf?
-		let doStop		= () => { doPause(); vm.dataPtr = vm.data.length; }
-		let getState	= () =>
+		let doPause			= () => { if (runHandle !== undefined) clearInterval(runHandle); runHandle = undefined; };
+		let doContinue		= () => { if (runHandle === undefined) runHandle = setInterval(() => runSome(vm, 100000, stdout, doPause), 0); }; // Increase instruction limit after fixing loop perf?
+		let doStop			= () => { doPause(); vm.dataPtr = vm.data.length; }
+		let getRegisters : ()=>RegistersList = () => [
+			[" code",	vm.codePtr.toString()																],
+			["*code",	(vm.code[vm.codePtr] || "??").replace("\n","\\n").replace("\r","\\r").toString()	],
+			[" data",	vm.dataPtr.toString()																],
+			["*data",	(vm.data[vm.dataPtr] || "??").toString()											],
+		];
+		let getThreads		= () => [{registers: getRegisters}];
+		let getState		= () =>
 			vm === undefined ?					DebugState.Detatched
 			: vm.codePtr >= vm.code.length ?	DebugState.Done
 			: runHandle !== undefined ?			DebugState.Running
@@ -82,6 +89,8 @@
 
 		return {
 			state:		getState,
+			threads:	getThreads,
+
 			pause:		doPause,
 			continue:	doContinue,
 			stop:		doStop,
