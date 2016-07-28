@@ -19,13 +19,6 @@ var Examples;
     }
     Examples.LoadBrainfuckHelloWorld = LoadBrainfuckHelloWorld;
 })(Examples || (Examples = {}));
-var DebugState;
-(function (DebugState) {
-    DebugState[DebugState["Detatched"] = 0] = "Detatched";
-    DebugState[DebugState["Paused"] = 1] = "Paused";
-    DebugState[DebugState["Running"] = 2] = "Running";
-    DebugState[DebugState["Done"] = 3] = "Done";
-})(DebugState || (DebugState = {}));
 var Brainfuck;
 (function (Brainfuck) {
     function createVm(code) {
@@ -160,6 +153,13 @@ var Brainfuck;
     }
     Brainfuck.createDebugger = createDebugger;
 })(Brainfuck || (Brainfuck = {}));
+var DebugState;
+(function (DebugState) {
+    DebugState[DebugState["Detatched"] = 0] = "Detatched";
+    DebugState[DebugState["Paused"] = 1] = "Paused";
+    DebugState[DebugState["Running"] = 2] = "Running";
+    DebugState[DebugState["Done"] = 3] = "Done";
+})(DebugState || (DebugState = {}));
 var UI;
 (function (UI) {
     var Debug;
@@ -251,106 +251,137 @@ var UI;
     (function (Memory) {
         var fancyTransitions = false;
         var fasterTransitions = false;
+        var DataChangedDisplay;
+        (function (DataChangedDisplay) {
+            DataChangedDisplay[DataChangedDisplay["None"] = 0] = "None";
+            DataChangedDisplay[DataChangedDisplay["DelayHighlight"] = 1] = "DelayHighlight";
+            DataChangedDisplay[DataChangedDisplay["DurationHighlight"] = 2] = "DurationHighlight";
+        })(DataChangedDisplay || (DataChangedDisplay = {}));
+        function getMemoryViewConfig(el) {
+            var bool = function (k) { var value = el.dataset[k]; console.assert(value !== undefined && value !== null); return value === "1" || value === "true"; };
+            var string = function (k) { var value = el.dataset[k]; console.assert(value !== undefined && value !== null); return value; };
+            var int = function (k) { var value = parseInt(el.dataset[k]); console.assert(value !== undefined && value !== null && !isNaN(value) && isFinite(value)); return value; };
+            return {
+                baseAddress: int("address"),
+                nColSize: int("colSize"),
+                nCols: int("cols"),
+                nRows: int("rows"),
+                showLittleEndian: bool("littleEndian"),
+                showAddress: bool("showAddress"),
+                showHex: bool("showHex"),
+                showData: bool("showData"),
+                dataChangedDisplay: DataChangedDisplay[string("changedDisplay")],
+            };
+        }
+        function getByte(memory, config, rowI, colI, byteI, littleEndian) {
+            return memory[config.baseAddress + (littleEndian ? config.nColSize - byteI - 1 : byteI) + config.nColSize * (colI + config.nCols * rowI)] || 0;
+        }
+        function appendAddressCell(rowCells, config, rowI) {
+            if (config.showAddress) {
+                var a = (config.baseAddress + config.nColSize * config.nCols * rowI).toString(16);
+                var pad = "0x00000000";
+                rowCells.push({ type: "memory-cell-address", display: pad.substr(0, pad.length - a.length) + a, data: a });
+            }
+        }
+        function appendHexCells(rowCells, config, rowI, memory) {
+            for (var colI = 0; colI < config.nCols; ++colI) {
+                var cellText = "";
+                for (var byteI = 0; byteI < config.nColSize; ++byteI) {
+                    var v = getByte(memory, config, rowI, colI, byteI, config.showLittleEndian);
+                    var sv = v.toString(16);
+                    if (sv.length == 1)
+                        sv = "0" + sv;
+                    cellText += sv;
+                }
+                if (rowCells.length)
+                    rowCells.push({ type: "memory-cell-padding", display: " ", data: " " });
+                rowCells.push({ type: "memory-cell-hex", display: cellText, data: cellText });
+            }
+        }
+        function appendDataCells(rowCells, config, rowI, memory) {
+            if (rowCells.length)
+                rowCells.push({ type: "memory-cell-padding", display: " ", data: " " });
+            for (var colI = 0; colI < config.nCols; ++colI) {
+                var offset = config.nColSize * (colI + (config.nCols * rowI));
+                for (var byteI = 0; byteI < config.nColSize; ++byteI) {
+                    var v = getByte(memory, config, rowI, colI, byteI, false);
+                    var cellText = (32 <= v && v < 127) ? String.fromCharCode(v) : "."; // XXX: Abuse unicode? 127 = DEL, probably bad.
+                    var cellData = String.fromCharCode(v);
+                    rowCells.push({ type: "memory-cell-data", display: cellText, data: cellData });
+                }
+            }
+        }
+        function collectTableCells(config, memory) {
+            var table = [];
+            for (var rowI = 0; rowI < config.nRows; ++rowI) {
+                var row = [];
+                if (config.showAddress)
+                    appendAddressCell(row, config, rowI);
+                if (config.showHex)
+                    appendHexCells(row, config, rowI, memory);
+                if (config.showData)
+                    appendDataCells(row, config, rowI, memory);
+                table.push(row);
+            }
+            return table;
+        }
+        function applyDataChangedTransition(config, d3cell) {
+            var transitionId = "highlight-changed";
+            d3cell.interrupt(transitionId);
+            d3cell.style("background-color", "#F44");
+            switch (config.dataChangedDisplay) {
+                case DataChangedDisplay.DelayHighlight:
+                    d3cell
+                        .transition(transitionId).delay(30).duration(0).style("background-color", "#FAA")
+                        .transition().delay(30).duration(0).style("background-color", "#ECC")
+                        .transition().delay(30).duration(0).style("background-color", undefined);
+                    break;
+                case DataChangedDisplay.DurationHighlight:
+                    d3cell
+                        .transition(transitionId).duration(100).style("background-color", "#FAA")
+                        .transition().duration(100).style("background-color", "#DDD")
+                        .transition().style("background-color", undefined);
+                    break;
+            }
+        }
+        function d3UpdateTable(el, config, table) {
+            var d3table = d3.select(el).select("table");
+            if (d3table.empty())
+                d3table = d3.select(el).append("table").style("border-collapse", "collapse");
+            var d3rows = d3table.selectAll("tr").data(table);
+            d3rows.enter().append("tr");
+            d3rows.exit().remove();
+            d3rows.each(function (rowData) {
+                var rowElement = this;
+                var d3cells = d3.select(rowElement).selectAll("td").data(rowData);
+                d3cells.exit().remove();
+                d3cells.enter().append("td");
+                //d3cells.attr("class",	cellData => cellData.type);
+                d3cells.text(function (cellData) { return cellData.display; });
+                if (config.dataChangedDisplay) {
+                    var prevStyle = undefined;
+                    d3cells.each(function (cellData) {
+                        var d3cell = d3.select(this);
+                        var prevMemoryValue = d3cell.attr("data-memory-value");
+                        d3cell.attr("data-memory-value", cellData.data);
+                        var dataChanged = prevMemoryValue !== undefined && prevMemoryValue !== null && prevMemoryValue !== cellData.data;
+                        if (dataChanged)
+                            applyDataChangedTransition(config, d3cell);
+                    });
+                    d3cells.attr("data-memory-value", function (cd) { return cd.data; });
+                }
+            });
+            d3rows.order();
+        }
         function update(theDebugger) {
+            var memory = theDebugger === undefined ? [] : theDebugger.memory();
+            var getByte = function (row, col, byte, littleEndian) { return memory[config.baseAddress + (littleEndian ? config.nColSize - byte - 1 : byte) + config.nColSize * (col + config.nCols * row)] || 0; };
             var els = document.getElementsByClassName("memory");
             for (var elI = 0; elI < els.length; ++elI) {
                 var el = els.item(elI);
-                var b = function (k) { var value = el.dataset[k]; console.assert(value !== undefined); return value === "1" || value === "true"; };
-                var i = function (k) { var value = parseInt(el.dataset[k]); console.assert(value !== undefined && !isNaN(value) && isFinite(value)); return value; };
-                var baseAddress = i("address");
-                var nColSize = i("colSize");
-                var nCols = i("cols");
-                var nRows = i("rows");
-                var showLittleEndian = b("littleEndian");
-                var showAddress = b("showAddress");
-                var showHex = b("showHex");
-                var showData = b("showData");
-                var memory = theDebugger === undefined ? [] : theDebugger.memory();
-                var getByte = function (row, col, byte, littleEndian) { return memory[baseAddress + (littleEndian ? nColSize - byte - 1 : byte) + nColSize * (col + nCols * row)] || 0; }; // TODO: Fix endian calc
-                var d3table = d3.select(el).select("table");
-                if (d3table.empty())
-                    d3table = d3.select(el).append("table").style("border-collapse", "collapse");
-                var tableCells = [];
-                for (var rowI = 0; rowI < nRows; ++rowI) {
-                    var rowCells = [];
-                    tableCells.push(rowCells);
-                    if (showAddress) {
-                        var a = (baseAddress + nColSize * nCols * rowI).toString(16);
-                        var pad = "0x00000000";
-                        rowCells.push({ type: "memory-cell-address", display: pad.substr(0, pad.length - a.length) + a, data: a });
-                    }
-                    if (showHex) {
-                        for (var colI = 0; colI < nCols; ++colI) {
-                            var cellText = "";
-                            for (var byteI = 0; byteI < nColSize; ++byteI) {
-                                var v = getByte(rowI, colI, byteI, showLittleEndian);
-                                var sv = v.toString(16);
-                                if (sv.length == 1)
-                                    sv = "0" + sv;
-                                cellText += sv;
-                            }
-                            if (rowCells.length)
-                                rowCells.push({ type: "memory-cell-padding", display: " ", data: " " });
-                            rowCells.push({ type: "memory-cell-hex", display: cellText, data: cellText });
-                        }
-                    }
-                    if (showData) {
-                        if (rowCells.length)
-                            rowCells.push({ type: "memory-cell-padding", display: " ", data: " " });
-                        for (var colI = 0; colI < nCols; ++colI) {
-                            var offset = nColSize * (colI + (nCols * rowI));
-                            for (var byteI = 0; byteI < nColSize; ++byteI) {
-                                var v = getByte(rowI, colI, byteI, false);
-                                var cellText = (32 <= v && v < 127) ? String.fromCharCode(v) : "."; // XXX: Abuse unicode? 127 = DEL, probably bad.
-                                var cellData = String.fromCharCode(v);
-                                rowCells.push({ type: "memory-cell-data", display: cellText, data: cellData });
-                            }
-                        }
-                    }
-                }
-                var d3rows = d3table.selectAll("tr").data(tableCells);
-                d3rows.enter().append("tr");
-                d3rows.exit().remove();
-                d3rows.each(function (rowData) {
-                    var rowElement = this;
-                    var d3cells = d3.select(rowElement).selectAll("td").data(rowData);
-                    d3cells.exit().remove();
-                    d3cells.enter().append("td");
-                    //d3cells.attr("class",	cellData => cellData.type);
-                    d3cells.text(function (cellData) { return cellData.display; });
-                    if (fancyTransitions || fasterTransitions) {
-                        var prevStyle = undefined;
-                        d3cells.each(function (cellData) {
-                            var d3cell = d3.select(this);
-                            var prevMemoryValue = d3cell.attr("data-memory-value");
-                            d3cell.attr("data-memory-value", cellData.data);
-                            var dataChanged = prevMemoryValue !== undefined && prevMemoryValue !== null && prevMemoryValue !== cellData.data;
-                            if (dataChanged) {
-                                var transitionId = "highlight-changed";
-                                d3cell.interrupt(transitionId);
-                                d3cell.style("background-color", "#F44");
-                                if (fasterTransitions) {
-                                    d3cell
-                                        .transition(transitionId)
-                                        .delay(30).duration(0).style("background-color", "#FAA")
-                                        .transition()
-                                        .delay(30).duration(0).style("background-color", undefined)
-                                        .transition()
-                                        .style("background-color", undefined);
-                                }
-                                else {
-                                    d3cell
-                                        .transition(transitionId)
-                                        .duration(100).style("background-color", "#DDD")
-                                        .transition()
-                                        .style("background-color", undefined);
-                                }
-                            }
-                        });
-                        d3cells.attr("data-memory-value", function (cd) { return cd.data; });
-                    }
-                });
-                d3rows.order();
+                var config = getMemoryViewConfig(el);
+                var table = collectTableCells(config, memory);
+                d3UpdateTable(el, config, table);
             }
         }
         Memory.update = update;
