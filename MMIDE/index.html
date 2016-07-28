@@ -40,7 +40,30 @@
 
 
 	<!--<h2>Memory View</h2>-->
+	<div class="controls debug-state-running debug-state-paused debug-state-done"><table style="border-collapse: collapse;"><tr>
+		<td>
+			Endian:
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['littleEndian']='true'; return false">Little</a>
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['littleEndian']='false'; return false">Big</a>
+		</td><td><img src="icons/separator.png"></td><td>
+			Columns:
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['showAddress']	= m1['showAddress']	== 'true' ? 'false' : 'true'; return false">Address</a>
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['showHex']		= m1['showHex']		== 'true' ? 'false' : 'true'; return false">Hex</a>
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['showData']	= m1['showData']	== 'true' ? 'false' : 'true'; return false">ASCII</a>
+		</td><td><img src="icons/separator.png"></td><td>
+			Width:
+			64			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='1'; m1['cols']='64'; m1['rows']= '6'; return false" alt="Bytes" title="Bytes">By</a> <a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='2'; m1['cols']='32'; m1['rows']= '6'; return false" alt="Words" title="Words">Wo</a> <a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='4'; m1['cols']='16'; m1['rows']= '6'; return false" alt="DWords" title="DWords">DW</a>
+			| 32		<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='1'; m1['cols']='32'; m1['rows']='12'; return false" alt="Bytes" title="Bytes">By</a> <a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='2'; m1['cols']='16'; m1['rows']='12'; return false" alt="Words" title="Words">Wo</a> <a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='4'; m1['cols']= '8'; m1['rows']='12'; return false" alt="DWords" title="DWords">DW</a>
+			| 16		<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='1'; m1['cols']='16'; m1['rows']='24'; return false" alt="Bytes" title="Bytes">By</a> <a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='2'; m1['cols']= '8'; m1['rows']='24'; return false" alt="Words" title="Words">Wo</a> <a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='4'; m1['cols']= '4'; m1['rows']='24'; return false" alt="DWords" title="DWords">DW</a>
+		</td><td><img src="icons/separator.png"></td><td>
+			Changes:
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['changedDisplay']='None';				return false">None</a>
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['changedDisplay']='DelayHighlight';	return false">Delay</a>
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['changedDisplay']='DurationHighlight';	return false">Duration</a>
+		</td>
+	</tr></table></div>
 	<div
+		id="memory1"
 		class="memory debug-state-running debug-state-paused debug-state-done"
 		data-address		="0x00000000"
 		data-little-endian	="false"
@@ -51,18 +74,6 @@
 		data-show-hex		="true"
 		data-show-data		="true"
 		data-changed-display="DelayHighlight"
-	></div>
-	<div
-		class="memory debug-state-running debug-state-paused debug-state-done"
-		data-address		="0x00000000"
-		data-little-endian	="false"
-		data-col-size		="4"
-		data-cols			="16"
-		data-rows			="6"
-		data-show-address	="true"
-		data-show-hex		="true"
-		data-show-data		="true"
-		data-changed-display="None"
 	></div>
 
 
