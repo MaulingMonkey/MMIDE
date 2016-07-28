@@ -2,8 +2,7 @@
 	export module Debug {
 		let theDebugger : Debugger = undefined;
 
-		export function Start(paused: boolean)
-		{
+		export function Start(paused: boolean) {
 			UI.Output.outputs().forEach(o => o.clear());
 
 			let editor = document.getElementsByClassName("editor");
@@ -15,27 +14,23 @@
 			setDebugState(theDebugger.state());
 		}
 
-		export function Stop()
-		{
+		export function Stop() {
 			theDebugger.stop();
 			theDebugger = undefined;
 			setDebugState(DebugState.Detatched);
 		}
 
-		export function Continue()
-		{
+		export function Continue() {
 			theDebugger.continue();
 			setDebugState(theDebugger.state());
 		}
 
-		export function Pause()
-		{
+		export function Pause() {
 			theDebugger.pause();
 			setDebugState(theDebugger.state());
 		}
 
-		export function Restart(paused: boolean)
-		{
+		export function Restart(paused: boolean) {
 			if (theDebugger !== undefined) Stop();
 			Start(paused);
 		}
@@ -70,11 +65,12 @@
 		}
 
 		addEventListener("load", (e) => {
-			setDebugState(DebugState.Detatched);
+			if (prevState === undefined) setDebugState(DebugState.Detatched);
 			setInterval(function() {
 				setDebugState(theDebugger === undefined ? DebugState.Detatched : theDebugger.state());
 				UI.Registers.update(theDebugger === undefined ? [] : theDebugger.threads()[0].registers());
-			}, 10);
+				UI.Memory.update(theDebugger);
+			}, 1/60);
 		});
 	}
 }

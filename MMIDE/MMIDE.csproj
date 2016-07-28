@@ -31,6 +31,7 @@
     <TypeScriptCompile Include="lang\brainfuck.ts" />
     <TypeScriptCompile Include="lang\_debugger.ts" />
     <TypeScriptCompile Include="ui\debug.ts" />
+    <TypeScriptCompile Include="ui\memory.ts" />
     <TypeScriptCompile Include="ui\output.ts" />
     <TypeScriptCompile Include="ui\registers.ts" />
   </ItemGroup>

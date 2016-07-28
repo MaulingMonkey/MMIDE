@@ -14,6 +14,7 @@ interface DebuggerThread {
 interface Debugger {
 	state():		DebugState;
 	threads():		DebuggerThread[];
+	memory():		number[];
 
 	stop();					// Running, Paused	-> None
 	continue();				// Paused			-> Running

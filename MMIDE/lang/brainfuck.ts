@@ -81,6 +81,7 @@
 			["*data",	(vm.data[vm.dataPtr] || "??").toString()											],
 		];
 		let getThreads		= () => [{registers: getRegisters}];
+		let getMemory		= () => vm.data;
 		let getState		= () =>
 			vm === undefined ?					DebugState.Detatched
 			: vm.codePtr >= vm.code.length ?	DebugState.Done
@@ -90,6 +91,7 @@
 		return {
 			state:		getState,
 			threads:	getThreads,
+			memory:		getMemory,
 
 			pause:		doPause,
 			continue:	doContinue,

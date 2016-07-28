@@ -7,7 +7,8 @@
 	}
 
 	addEventListener("load", (e) => {
-		LoadBrainfuckHelloWorld();
+		LoadBrainfuckMandelbrot();
+		UI.Debug.Start(false);
 	});
 
 	export function LoadBrainfuckMandelbrot() {
