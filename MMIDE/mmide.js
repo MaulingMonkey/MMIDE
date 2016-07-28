@@ -249,57 +249,108 @@ var UI;
 (function (UI) {
     var Memory;
     (function (Memory) {
+        var fancyTransitions = false;
+        var fasterTransitions = false;
         function update(theDebugger) {
             var els = document.getElementsByClassName("memory");
             for (var elI = 0; elI < els.length; ++elI) {
                 var el = els.item(elI);
                 var b = function (k) { var value = el.dataset[k]; console.assert(value !== undefined); return value === "1" || value === "true"; };
                 var i = function (k) { var value = parseInt(el.dataset[k]); console.assert(value !== undefined && !isNaN(value) && isFinite(value)); return value; };
-                var address = i("address");
-                var colSize = i("colSize");
-                var cols = i("cols");
-                var rows = i("rows");
+                var baseAddress = i("address");
+                var nColSize = i("colSize");
+                var nCols = i("cols");
+                var nRows = i("rows");
                 var showLittleEndian = b("littleEndian");
                 var showAddress = b("showAddress");
                 var showHex = b("showHex");
                 var showData = b("showData");
-                //console.log(colSize, cols, rows, showHex, showData);
                 var memory = theDebugger === undefined ? [] : theDebugger.memory();
-                var getByte = function (row, col, byte, littleEndian) { return memory[address + (littleEndian ? colSize - byte - 1 : byte) + colSize * (col + cols * row)] || 0; }; // TODO: Fix endian calc
-                var fullBuf = "";
-                for (var rowI = 0; rowI < rows; ++rowI) {
-                    var lineBuf = rowI === 0 ? "" : "\n";
+                var getByte = function (row, col, byte, littleEndian) { return memory[baseAddress + (littleEndian ? nColSize - byte - 1 : byte) + nColSize * (col + nCols * row)] || 0; }; // TODO: Fix endian calc
+                var d3table = d3.select(el).select("table");
+                if (d3table.empty())
+                    d3table = d3.select(el).append("table").style("border-collapse", "collapse");
+                var tableCells = [];
+                for (var rowI = 0; rowI < nRows; ++rowI) {
+                    var rowCells = [];
+                    tableCells.push(rowCells);
                     if (showAddress) {
-                        var a = (address + colSize * cols * rowI).toString(16);
+                        var a = (baseAddress + nColSize * nCols * rowI).toString(16);
                         var pad = "0x00000000";
-                        lineBuf += pad.substr(0, pad.length - a.length) + a + "    ";
+                        rowCells.push({ type: "memory-cell-address", display: pad.substr(0, pad.length - a.length) + a, data: a });
                     }
                     if (showHex) {
-                        for (var colI = 0; colI < cols; ++colI) {
-                            if (colI != 0)
-                                lineBuf += " ";
-                            for (var byteI = 0; byteI < colSize; ++byteI) {
+                        for (var colI = 0; colI < nCols; ++colI) {
+                            var cellText = "";
+                            for (var byteI = 0; byteI < nColSize; ++byteI) {
                                 var v = getByte(rowI, colI, byteI, showLittleEndian);
                                 var sv = v.toString(16);
                                 if (sv.length == 1)
-                                    lineBuf += "0";
-                                lineBuf += sv;
+                                    sv = "0" + sv;
+                                cellText += sv;
                             }
+                            if (rowCells.length)
+                                rowCells.push({ type: "memory-cell-padding", display: " ", data: " " });
+                            rowCells.push({ type: "memory-cell-hex", display: cellText, data: cellText });
                         }
-                        lineBuf += "    ";
                     }
-                    if (showData)
-                        for (var colI = 0; colI < cols; ++colI) {
-                            var offset = colSize * (colI + (cols * rowI));
-                            for (var byteI = 0; byteI < colSize; ++byteI) {
+                    if (showData) {
+                        if (rowCells.length)
+                            rowCells.push({ type: "memory-cell-padding", display: " ", data: " " });
+                        for (var colI = 0; colI < nCols; ++colI) {
+                            var offset = nColSize * (colI + (nCols * rowI));
+                            for (var byteI = 0; byteI < nColSize; ++byteI) {
                                 var v = getByte(rowI, colI, byteI, false);
-                                var sv = (32 <= v && v < 127) ? String.fromCharCode(v) : "."; // XXX: Abuse unicode? 127 = DEL, probably bad.  
-                                lineBuf += sv;
+                                var cellText = (32 <= v && v < 127) ? String.fromCharCode(v) : "."; // XXX: Abuse unicode? 127 = DEL, probably bad.
+                                var cellData = String.fromCharCode(v);
+                                rowCells.push({ type: "memory-cell-data", display: cellText, data: cellData });
                             }
                         }
-                    fullBuf += lineBuf;
+                    }
                 }
-                el.textContent = fullBuf;
+                var d3rows = d3table.selectAll("tr").data(tableCells);
+                d3rows.enter().append("tr");
+                d3rows.exit().remove();
+                d3rows.each(function (rowData) {
+                    var rowElement = this;
+                    var d3cells = d3.select(rowElement).selectAll("td").data(rowData);
+                    d3cells.exit().remove();
+                    d3cells.enter().append("td");
+                    //d3cells.attr("class",	cellData => cellData.type);
+                    d3cells.text(function (cellData) { return cellData.display; });
+                    if (fancyTransitions || fasterTransitions) {
+                        var prevStyle = undefined;
+                        d3cells.each(function (cellData) {
+                            var d3cell = d3.select(this);
+                            var prevMemoryValue = d3cell.attr("data-memory-value");
+                            d3cell.attr("data-memory-value", cellData.data);
+                            var dataChanged = prevMemoryValue !== undefined && prevMemoryValue !== null && prevMemoryValue !== cellData.data;
+                            if (dataChanged) {
+                                var transitionId = "highlight-changed";
+                                d3cell.interrupt(transitionId);
+                                d3cell.style("background-color", "#F44");
+                                if (fasterTransitions) {
+                                    d3cell
+                                        .transition(transitionId)
+                                        .delay(30).duration(0).style("background-color", "#FAA")
+                                        .transition()
+                                        .delay(30).duration(0).style("background-color", undefined)
+                                        .transition()
+                                        .style("background-color", undefined);
+                                }
+                                else {
+                                    d3cell
+                                        .transition(transitionId)
+                                        .duration(100).style("background-color", "#DDD")
+                                        .transition()
+                                        .style("background-color", undefined);
+                                }
+                            }
+                        });
+                        d3cells.attr("data-memory-value", function (cd) { return cd.data; });
+                    }
+                });
+                d3rows.order();
             }
         }
         Memory.update = update;

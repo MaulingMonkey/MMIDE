@@ -22,12 +22,15 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ext\d3\d3.js" />
+    <Content Include="ext\d3\d3.min.js" />
     <Content Include="mmide.css" />
     <Content Include="index.html" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="examples.ts" />
+    <TypeScriptCompile Include="ext\d3\d3.d.ts" />
     <TypeScriptCompile Include="lang\brainfuck.ts" />
     <TypeScriptCompile Include="lang\_debugger.ts" />
     <TypeScriptCompile Include="ui\debug.ts" />

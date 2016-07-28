@@ -6,7 +6,7 @@
 h1	{ font-family: Consolas; text-align: center; }
 h2	{ font-family: Consolas; text-align: center; }
 
-table { font: inherit; }
+table { font: inherit; white-space: inherit; }
 .controls
 {
 	font:			8pt Consolas;
