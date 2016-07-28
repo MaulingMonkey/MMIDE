@@ -1,15 +1,17 @@
 ﻿body
 {
+	font-family: Consolas, Courier New, Courier, monospace;
+	font-size: 8pt;
 	background: #BBB;
 }
 
-h1	{ font-family: Consolas; text-align: center; }
-h2	{ font-family: Consolas; text-align: center; }
+*		{ font-family: inherit; }
+h1		{ font-family: inherit; text-align: center; }
+h2		{ font-family: inherit; text-align: center; }
+table	{ font: inherit; white-space: inherit; }
 
-table { font: inherit; white-space: inherit; }
 .controls
 {
-	font:			8pt Consolas;
 	padding:		5px;
 	margin:			5px;
 	border-radius:	5px;
@@ -20,7 +22,6 @@ table { font: inherit; white-space: inherit; }
 
 .registers
 {
-	font:			8pt Consolas;
 	padding:		5px;
 	margin:			5px;
 	border-radius:	5px;
@@ -34,7 +35,6 @@ table { font: inherit; white-space: inherit; }
 
 .memory
 {
-	font:			8pt Consolas;
 	padding:		5px;
 	margin:			5px;
 	border-radius:	5px;
@@ -48,7 +48,6 @@ table { font: inherit; white-space: inherit; }
 
 .editor
 {
-	font:			8pt Consolas;
 	padding:		5px;
 	margin:			5px;
 	border-radius:	5px;
@@ -59,14 +58,13 @@ table { font: inherit; white-space: inherit; }
 	min-height:		200px;
 	flex-grow:		2;
 	flex-shrink:	2;
-	flex-basis:		500px; /* <-- */
+	flex-basis:		500px;
 	display:		block;
 	overflow-y:		auto;
 }
 
 .output
 {
-	font:			8pt Consolas;
 	padding:		5px;
 	margin:			5px;
 	border-radius:	5px;
@@ -77,7 +75,7 @@ table { font: inherit; white-space: inherit; }
 	min-height:		200px;
 	flex-grow:		1;
 	flex-shrink:	1;
-	flex-basis:		300px; /* <-- */
+	flex-basis:		300px;
 	display:		block;
 	overflow-y:		auto;
 }
