@@ -1,9 +1,6 @@
 ﻿module Examples {
 	function LoadExample(example: string) {
-		let eds = document.getElementsByClassName("editor");
-		console.assert(eds.length === 1);
-		let ed = <HTMLElement> eds.item(0);
-		ed.textContent = example;
+		UI.Editor.setScript(example);
 	}
 
 	addEventListener("load", (e) => {

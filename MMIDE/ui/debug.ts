@@ -5,9 +5,8 @@
 		export function Start(paused: boolean) {
 			UI.Output.outputs().forEach(o => o.clear());
 
-			let editor = document.getElementsByClassName("editor");
-			console.assert(editor.length == 1);
-			theDebugger = Brainfuck.createDebugger(editor.item(0).textContent, (stdout) => {
+			let script = UI.Editor.getScript();
+			theDebugger = Brainfuck.createDebugger(script, (stdout) => {
 				UI.Output.outputs().forEach(o => o.write(stdout));
 			});
 			if (!paused) theDebugger.continue();

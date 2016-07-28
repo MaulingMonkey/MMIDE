@@ -1,8 +1,6 @@
 ﻿<html><head>
 	<title>MMIDE - Brainfuck Demo</title>
 	<link rel="stylesheet" href="mmide.css" type="text/css" />
-	<script src="ext/d3/d3.min.js"></script>
-	<script src="mmide.js"></script>
 </head><body><div class="fullscreen" style="display: flex; flex-direction: column;">
 
 	<div class="controls"><table style="border-collapse: collapse;"><tr>
@@ -89,8 +87,49 @@
 
 
 	<!--<h2>Editor</h2>-->
-	<div class="editor" contenteditable="true">Insert Brainfuck Here</div>
+	<!--<div id="editor" class="editor" contenteditable="true">Insert Brainfuck Here</div>-->
+	<div class="controls" style="height: auto"><table style="border-collapse: collapse;"><tr>
+		<td>
+			Themes:
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Ambiance</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Chaos</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Chrome</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Clouds</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Clouds Midnight</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Cobalt</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Crimson Editor</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Dawn</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Dreamweaver</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Eclipse</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Github</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Idle Fingers</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">iPlastic</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Katzenmilch</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">KR Theme</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Kuroir</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Merbivore</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Merbivore_Soft</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Mono Industrial</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Monokai</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Pastel on Dark</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Solarized Dark</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Solarized Light</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">SqlServer</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Terminal</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">TextMate</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Tomorrow</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Tomorrow Night</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Tomorrow Night Blue</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Tomorrow Night Bright</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Tomorrow Night Eighties</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Twilight</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Vibrant Ink</a>
+			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">XCode</a>
+		</td>
+	</tr></table></div>
+	<div id="editor" class="editor">Insert Brainfuck Here</div>
 
-
-
+	<script src="ext/ace/ace.js" charset="utf-8"></script>
+	<script src="ext/d3/d3.min.js"></script>
+	<script src="mmide.js"></script>
 </div></body></html>

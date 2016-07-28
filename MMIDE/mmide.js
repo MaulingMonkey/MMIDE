@@ -1,10 +1,7 @@
 var Examples;
 (function (Examples) {
     function LoadExample(example) {
-        var eds = document.getElementsByClassName("editor");
-        console.assert(eds.length === 1);
-        var ed = eds.item(0);
-        ed.textContent = example;
+        UI.Editor.setScript(example);
     }
     addEventListener("load", function (e) {
         LoadBrainfuckMandelbrot();
@@ -19,6 +16,13 @@ var Examples;
     }
     Examples.LoadBrainfuckHelloWorld = LoadBrainfuckHelloWorld;
 })(Examples || (Examples = {}));
+var DebugState;
+(function (DebugState) {
+    DebugState[DebugState["Detatched"] = 0] = "Detatched";
+    DebugState[DebugState["Paused"] = 1] = "Paused";
+    DebugState[DebugState["Running"] = 2] = "Running";
+    DebugState[DebugState["Done"] = 3] = "Done";
+})(DebugState || (DebugState = {}));
 var Brainfuck;
 (function (Brainfuck) {
     function createVm(code) {
@@ -153,13 +157,6 @@ var Brainfuck;
     }
     Brainfuck.createDebugger = createDebugger;
 })(Brainfuck || (Brainfuck = {}));
-var DebugState;
-(function (DebugState) {
-    DebugState[DebugState["Detatched"] = 0] = "Detatched";
-    DebugState[DebugState["Paused"] = 1] = "Paused";
-    DebugState[DebugState["Running"] = 2] = "Running";
-    DebugState[DebugState["Done"] = 3] = "Done";
-})(DebugState || (DebugState = {}));
 var UI;
 (function (UI) {
     var Debug;
@@ -167,9 +164,8 @@ var UI;
         var theDebugger = undefined;
         function Start(paused) {
             UI.Output.outputs().forEach(function (o) { return o.clear(); });
-            var editor = document.getElementsByClassName("editor");
-            console.assert(editor.length == 1);
-            theDebugger = Brainfuck.createDebugger(editor.item(0).textContent, function (stdout) {
+            var script = UI.Editor.getScript();
+            theDebugger = Brainfuck.createDebugger(script, function (stdout) {
                 UI.Output.outputs().forEach(function (o) { return o.write(stdout); });
             });
             if (!paused)
@@ -244,6 +240,50 @@ var UI;
             }, 1 / 60);
         });
     })(Debug = UI.Debug || (UI.Debug = {}));
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Editor;
+    (function (Editor) {
+        var _editor = undefined;
+        function editor() {
+            if (_editor === undefined) {
+                _editor = ace.edit("editor");
+                _editor.setTheme("ace/theme/monokai");
+                var session = _editor.getSession();
+                //session.setMode("ace/mode/javascript");
+                session.setTabSize(4);
+                session.setUseSoftTabs(false);
+            }
+            return _editor;
+        }
+        function getScript() {
+            //let editor = document.getElementsByClassName("editor");
+            //console.assert(editor.length == 1);
+            //return editor.item(0).textContent;
+            return editor().getValue();
+        }
+        Editor.getScript = getScript;
+        function setScript(script) {
+            //let eds = document.getElementsByClassName("editor");
+            //console.assert(eds.length === 1);
+            //let ed = <HTMLElement> eds.item(0);
+            //ed.textContent = script;
+            editor().setValue(script);
+        }
+        Editor.setScript = setScript;
+        function setTheme(theme) {
+            editor().setTheme("ace/theme/" + theme.toLowerCase().replace(' ', '_'));
+        }
+        Editor.setTheme = setTheme;
+        addEventListener("load", function (e) {
+            editor();
+            // "Ace only resizes itself on window events. If you resize the editor div in another manner, and need Ace to resize, use the following"
+            // Currently, console output, memory dump resizes, etc. may alter the editor div size.
+            // Takes maybe ~5ms/check from an initial look at Chrome timeline results?  Not nearly my biggest perf issue atm.
+            setInterval(function () { editor().resize(false); }, 10);
+        });
+    })(Editor = UI.Editor || (UI.Editor = {}));
 })(UI || (UI = {}));
 var UI;
 (function (UI) {
