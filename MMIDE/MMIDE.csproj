@@ -34,6 +34,7 @@
     <TypeScriptCompile Include="ext\ace.d.ts" />
     <TypeScriptCompile Include="ext\d3\d3.d.ts" />
     <TypeScriptCompile Include="lang\brainfuck.ts" />
+    <TypeScriptCompile Include="lang\brainfuck\brainfuck_ast.ts" />
     <TypeScriptCompile Include="lang\_debugger.ts" />
     <TypeScriptCompile Include="ui\debug.ts" />
     <TypeScriptCompile Include="ui\editor.ts" />

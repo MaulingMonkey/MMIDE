@@ -16,13 +16,6 @@ var Examples;
     }
     Examples.LoadBrainfuckHelloWorld = LoadBrainfuckHelloWorld;
 })(Examples || (Examples = {}));
-var DebugState;
-(function (DebugState) {
-    DebugState[DebugState["Detatched"] = 0] = "Detatched";
-    DebugState[DebugState["Paused"] = 1] = "Paused";
-    DebugState[DebugState["Running"] = 2] = "Running";
-    DebugState[DebugState["Done"] = 3] = "Done";
-})(DebugState || (DebugState = {}));
 var Brainfuck;
 (function (Brainfuck) {
     function createVm(code) {
@@ -157,6 +150,126 @@ var Brainfuck;
     }
     Brainfuck.createDebugger = createDebugger;
 })(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var AST;
+    (function (AST) {
+        (function (NodeType) {
+            NodeType[NodeType["AddDataPtr"] = 0] = "AddDataPtr";
+            NodeType[NodeType["AddData"] = 1] = "AddData";
+            NodeType[NodeType["SystemCall"] = 2] = "SystemCall";
+            NodeType[NodeType["Loop"] = 3] = "Loop";
+        })(AST.NodeType || (AST.NodeType = {}));
+        var NodeType = AST.NodeType;
+        (function (SystemCall) {
+            SystemCall[SystemCall["Putch"] = 0] = "Putch";
+            SystemCall[SystemCall["Getch"] = 1] = "Getch";
+            SystemCall[SystemCall["TapeEnd"] = 2] = "TapeEnd";
+        })(AST.SystemCall || (AST.SystemCall = {}));
+        var SystemCall = AST.SystemCall;
+        function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column, byte: sl.byte }; }
+        (function (ErrorSeverity) {
+            ErrorSeverity[ErrorSeverity["Verbose"] = 0] = "Verbose";
+            ErrorSeverity[ErrorSeverity["Info"] = 1] = "Info";
+            ErrorSeverity[ErrorSeverity["Warning"] = 2] = "Warning";
+            ErrorSeverity[ErrorSeverity["Error"] = 3] = "Error";
+        })(AST.ErrorSeverity || (AST.ErrorSeverity = {}));
+        var ErrorSeverity = AST.ErrorSeverity;
+        function defaultOnError(error) {
+            if (!!error.location) {
+                console.error("Error:", error.description, "@", error.location.file + "(" + error.location.line + ")");
+            }
+            else {
+                console.error("Error:", error.description, "@", error.location.file + "(" + error.location.line + ")");
+            }
+        }
+        function parse(args) {
+            try {
+                // Preconditions
+                console.assert(!!args, "parse: args is not optional");
+                console.assert(args.code !== undefined, "parse: args.code is not optional");
+                console.assert(args.code !== null, "parse: args.code is not optional");
+                // Context
+                var location = { file: "memory.bf", line: 1, column: 1, byte: 0 };
+                var code = args.code;
+                var _onError = args.onError || defaultOnError; // Prefer softError/fatalError
+                var _root = []; // You probably want scope
+                var _scopeStack = [_root]; // Prefer scope/pushScope/popScope
+                var atLocation = function (tempLocation, action) { var origLocation = location; location = tempLocation; action(); location = origLocation; };
+                // Utils
+                var info = function (desc) { return _onError({ severity: ErrorSeverity.Info, description: desc, location: cloneSourceLocation(location) }); };
+                var warning = function (desc) { return _onError({ severity: ErrorSeverity.Warning, description: desc, location: cloneSourceLocation(location) }); };
+                var error = function (desc) { return _onError({ severity: ErrorSeverity.Error, description: desc, location: cloneSourceLocation(location) }); };
+                var scope = function () { return _scopeStack[_scopeStack.length - 1]; };
+                var pushScope = function () { var scope = []; _scopeStack.push(scope); return scope; };
+                var popScope = function () { if (_scopeStack.length == 1)
+                    error("Reached end of scope ']', but was already at the root scope!");
+                else
+                    _scopeStack.pop(); };
+                warning("Warning Demo");
+                for (var codeI = 0; codeI < code.length; ++codeI) {
+                    var ch = code[codeI];
+                    switch (ch) {
+                        case "<":
+                            scope().push({ type: NodeType.AddDataPtr, value: -1, location: cloneSourceLocation(location) });
+                            break;
+                        case ">":
+                            scope().push({ type: NodeType.AddDataPtr, value: +1, location: cloneSourceLocation(location) });
+                            break;
+                        case "+":
+                            scope().push({ type: NodeType.AddData, value: +1, location: cloneSourceLocation(location) });
+                            break;
+                        case "-":
+                            scope().push({ type: NodeType.AddData, value: -1, location: cloneSourceLocation(location) });
+                            break;
+                        case ".":
+                            scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Getch, location: cloneSourceLocation(location) });
+                            break;
+                        case ",":
+                            scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Putch, location: cloneSourceLocation(location) });
+                            break;
+                        case "[":
+                            scope().push({ type: NodeType.Loop, childScope: pushScope(), location: cloneSourceLocation(location) });
+                            break;
+                        case "]":
+                            popScope();
+                            break;
+                        default: break;
+                    }
+                    ++location.byte;
+                    if (ch == "\n") {
+                        ++location.line;
+                        location.column = 1;
+                    }
+                    else {
+                        ++location.column;
+                    }
+                }
+                scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.TapeEnd, location: cloneSourceLocation(location) });
+                if (_scopeStack.length > 1) {
+                    for (var i = _scopeStack.length - 2; i >= 0; --i) {
+                        var badScopeNode = _scopeStack[i][_scopeStack[i].length - 1];
+                        atLocation(badScopeNode.location, function () { return error("Start of scope '[' not terminated before end of file!"); });
+                    }
+                    error("Unexpected end of file!");
+                    return [];
+                }
+                return _root;
+            }
+            catch (e) {
+                return [];
+            }
+        }
+        AST.parse = parse;
+    })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
+})(Brainfuck || (Brainfuck = {}));
+var DebugState;
+(function (DebugState) {
+    DebugState[DebugState["Detatched"] = 0] = "Detatched";
+    DebugState[DebugState["Paused"] = 1] = "Paused";
+    DebugState[DebugState["Running"] = 2] = "Running";
+    DebugState[DebugState["Done"] = 3] = "Done";
+})(DebugState || (DebugState = {}));
 var UI;
 (function (UI) {
     var Debug;
@@ -258,17 +371,10 @@ var UI;
             return _editor;
         }
         function getScript() {
-            //let editor = document.getElementsByClassName("editor");
-            //console.assert(editor.length == 1);
-            //return editor.item(0).textContent;
             return editor().getValue();
         }
         Editor.getScript = getScript;
         function setScript(script) {
-            //let eds = document.getElementsByClassName("editor");
-            //console.assert(eds.length === 1);
-            //let ed = <HTMLElement> eds.item(0);
-            //ed.textContent = script;
             editor().setValue(script);
         }
         Editor.setScript = setScript;
@@ -276,12 +382,50 @@ var UI;
             editor().setTheme("ace/theme/" + theme.toLowerCase().replace(' ', '_'));
         }
         Editor.setTheme = setTheme;
+        function toggleGutterDecoration(s, row, className, enable) {
+            if (enable) {
+                s.removeGutterDecoration(row, className);
+                s.addGutterDecoration(row, className);
+            }
+            else {
+                s.removeGutterDecoration(row, className);
+            }
+        }
+        function setErrors(errors) {
+            var s = editor().getSession();
+            var lineErrors = [];
+            errors.forEach(function (error) {
+                if (!error.location || !error.location.line)
+                    return;
+                var le = lineErrors[error.location.line];
+                if (le === undefined)
+                    le = lineErrors[error.location.line] = [];
+                le.push(error);
+            });
+            console.log(lineErrors);
+            s.clearBreakpoints();
+            for (var lineIndex = 0; lineIndex < s.getLength(); ++lineIndex) {
+                var worst = Math.max.apply(Math, (lineErrors[lineIndex + 1] || []).map(function (e) { return e.severity; }));
+                toggleGutterDecoration(s, lineIndex, "ace_info", worst == Brainfuck.AST.ErrorSeverity.Info);
+                toggleGutterDecoration(s, lineIndex, "ace_warning", worst == Brainfuck.AST.ErrorSeverity.Warning);
+                toggleGutterDecoration(s, lineIndex, "ace_error", worst == Brainfuck.AST.ErrorSeverity.Error);
+            }
+        }
+        Editor.setErrors = setErrors;
         addEventListener("load", function (e) {
             editor();
             // "Ace only resizes itself on window events. If you resize the editor div in another manner, and need Ace to resize, use the following"
             // Currently, console output, memory dump resizes, etc. may alter the editor div size.
             // Takes maybe ~5ms/check from an initial look at Chrome timeline results?  Not nearly my biggest perf issue atm.
             setInterval(function () { editor().resize(false); }, 10);
+            setInterval(function () {
+                var errors = [];
+                Brainfuck.AST.parse({
+                    code: getScript(),
+                    onError: function (e) { return errors.push(e); },
+                });
+                setErrors(errors);
+            }, 100);
         });
     })(Editor = UI.Editor || (UI.Editor = {}));
 })(UI || (UI = {}));
