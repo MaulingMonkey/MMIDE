@@ -4,8 +4,7 @@ var Examples;
         UI.Editor.setScript(example);
     }
     addEventListener("load", function (e) {
-        //LoadBrainfuckMandelbrot();
-        LoadBrainfuckHelloWorld();
+        LoadBrainfuckMandelbrot();
         UI.Debug.Start(false);
     });
     function LoadBrainfuckMandelbrot() {
@@ -167,10 +166,19 @@ var Brainfuck;
             var ast = args.ast;
             for (var i = 0; i <= ast.length - 1; ++i) {
                 var a = ast[i + 0];
+                var replace = function () {
+                    var nodes = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        nodes[_i - 0] = arguments[_i];
+                    }
+                    ast.splice.apply(ast, [i, 1].concat(nodes));
+                    --i;
+                    changes = true;
+                };
                 // Single-op loop optimizations
                 if (a.type === AST.NodeType.Loop) {
                     if (a.childScope.length === 0) {
-                        a = { type: AST.NodeType.BreakIf, location: a.location };
+                        replace({ type: AST.NodeType.BreakIf, location: a.location });
                     }
                     else if (a.childScope.length === 1) {
                         var c = a.childScope[0];
@@ -180,26 +188,18 @@ var Brainfuck;
                                     break;
                                 if ((c.value & 1) === 0)
                                     args.onError({ description: "Infinite loop if *data is even, *data = 0 otherwise.  If you just want to set *data = 0, prefer [-] or [+]", location: c.location, severity: AST.ErrorSeverity.Warning });
-                                a = { type: AST.NodeType.SetData, value: 0, location: a.location };
-                                changes = true;
+                                replace({ type: AST.NodeType.SetData, value: 0, location: a.location });
                                 break;
                             case AST.NodeType.SetData:
                                 if (!!c.dataOffset)
                                     break;
                                 if (c.value !== 0)
                                     args.onError({ description: "Infinite loop if *data != 0 - prefer [] if intentional", location: c.location, severity: AST.ErrorSeverity.Warning });
-                                a = { type: AST.NodeType.SetData, value: 0, location: a.location };
+                                replace({ type: AST.NodeType.SetData, value: 0, location: a.location });
                                 changes = true;
                                 break;
                         }
                     }
-                }
-                if (!a) {
-                    ast.splice(i + 0, 1);
-                    i -= 1;
-                }
-                else {
-                    ast[i + 0] = a;
                 }
             }
             return changes;
@@ -211,20 +211,27 @@ var Brainfuck;
             for (var i = 0; i <= ast.length - 2; ++i) {
                 var a = ast[i + 0];
                 var b = ast[i + 1];
+                var replace = function () {
+                    var nodes = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        nodes[_i - 0] = arguments[_i];
+                    }
+                    ast.splice.apply(ast, [i, 2].concat(nodes));
+                    --i;
+                    changes = true;
+                };
                 // Collasing optimizations
                 if (a.type === b.type) {
                     switch (a.type) {
                         case AST.NodeType.AddDataPtr:
                             a.value = (a.value + b.value);
-                            b = undefined;
-                            changes = true;
+                            replace(a);
                             break;
                         case AST.NodeType.AddData:
                             if ((a.dataOffset || 0) !== (b.dataOffset || 0))
                                 break;
                             a.value = (a.value + b.value + 256) % 256;
-                            b = undefined;
-                            changes = true;
+                            replace(a);
                             break;
                     }
                 }
@@ -232,20 +239,9 @@ var Brainfuck;
                     // Optimize set + add into a plain set
                     if (a.type == AST.NodeType.SetData && b.type == AST.NodeType.AddData && (a.dataOffset || 0) === (b.dataOffset || 0)) {
                         a.value = (a.value + b.value);
-                        b = undefined;
-                        changes = true;
+                        replace(a);
                     }
                 }
-                ast[i + 0] = a;
-                ast[i + 1] = b;
-                if (!a && !b)
-                    ast.splice(i, 2);
-                else if (!a)
-                    ast.splice(i + 0, 1);
-                else if (!b)
-                    ast.splice(i + 1, 1);
-                if (!a || !b)
-                    --i; // Rerun pair optimization against new pair
             }
             return changes;
         }
@@ -257,36 +253,38 @@ var Brainfuck;
                 var a = ast[i + 0];
                 var b = ast[i + 1];
                 var c = ast[i + 2];
+                var replace = function () {
+                    var nodes = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        nodes[_i - 0] = arguments[_i];
+                    }
+                    ast.splice.apply(ast, [i, 3].concat(nodes));
+                    --i;
+                    changes = true;
+                };
                 // Offset optimizations
                 if (a.type === AST.NodeType.AddDataPtr && c.type === AST.NodeType.AddDataPtr && a.value === -c.value) {
                     switch (b.type) {
                         // e.g. <[-]> or >[+]< or >>>[+]<<< or ...
-                        //case NodeType.SetData:	a = { type: NodeType.SetData, location: a.location, dataOffset: a.value + (b.dataOffset||0), value: b.value }; b = c = undefined; break;
+                        case AST.NodeType.SetData:
+                            replace({
+                                type: AST.NodeType.SetData,
+                                location: a.location,
+                                dataOffset: a.value + (b.dataOffset || 0),
+                                value: b.value
+                            });
+                            break;
                         // e.g. <-----> or >++++<
                         case AST.NodeType.AddData:
-                            var r = {
+                            replace({
                                 type: AST.NodeType.AddData,
                                 location: a.location,
                                 dataOffset: a.value + (b.dataOffset || 0),
                                 value: b.value
-                            };
-                            //console.log(nodeToString(a),nodeToString(b),nodeToString(c)," -> ",nodeToString(r));
-                            a = r;
-                            b = c = undefined;
+                            });
                             break;
                     }
                 }
-                ast[i + 0] = a;
-                ast[i + 1] = b;
-                ast[i + 2] = c;
-                if (!c)
-                    ast.splice(i + 2, 1);
-                if (!b)
-                    ast.splice(i + 1, 1);
-                if (!a)
-                    ast.splice(i + 0, 1);
-                if (!a || !b || !c)
-                    --i; // Rerun triple optimization against new triple
             }
             return changes;
         }
@@ -417,9 +415,9 @@ var Brainfuck;
                 runHandle = setInterval(function () { return runSome(vm, 100000, stdout, doPause); }, 0); }; // Increase instruction limit after fixing loop perf?
             var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
             var getRegisters = function () { return [
-                [" code", vm.codePtr.toString()],
+                [" code", "0x" + vm.codePtr.toString(16)],
                 ["*code", (vm.code[vm.codePtr] || "??").replace("\n", "\\n").replace("\r", "\\r").toString()],
-                [" data", vm.dataPtr.toString()],
+                [" data", "0x" + vm.dataPtr.toString(16)],
                 ["*data", (vm.data[vm.dataPtr] || "??").toString()],
             ]; };
             var getThreads = function () { return [{ registers: getRegisters }]; };
@@ -575,6 +573,7 @@ var Brainfuck;
         }
         VmCompiler.compile = compile;
         function runSome(vm, maxInstructions, stdout, stop) {
+            var tStart = Date.now();
             var stdoutBuf = "";
             for (var instructionsRan = 0; instructionsRan < maxInstructions; ++instructionsRan) {
                 var op = vm.code.ops[vm.codePtr];
@@ -621,22 +620,27 @@ var Brainfuck;
                                 break;
                             default:
                                 stop();
-                                console.error("Unexpected SystemCall", op.value, op);
+                                console.error("Unexpected SystemCall", Brainfuck.AST.SystemCall[op.value], op);
                                 break;
                         }
                         ++vm.codePtr;
                         break;
                     default:
                         stop();
-                        console.error("Unexpected VmOpType", op.type, op);
+                        console.error("Unexpected VmOpType", VmOpType[op.type], op);
                         break;
                 }
             }
             if (stdoutBuf != "")
                 stdout(stdoutBuf);
             //console.log("Ran",instructionsRan,"instructions (IP=", vm.codePtr, "(", vm.code[vm.codePtr],") DP=", vm.dataPtr, "(", vm.data[vm.dataPtr] ,"))");
+            var tStop = Date.now();
+            vm.insRan += instructionsRan;
+            vm.runTime += (tStop - tStart) / 1000;
         }
-        function sourceLocToString(sl) { return !sl ? "unknown" : (sl.file + "(" + sl.line + ")"); }
+        function lpad(s, padding) { return padding.substr(0, padding.length - s.length) + s; }
+        function addr(n) { return lpad(n.toString(16), "0x0000"); }
+        function sourceLocToString(sl) { return !sl ? "unknown" : (sl.file + "(" + lpad(sl.line.toString(), "   ") + ")"); }
         function createDebugger(code, stdout) {
             var errors = false;
             var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
@@ -645,7 +649,7 @@ var Brainfuck;
                 return undefined;
             var program = { ops: [], locs: [] };
             compile(program, parseResult.optimizedAst);
-            var vm = { code: program, data: [], codePtr: 0, dataPtr: 0 };
+            var vm = { code: program, data: [], codePtr: 0, dataPtr: 0, insRan: 0, runTime: 0 };
             var runHandle = undefined;
             var doPause = function () { if (runHandle !== undefined)
                 clearInterval(runHandle); runHandle = undefined; };
@@ -653,11 +657,18 @@ var Brainfuck;
                 runHandle = setInterval(function () { return runSome(vm, 100000, stdout, doPause); }, 0); }; // Increase instruction limit after fixing loop perf?
             var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
             var getRegisters = function () { return [
-                [" code", vm.codePtr.toString()],
+                [" code", addr(vm.codePtr)],
                 ["*code", vmOpToString(vm.code.ops[vm.codePtr])],
                 ["@code", sourceLocToString(vm.code.locs[vm.codePtr])],
-                [" data", vm.dataPtr.toString()],
-                ["*data", (vm.data[vm.dataPtr] || "??").toString()],
+                [" data", addr(vm.dataPtr)],
+                ["*data", (vm.data[vm.dataPtr] || "0").toString()],
+                ["     ", ""],
+                ["ran  ", vm.insRan.toString()],
+                ["ran/s", ((vm.insRan / vm.runTime) | 0).toString()],
+                ["    s", (vm.runTime | 0).toString()],
+                ["     ", ""],
+                ["code length (original)", code.length.toString()],
+                ["code length (bytecode)", program.ops.length.toString()],
             ]; };
             var getThreads = function () { return [{ registers: getRegisters }]; };
             var getMemory = function () { return vm.data; };
@@ -1058,8 +1069,8 @@ var UI;
     (function (Registers) {
         function update(registers) {
             var flat = "";
-            var lpad = "      ";
-            var rpad = "      ";
+            var lpad = "";
+            var rpad = "                 ";
             registers.forEach(function (reg) { return flat += reg[0] + lpad.substring(reg[0].length) + " := " + rpad.substring(reg[1].length) + reg[1] + "\n"; });
             flat = flat.substr(0, flat.length - 1);
             var els = document.getElementsByClassName("registers");

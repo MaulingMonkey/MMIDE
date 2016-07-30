@@ -76,9 +76,9 @@
 			let doContinue		= () => { if (runHandle === undefined) runHandle = setInterval(() => runSome(vm, 100000, stdout, doPause), 0); }; // Increase instruction limit after fixing loop perf?
 			let doStop			= () => { doPause(); vm.dataPtr = vm.data.length; }
 			let getRegisters : ()=>RegistersList = () => [
-				[" code",	vm.codePtr.toString()																],
+				[" code",	"0x"+vm.codePtr.toString(16)														],
 				["*code",	(vm.code[vm.codePtr] || "??").replace("\n","\\n").replace("\r","\\r").toString()	],
-				[" data",	vm.dataPtr.toString()																],
+				[" data",	"0x"+vm.dataPtr.toString(16)														],
 				["*data",	(vm.data[vm.dataPtr] || "??").toString()											],
 			];
 			let getThreads		= () => [{registers: getRegisters}];

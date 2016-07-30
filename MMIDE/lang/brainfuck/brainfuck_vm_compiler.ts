@@ -29,6 +29,9 @@
 			data:		number[];
 			codePtr:	number;
 			dataPtr:	number;
+
+			insRan:			number;
+			runTime:		number;
 		}
 
 
@@ -67,6 +70,7 @@
 		}
 
 		function runSome(vm: State, maxInstructions: number, stdout: (b: string) => void, stop: () => void) {
+			let tStart = Date.now();
 			let stdoutBuf = "";
 			for (var instructionsRan=0; instructionsRan<maxInstructions; ++instructionsRan) {
 				let op = vm.code.ops[vm.codePtr];
@@ -87,22 +91,27 @@
 							case AST.SystemCall.TapeEnd:	stop(); break;
 							default:
 								stop();
-								console.error("Unexpected SystemCall", op.value, op);
+								console.error("Unexpected SystemCall", AST.SystemCall[op.value], op);
 								break;
 						}
 						++vm.codePtr;
 						break;
 					default:
 						stop();
-						console.error("Unexpected VmOpType", op.type, op);
+						console.error("Unexpected VmOpType", VmOpType[op.type], op);
 						break;
 				}
 			}
 			if (stdoutBuf != "") stdout(stdoutBuf);
 			//console.log("Ran",instructionsRan,"instructions (IP=", vm.codePtr, "(", vm.code[vm.codePtr],") DP=", vm.dataPtr, "(", vm.data[vm.dataPtr] ,"))");
+			let tStop = Date.now();
+			vm.insRan += instructionsRan;
+			vm.runTime += (tStop-tStart) / 1000;
 		}
 
-		function sourceLocToString(sl: AST.SourceLocation) { return !sl ? "unknown" : (sl.file + "(" + sl.line + ")"); }
+		function lpad(s: string, padding: string) { return padding.substr(0,padding.length-s.length) + s; }
+		function addr(n: number): string { return lpad(n.toString(16), "0x0000"); }
+		function sourceLocToString(sl: AST.SourceLocation) { return !sl ? "unknown" : (sl.file + "(" + lpad(sl.line.toString(), "   ") + ")"); }
 
 		export function createDebugger(code: string, stdout: (b: string) => void): Debugger {
 			let errors = false;
@@ -112,18 +121,25 @@
 			let program : Program = { ops: [], locs: [] };
 			compile(program, parseResult.optimizedAst);
 
-			let vm : State = { code: program, data: [], codePtr: 0, dataPtr: 0 };
+			let vm : State = { code: program, data: [], codePtr: 0, dataPtr: 0, insRan: 0, runTime: 0 };
 			let runHandle : number = undefined;
 
 			let doPause			= () => { if (runHandle !== undefined) clearInterval(runHandle); runHandle = undefined; };
 			let doContinue		= () => { if (runHandle === undefined) runHandle = setInterval(() => runSome(vm, 100000, stdout, doPause), 0); }; // Increase instruction limit after fixing loop perf?
 			let doStop			= () => { doPause(); vm.dataPtr = vm.data.length; }
 			let getRegisters : ()=>RegistersList = () => [
-				[" code",	vm.codePtr.toString()																],
+				[" code",	addr(vm.codePtr)																	],
 				["*code",	vmOpToString(vm.code.ops[vm.codePtr])												],
 				["@code",	sourceLocToString(vm.code.locs[vm.codePtr])											],
-				[" data",	vm.dataPtr.toString()																],
-				["*data",	(vm.data[vm.dataPtr] || "??").toString()											],
+				[" data",	addr(vm.dataPtr)																	],
+				["*data",	(vm.data[vm.dataPtr] || "0").toString()												],
+				["     ",""],
+				["ran  ",	vm.insRan.toString()																],
+				["ran/s",	((vm.insRan / vm.runTime) | 0).toString()											],
+				["    s",	(vm.runTime|0).toString()															],
+				["     ",""],
+				["code length (original)", code.length.toString()			],
+				["code length (bytecode)", program.ops.length.toString()	],
 			];
 			let getThreads		= () => [{registers: getRegisters}];
 			let getMemory		= () => vm.data;
