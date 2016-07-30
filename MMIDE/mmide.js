@@ -49,12 +49,10 @@ var Brainfuck;
         })(AST.ErrorSeverity || (AST.ErrorSeverity = {}));
         var ErrorSeverity = AST.ErrorSeverity;
         function defaultOnError(error) {
-            if (!!error.location) {
+            if (!!error.location)
                 console.error("Error:", error.description, "@", error.location.file + "(" + error.location.line + ")");
-            }
-            else {
-                console.error("Error:", error.description, "@", error.location.file + "(" + error.location.line + ")");
-            }
+            else
+                console.error("Error:", error.description);
         }
         function parse(args) {
             try {

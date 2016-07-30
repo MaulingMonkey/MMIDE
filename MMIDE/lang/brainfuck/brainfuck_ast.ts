@@ -48,11 +48,8 @@
 		}
 
 		function defaultOnError(error: Error) {
-			if (!!error.location) {
-				console.error("Error:",error.description,"@",error.location.file + "(" + error.location.line + ")");
-			} else {
-				console.error("Error:",error.description,"@",error.location.file + "(" + error.location.line + ")");
-			}
+			if (!!error.location)	console.error("Error:",error.description,"@",error.location.file + "(" + error.location.line + ")");
+			else					console.error("Error:",error.description);
 		}
 
 		export function parse(args: ParseArgs): Node[] {
