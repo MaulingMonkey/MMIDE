@@ -11,8 +11,6 @@ declare namespace ace {
 
 	type Position = { row: number, column: number };
 
-
-
 	// ----------------------------------------------------------------------------------------------------
 	// https://ace.c9.io/#nav=api&api=document
 	// https://github.com/ajaxorg/ace/blob/master/lib/ace/document.js
@@ -100,22 +98,22 @@ declare namespace ace {
 		on(event: "changeWrapMode",		callback: () => void);
 		on(event: "tokenizerUpdate",	callback: (e: {data: any}) => void);
 
-		addDynamicMarker(marker: Object, inFront: boolean) : Object;
-		addGutterDecoration(row: number, className: string);
+		addDynamicMarker(marker: {update: any}, inFront: boolean): {update: any, id: number, inFront: boolean};
+		addGutterDecoration(row: number, className: string): void;
 		addMarker(range: Range, clazz: string, type: string | Function, inFront: boolean): number;
-		clearAnnotations();
-		clearBreakpoint(row: number);
-		clearBreakpoints();
+		clearAnnotations(): void;
+		clearBreakpoint(row: number): void;
+		clearBreakpoints(): void;
 		documentToScreenColumn(row: number, docColumn: number): number;
-		documentToScreenPosition(docRow: number, docColumn: number): Object;
-		documentToScreenRow(docRow: number, docColumn: number);
+		documentToScreenPosition(docRow: number, docColumn: number): Position;
+		documentToScreenRow(docRow: number, docColumn: number): number;
 		duplicateLines(firstRow: number, lastRow: number): number;
-		getAnnotations(): Object;
+		getAnnotations(): Annotation[];
 		getAWordRange(row: number, column: number): Range;
 		getBreakpoints(): string[]; // XXX: Doc annotation lied!
 		getDocument(): Document;
-		getDocumentLastRowColumn(docRow: number, docColumn: number);
-		getDocumentLastRowColumnPosition(docRow: number, docColumn: number);
+		getDocumentLastRowColumn(docRow: number, docColumn: number): number;
+		getDocumentLastRowColumnPosition(docRow: number, docColumn: number): Position;
 		getLength(): number;
 		getLine(row: number): string;
 		getLines(firstRow: number, lastRow: number): string[];
@@ -149,11 +147,11 @@ declare namespace ace {
 		//highlight(); // Undocumented
 		//highlightLines(); // Undocumented
 		indentRows(startRow: number, endRow: number, indentString: string): any;
-		insert(position: { row: number, column: number}, text: string): Object;
+		insert(position: Position, text: string): Object;
 		isTabStop(position: Object): boolean;
 		moveLinesDown(firstRow: number, lastRow: number): number;
 		moveLinesUp(firstRow: number, lastRow: number): number;
-		moveText(fromRange: Range, toPosition: { row: number, column: number }): Range;
+		moveText(fromRange: Range, toPosition: Position): Range;
 		//onChange(); // Undocumented
 		//onChangeFold(); // Undocumented
 		onReloadTokenizer(e: Object);
@@ -167,9 +165,9 @@ declare namespace ace {
 		//reset(); // Undocumented
 		//resetCaches(); // Undocumented
 		//screenToDocumentColumn(); // Undocumented
-		screenToDocumentPosition(screenRow: number, screenColumn: number): Object;
+		screenToDocumentPosition(screenRow: number, screenColumn: number): Position;
 		//screenToDocumentRow(); // Undocumented
-		setAnnotations(annotations: any[]);
+		setAnnotations(annotations: Annotation[]);
 		setBreakpoint(row: number, className: string);
 		setBreakpoints(rows: number[]);
 		setDocument(doc: Document);
@@ -190,6 +188,13 @@ declare namespace ace {
 		toString(): string;
 		//undo(); // Undocumented
 		undoChanges(deltas: any[], dontSelect: boolean): Range;
+	}
+	// See "Error:" example in edit_session.js, immediately above setAnnotations
+	interface Annotation {
+		row:		number,
+		column?:	number, // optional
+		text:		string,
+		type:		string, // "error", "warning", or "info"
 	}
 
 
