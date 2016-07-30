@@ -27,13 +27,23 @@
 			editor().setTheme("ace/theme/"+theme.toLowerCase().replace(' ','_'));
 		}
 
-		function toggleGutterDecoration(s: ace.EditSession, row: number, className: string, enable: boolean) {
-			if (enable) {
-				s.removeGutterDecoration(row, className);
-				s.addGutterDecoration(row, className);
-			} else {
-				s.removeGutterDecoration(row, className);
+		function errorToAnnotation(error: Brainfuck.AST.Error): ace.Annotation {
+			let errorType = "error";
+			switch (error.severity) {
+			case Brainfuck.AST.ErrorSeverity.Verbose:	errorType = "info";		break;
+			case Brainfuck.AST.ErrorSeverity.Info:		errorType = "info";		break;
+			case Brainfuck.AST.ErrorSeverity.Warning:	errorType = "warning";	break;
+			case Brainfuck.AST.ErrorSeverity.Error:		errorType = "error";	break;
 			}
+
+			let a : ace.Annotation = {
+				row:	error.location.line-1,
+				column:	error.location.column-1,
+				text:	error.description,
+				type:	errorType,
+			};
+
+			return a;
 		}
 
 		export function setErrors(errors: Brainfuck.AST.Error[]) {
@@ -45,16 +55,8 @@
 				if (le === undefined) le = lineErrors[error.location.line] = [];
 				le.push(error);
 			});
-			console.log(lineErrors);
 
-			s.clearBreakpoints();
-			for (let lineIndex = 0; lineIndex < s.getLength(); ++lineIndex) {
-				let worst : Brainfuck.AST.ErrorSeverity = Math.max(...(lineErrors[lineIndex+1] || []).map(e => e.severity));
-
-				toggleGutterDecoration(s, lineIndex, "ace_info"		, worst == Brainfuck.AST.ErrorSeverity.Info);
-				toggleGutterDecoration(s, lineIndex, "ace_warning"	, worst == Brainfuck.AST.ErrorSeverity.Warning);
-				toggleGutterDecoration(s, lineIndex, "ace_error"	, worst == Brainfuck.AST.ErrorSeverity.Error);
-			}
+			s.setAnnotations(errors.map(errorToAnnotation).filter(a => !!a));
 		}
 
 		addEventListener("load", function(e) {

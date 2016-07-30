@@ -78,7 +78,6 @@
 				let pushScope	= () => { let scope = []; _scopeStack.push(scope); return scope; }
 				let popScope	= () => { if (_scopeStack.length == 1) error("Reached end of scope ']', but was already at the root scope!"); else _scopeStack.pop(); };
 
-				warning("Warning Demo");
 				for (let codeI = 0; codeI < code.length; ++codeI) {
 					let ch = code[codeI];
 					switch (ch) {
