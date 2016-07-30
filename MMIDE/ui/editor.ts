@@ -65,7 +65,7 @@
 			// "Ace only resizes itself on window events. If you resize the editor div in another manner, and need Ace to resize, use the following"
 			// Currently, console output, memory dump resizes, etc. may alter the editor div size.
 			// Takes maybe ~5ms/check from an initial look at Chrome timeline results?  Not nearly my biggest perf issue atm.
-			setInterval(function(){ editor().resize(false); }, 10);
+			setInterval(function(){ editor().resize(false); }, 100);
 
 			setInterval(function(){
 				var errors = [];

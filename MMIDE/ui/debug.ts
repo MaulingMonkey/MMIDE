@@ -6,7 +6,8 @@
 			UI.Output.outputs().forEach(o => o.clear());
 
 			let script = UI.Editor.getScript();
-			theDebugger = Brainfuck.createDebugger(script, (stdout) => {
+			//theDebugger = Brainfuck.Eval.createDebugger(script, (stdout) => {
+			theDebugger = Brainfuck.VmCompiler.createDebugger(script, (stdout) => {
 				UI.Output.outputs().forEach(o => o.write(stdout));
 			});
 			if (!paused) theDebugger.continue();
@@ -69,7 +70,7 @@
 				setDebugState(theDebugger === undefined ? DebugState.Detatched : theDebugger.state());
 				UI.Registers.update(theDebugger === undefined ? [] : theDebugger.threads()[0].registers());
 				UI.Memory.update(theDebugger);
-			}, 1/60);
+			}, 100);
 		});
 	}
 }
