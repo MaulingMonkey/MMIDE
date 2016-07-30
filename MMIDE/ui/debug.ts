@@ -25,6 +25,10 @@
 			setDebugState(theDebugger.state());
 		}
 
+		export function Step() {
+			theDebugger.step();
+		}
+
 		export function Pause() {
 			theDebugger.pause();
 			setDebugState(theDebugger.state());
@@ -67,10 +71,16 @@
 		addEventListener("load", (e) => {
 			if (prevState === undefined) setDebugState(DebugState.Detatched);
 			setInterval(function() {
+				let theThread = theDebugger === undefined ? undefined : theDebugger.threads()[0];
+				let thePos = theThread === undefined ? undefined : theThread.currentPos();
+
 				setDebugState(theDebugger === undefined ? DebugState.Detatched : theDebugger.state());
-				UI.Registers.update(theDebugger === undefined ? [] : theDebugger.threads()[0].registers());
+				UI.Registers.update(theDebugger === undefined ? [] : theThread.registers());
 				UI.Memory.update(theDebugger);
-			}, 100);
+				UI.Editor.setCurrentPosition(
+					thePos === undefined ? -1 : thePos.line,
+					thePos === undefined ? -1 : thePos.column);
+			}, 10);
 		});
 	}
 }

@@ -201,8 +201,12 @@ declare namespace ace {
 
 	// ----------------------------------------------------------------------------------------------------
 	// https://ace.c9.io/#nav=api&api=range
+	// https://github.com/ajaxorg/ace/blob/master/lib/ace/range.js
 	// ----------------------------------------------------------------------------------------------------
 	export class Range {
+		start:	Position;
+		end:	Position;
+
 		// Constructors
 		constructor(startRow: number, startColumn: number, endRow: number, endColumn: number);
 

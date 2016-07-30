@@ -16,13 +16,6 @@ var Examples;
     }
     Examples.LoadBrainfuckHelloWorld = LoadBrainfuckHelloWorld;
 })(Examples || (Examples = {}));
-var DebugState;
-(function (DebugState) {
-    DebugState[DebugState["Detatched"] = 0] = "Detatched";
-    DebugState[DebugState["Paused"] = 1] = "Paused";
-    DebugState[DebugState["Running"] = 2] = "Running";
-    DebugState[DebugState["Done"] = 3] = "Done";
-})(DebugState || (DebugState = {}));
 var Brainfuck;
 (function (Brainfuck) {
     var AST;
@@ -78,80 +71,75 @@ var Brainfuck;
                 console.error("Error:", error.description);
         }
         function parse(args) {
-            try {
-                // Preconditions
-                console.assert(!!args, "parse: args is not optional");
-                console.assert(args.code !== undefined, "parse: args.code is not optional");
-                console.assert(args.code !== null, "parse: args.code is not optional");
-                // Context
-                var location = { file: "memory.bf", line: 1, column: 1 };
-                var code = args.code;
-                var _onError = args.onError || defaultOnError; // Prefer softError/fatalError
-                var _root = []; // You probably want scope
-                var _scopeStack = [_root]; // Prefer scope/pushScope/popScope
-                var atLocation = function (tempLocation, action) { var origLocation = location; location = tempLocation; action(); location = origLocation; };
-                // Utils
-                var info = function (desc) { return _onError({ severity: ErrorSeverity.Info, description: desc, location: cloneSourceLocation(location) }); };
-                var warning = function (desc) { return _onError({ severity: ErrorSeverity.Warning, description: desc, location: cloneSourceLocation(location) }); };
-                var error = function (desc) { return _onError({ severity: ErrorSeverity.Error, description: desc, location: cloneSourceLocation(location) }); };
-                var scope = function () { return _scopeStack[_scopeStack.length - 1]; };
-                var pushScope = function () { var scope = []; _scopeStack.push(scope); return scope; };
-                var popScope = function () { if (_scopeStack.length == 1)
-                    error("Reached end of scope ']', but was already at the root scope!");
-                else
-                    _scopeStack.pop(); };
-                for (var codeI = 0; codeI < code.length; ++codeI) {
-                    var ch = code[codeI];
-                    switch (ch) {
-                        case "<":
-                            scope().push({ type: NodeType.AddDataPtr, value: -1, location: cloneSourceLocation(location) });
-                            break;
-                        case ">":
-                            scope().push({ type: NodeType.AddDataPtr, value: +1, location: cloneSourceLocation(location) });
-                            break;
-                        case "+":
-                            scope().push({ type: NodeType.AddData, value: +1, location: cloneSourceLocation(location) });
-                            break;
-                        case "-":
-                            scope().push({ type: NodeType.AddData, value: -1, location: cloneSourceLocation(location) });
-                            break;
-                        case ",":
-                            scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Getch, location: cloneSourceLocation(location) });
-                            break;
-                        case ".":
-                            scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Putch, location: cloneSourceLocation(location) });
-                            break;
-                        case "[":
-                            scope().push({ type: NodeType.Loop, childScope: pushScope(), location: cloneSourceLocation(location) });
-                            break;
-                        case "]":
-                            popScope();
-                            break;
-                        default: break;
-                    }
-                    //++location.byte;
-                    if (ch == "\n") {
-                        ++location.line;
-                        location.column = 1;
-                    }
-                    else {
-                        ++location.column;
-                    }
+            // Preconditions
+            console.assert(!!args, "parse: args is not optional");
+            console.assert(args.code !== undefined, "parse: args.code is not optional");
+            console.assert(args.code !== null, "parse: args.code is not optional");
+            // Context
+            var location = { file: "memory.bf", line: 1, column: 1 };
+            var code = args.code;
+            var _onError = args.onError || defaultOnError; // Prefer softError/fatalError
+            var _root = []; // You probably want scope
+            var _scopeStack = [_root]; // Prefer scope/pushScope/popScope
+            var atLocation = function (tempLocation, action) { var origLocation = location; location = tempLocation; action(); location = origLocation; };
+            // Utils
+            var info = function (desc) { return _onError({ severity: ErrorSeverity.Info, description: desc, location: cloneSourceLocation(location) }); };
+            var warning = function (desc) { return _onError({ severity: ErrorSeverity.Warning, description: desc, location: cloneSourceLocation(location) }); };
+            var error = function (desc) { return _onError({ severity: ErrorSeverity.Error, description: desc, location: cloneSourceLocation(location) }); };
+            var scope = function () { return _scopeStack[_scopeStack.length - 1]; };
+            var pushScope = function () { var scope = []; _scopeStack.push(scope); return scope; };
+            var popScope = function () { if (_scopeStack.length == 1)
+                error("Reached end of scope ']', but was already at the root scope!");
+            else
+                _scopeStack.pop(); };
+            for (var codeI = 0; codeI < code.length; ++codeI) {
+                var ch = code[codeI];
+                switch (ch) {
+                    case "<":
+                        scope().push({ type: NodeType.AddDataPtr, value: -1, location: cloneSourceLocation(location) });
+                        break;
+                    case ">":
+                        scope().push({ type: NodeType.AddDataPtr, value: +1, location: cloneSourceLocation(location) });
+                        break;
+                    case "+":
+                        scope().push({ type: NodeType.AddData, value: +1, location: cloneSourceLocation(location) });
+                        break;
+                    case "-":
+                        scope().push({ type: NodeType.AddData, value: -1, location: cloneSourceLocation(location) });
+                        break;
+                    case ",":
+                        scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Getch, location: cloneSourceLocation(location) });
+                        break;
+                    case ".":
+                        scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Putch, location: cloneSourceLocation(location) });
+                        break;
+                    case "[":
+                        scope().push({ type: NodeType.Loop, childScope: pushScope(), location: cloneSourceLocation(location) });
+                        break;
+                    case "]":
+                        popScope();
+                        break;
+                    default: break;
                 }
-                scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.TapeEnd, location: cloneSourceLocation(location) });
-                if (_scopeStack.length > 1) {
-                    for (var i = _scopeStack.length - 2; i >= 0; --i) {
-                        var badScopeNode = _scopeStack[i][_scopeStack[i].length - 1];
-                        atLocation(badScopeNode.location, function () { return error("Start of scope '[' not terminated before end of file!"); });
-                    }
-                    error("Unexpected end of file!");
-                    return undefined;
+                //++location.byte;
+                if (ch == "\n") {
+                    ++location.line;
+                    location.column = 1;
                 }
-                return { ast: _root, optimizedAst: AST.optimize({ ast: cloneNodes(_root), onError: args.onError }) };
+                else {
+                    ++location.column;
+                }
             }
-            catch (e) {
+            scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.TapeEnd, location: cloneSourceLocation(location) });
+            if (_scopeStack.length > 1) {
+                for (var i = _scopeStack.length - 2; i >= 0; --i) {
+                    var badScopeNode = _scopeStack[i][_scopeStack[i].length - 1];
+                    atLocation(badScopeNode.location, function () { return error("Start of scope '[' not terminated before end of file!"); });
+                }
+                error("Unexpected end of file!");
                 return undefined;
             }
+            return { ast: _root, optimizedAst: AST.optimize({ ast: cloneNodes(_root), onError: args.onError }) };
         }
         AST.parse = parse;
     })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
@@ -305,143 +293,6 @@ var Brainfuck;
 })(Brainfuck || (Brainfuck = {}));
 var Brainfuck;
 (function (Brainfuck) {
-    var Eval;
-    (function (Eval) {
-        function createVm(code) {
-            return {
-                code: code,
-                data: [],
-                codePtr: 0,
-                dataPtr: 0,
-            };
-        }
-        function loopStart(vm) {
-            if (!!vm.data[vm.dataPtr]) {
-                ++vm.codePtr;
-            }
-            else {
-                /* scan forward */
-                var nested = 0;
-                for (;;) {
-                    switch (vm.code[vm.codePtr++]) {
-                        case "[":
-                            ++nested;
-                            break;
-                        case "]":
-                            if (--nested === 0)
-                                return;
-                            break;
-                        case undefined: return;
-                    }
-                }
-            }
-        }
-        function loopEnd(vm) {
-            if (!vm.data[vm.dataPtr]) {
-                ++vm.codePtr;
-            }
-            else {
-                /* scan back */
-                var nested = 0;
-                for (;;) {
-                    switch (vm.code[vm.codePtr--]) {
-                        case "]":
-                            ++nested;
-                            break;
-                        case "[":
-                            if (--nested === 0) {
-                                vm.codePtr += 1;
-                                return;
-                            }
-                            break;
-                        case undefined:
-                            vm.codePtr = vm.code.length;
-                            break;
-                    }
-                }
-            }
-        }
-        function runSome(vm, maxInstructions, stdout, stop) {
-            var stdoutBuf = "";
-            for (var instructionsRan = 0; instructionsRan < maxInstructions; ++instructionsRan) {
-                switch (vm.code[vm.codePtr]) {
-                    case "<":
-                        --vm.dataPtr;
-                        ++vm.codePtr;
-                        break;
-                    case ">":
-                        ++vm.dataPtr;
-                        ++vm.codePtr;
-                        break;
-                    case "+":
-                        vm.data[vm.dataPtr] = ((vm.data[vm.dataPtr] || 0) + 1) % 256;
-                        ++vm.codePtr;
-                        break;
-                    case "-":
-                        vm.data[vm.dataPtr] = ((vm.data[vm.dataPtr] || 0) + 255) % 256;
-                        ++vm.codePtr;
-                        break;
-                    //case ".":		stdout((vm.data[vm.dataPtr] || 0).toString()+" ");		++vm.codePtr; break;
-                    case ".":
-                        stdout(String.fromCharCode(vm.data[vm.dataPtr] || 0));
-                        ++vm.codePtr;
-                        break;
-                    case ",":
-                        vm.data[vm.dataPtr] = 0; /* Input not yet supported */
-                        ++vm.codePtr;
-                        break;
-                    case "[":
-                        loopStart(vm);
-                        break;
-                    case "]":
-                        loopEnd(vm);
-                        break;
-                    case undefined:
-                        stop();
-                        break;
-                    default:
-                        ++vm.codePtr;
-                        break;
-                }
-            }
-            //console.log("Ran",instructionsRan,"instructions (IP=", vm.codePtr, "(", vm.code[vm.codePtr],") DP=", vm.dataPtr, "(", vm.data[vm.dataPtr] ,"))");
-        }
-        function createDebugger(code, stdout) {
-            var vm = createVm(code);
-            var runHandle = undefined;
-            var doPause = function () { if (runHandle !== undefined)
-                clearInterval(runHandle); runHandle = undefined; };
-            var doContinue = function () { if (runHandle === undefined)
-                runHandle = setInterval(function () { return runSome(vm, 100000, stdout, doPause); }, 0); }; // Increase instruction limit after fixing loop perf?
-            var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
-            var getRegisters = function () { return [
-                [" code", "0x" + vm.codePtr.toString(16)],
-                ["*code", (vm.code[vm.codePtr] || "??").replace("\n", "\\n").replace("\r", "\\r").toString()],
-                [" data", "0x" + vm.dataPtr.toString(16)],
-                ["*data", (vm.data[vm.dataPtr] || "??").toString()],
-            ]; };
-            var getThreads = function () { return [{ registers: getRegisters }]; };
-            var getMemory = function () { return vm.data; };
-            var getState = function () {
-                return vm === undefined ? DebugState.Detatched
-                    : vm.codePtr >= vm.code.length ? DebugState.Done
-                        : runHandle !== undefined ? DebugState.Running
-                            : DebugState.Paused;
-            };
-            return {
-                state: getState,
-                threads: getThreads,
-                memory: getMemory,
-                pause: doPause,
-                continue: doContinue,
-                stop: doStop,
-            };
-        }
-        Eval.createDebugger = createDebugger;
-    })(Eval = Brainfuck.Eval || (Brainfuck.Eval = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
     var JsCompiler;
     (function (JsCompiler) {
         function toJsNumber(n) {
@@ -539,7 +390,7 @@ var Brainfuck;
                 program.locs.push(node.location);
                 switch (node.type) {
                     case Brainfuck.AST.NodeType.AddDataPtr:
-                        program.ops.push({ type: VmOpType.AddDataPtr, value: node.value || 0 });
+                        program.ops.push({ type: VmOpType.AddDataPtr, value: node.value || 0, dataOffset: 0 });
                         break;
                     case Brainfuck.AST.NodeType.AddData:
                         program.ops.push({ type: VmOpType.AddData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
@@ -548,19 +399,19 @@ var Brainfuck;
                         program.ops.push({ type: VmOpType.SetData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
                         break;
                     case Brainfuck.AST.NodeType.SystemCall:
-                        program.ops.push({ type: VmOpType.SystemCall, value: node.systemCall || 0 });
+                        program.ops.push({ type: VmOpType.SystemCall, value: node.systemCall || 0, dataOffset: 0 });
                         break;
                     case Brainfuck.AST.NodeType.BreakIf:
                         var afterSystemCall = program.ops.length + 2;
-                        program.ops.push({ type: VmOpType.JumpIfNot, value: afterSystemCall });
-                        program.ops.push({ type: VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break });
+                        program.ops.push({ type: VmOpType.JumpIfNot, value: afterSystemCall, dataOffset: 0 });
+                        program.ops.push({ type: VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0 });
                         break;
                     case Brainfuck.AST.NodeType.Loop:
-                        var firstJump = { type: VmOpType.JumpIfNot, value: undefined };
+                        var firstJump = { type: VmOpType.JumpIfNot, value: undefined, dataOffset: 0 };
                         program.ops.push(firstJump);
                         var afterFirstJump = program.ops.length;
                         compile(program, node.childScope);
-                        var lastJump = { type: VmOpType.JumpIf, value: afterFirstJump };
+                        var lastJump = { type: VmOpType.JumpIf, value: afterFirstJump, dataOffset: 0 };
                         program.ops.push(lastJump);
                         var afterLastJump = program.ops.length;
                         firstJump.value = afterLastJump;
@@ -572,67 +423,55 @@ var Brainfuck;
             }
         }
         VmCompiler.compile = compile;
-        function runSome(vm, maxInstructions, stdout, stop) {
-            var tStart = Date.now();
-            var stdoutBuf = "";
-            for (var instructionsRan = 0; instructionsRan < maxInstructions; ++instructionsRan) {
-                var op = vm.code.ops[vm.codePtr];
-                if (!op) {
-                    stop();
-                    break;
-                }
-                var dp = vm.dataPtr + (op.dataOffset || 0);
-                switch (op.type) {
-                    case VmOpType.AddDataPtr:
-                        vm.dataPtr += op.value;
-                        ++vm.codePtr;
-                        break;
-                    case VmOpType.AddData:
-                        vm.data[dp] = (op.value + 256 + (vm.data[dp] || 0)) % 256;
-                        ++vm.codePtr;
-                        break;
-                    case VmOpType.SetData:
-                        vm.data[dp] = (op.value + 256) % 256;
-                        ++vm.codePtr;
-                        break;
-                    case VmOpType.JumpIf:
-                        if (vm.data[dp])
-                            vm.codePtr = op.value;
-                        else
-                            ++vm.codePtr;
-                        break;
-                    case VmOpType.JumpIfNot:
-                        if (!vm.data[dp])
-                            vm.codePtr = op.value;
-                        else
-                            ++vm.codePtr;
-                        break;
-                    case VmOpType.SystemCall:
-                        switch (op.value) {
-                            //case AST.SystemCall.Break:	... break;
-                            //case AST.SystemCall.Getch:	... break;
-                            case Brainfuck.AST.SystemCall.Putch:
-                                stdoutBuf += String.fromCharCode(vm.data[dp]);
-                                break;
-                            //case AST.SystemCall.Putch:		stdoutBuf += vm.data[dp].toString()+" "; break;
-                            case Brainfuck.AST.SystemCall.TapeEnd:
-                                stop();
-                                break;
-                            default:
-                                stop();
-                                console.error("Unexpected SystemCall", Brainfuck.AST.SystemCall[op.value], op);
-                                break;
-                        }
-                        ++vm.codePtr;
-                        break;
-                    default:
-                        stop();
-                        console.error("Unexpected VmOpType", VmOpType[op.type], op);
-                        break;
-                }
+        function badSysCall(vm) {
+            console.error("Unexpected VmOpType", VmOpType[vm.code[vm.codePtr].type]);
+            vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
+        }
+        function runOne(vm) {
+            var op = vm.code.ops[vm.codePtr];
+            if (!op) {
+                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
+                return;
             }
-            if (stdoutBuf != "")
-                stdout(stdoutBuf);
+            var dp = vm.dataPtr + (op.dataOffset || 0);
+            switch (op.type) {
+                case VmOpType.AddDataPtr:
+                    vm.dataPtr += op.value;
+                    ++vm.codePtr;
+                    break;
+                case VmOpType.AddData:
+                    vm.data[dp] = (op.value + 256 + (vm.data[dp] || 0)) % 256;
+                    ++vm.codePtr;
+                    break;
+                case VmOpType.SetData:
+                    vm.data[dp] = (op.value + 256) % 256;
+                    ++vm.codePtr;
+                    break;
+                case VmOpType.JumpIf:
+                    if (vm.data[dp])
+                        vm.codePtr = op.value;
+                    else
+                        ++vm.codePtr;
+                    break;
+                case VmOpType.JumpIfNot:
+                    if (!vm.data[dp])
+                        vm.codePtr = op.value;
+                    else
+                        ++vm.codePtr;
+                    break;
+                case VmOpType.SystemCall:
+                    (vm.sysCalls[op.value] || badSysCall)(vm);
+                    ++vm.codePtr;
+                    break;
+                default:
+                    badSysCall(vm);
+                    break;
+            }
+        }
+        function runSome(vm, maxInstructions) {
+            var tStart = Date.now();
+            for (var instructionsRan = 0; instructionsRan < maxInstructions; ++instructionsRan)
+                runOne(vm);
             //console.log("Ran",instructionsRan,"instructions (IP=", vm.codePtr, "(", vm.code[vm.codePtr],") DP=", vm.dataPtr, "(", vm.data[vm.dataPtr] ,"))");
             var tStop = Date.now();
             vm.insRan += instructionsRan;
@@ -649,13 +488,22 @@ var Brainfuck;
                 return undefined;
             var program = { ops: [], locs: [] };
             compile(program, parseResult.optimizedAst);
-            var vm = { code: program, data: [], codePtr: 0, dataPtr: 0, insRan: 0, runTime: 0 };
+            var vm = {
+                code: program,
+                data: [],
+                codePtr: 0,
+                dataPtr: 0,
+                insRan: 0,
+                runTime: 0,
+                sysCalls: [],
+            };
             var runHandle = undefined;
             var doPause = function () { if (runHandle !== undefined)
                 clearInterval(runHandle); runHandle = undefined; };
             var doContinue = function () { if (runHandle === undefined)
-                runHandle = setInterval(function () { return runSome(vm, 100000, stdout, doPause); }, 0); }; // Increase instruction limit after fixing loop perf?
+                runHandle = setInterval(function () { return runSome(vm, 100000); }, 0); }; // Increase instruction limit after fixing loop perf?
             var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
+            var doStep = function () { runOne(vm); };
             var getRegisters = function () { return [
                 [" code", addr(vm.codePtr)],
                 ["*code", vmOpToString(vm.code.ops[vm.codePtr])],
@@ -663,14 +511,18 @@ var Brainfuck;
                 [" data", addr(vm.dataPtr)],
                 ["*data", (vm.data[vm.dataPtr] || "0").toString()],
                 ["     ", ""],
-                ["ran  ", vm.insRan.toString()],
-                ["ran/s", ((vm.insRan / vm.runTime) | 0).toString()],
+                ["ran  ", vm.insRan.toLocaleString()],
+                ["ran/s", ((vm.insRan / vm.runTime) | 0).toLocaleString()],
                 ["    s", (vm.runTime | 0).toString()],
                 ["     ", ""],
                 ["code length (original)", code.length.toString()],
                 ["code length (bytecode)", program.ops.length.toString()],
             ]; };
-            var getThreads = function () { return [{ registers: getRegisters }]; };
+            var getCurrentPos = function () { return program.locs[vm.codePtr]; };
+            var getThreads = function () { return [{
+                    registers: getRegisters,
+                    currentPos: getCurrentPos,
+                }]; };
             var getMemory = function () { return vm.data; };
             var getState = function () {
                 return vm === undefined ? DebugState.Detatched
@@ -678,6 +530,8 @@ var Brainfuck;
                         : runHandle !== undefined ? DebugState.Running
                             : DebugState.Paused;
             };
+            vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { return stdout(String.fromCharCode(vm.data[vm.dataPtr])); };
+            vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { return doStop(); };
             return {
                 state: getState,
                 threads: getThreads,
@@ -685,11 +539,19 @@ var Brainfuck;
                 pause: doPause,
                 continue: doContinue,
                 stop: doStop,
+                step: doStep,
             };
         }
         VmCompiler.createDebugger = createDebugger;
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
+var DebugState;
+(function (DebugState) {
+    DebugState[DebugState["Detatched"] = 0] = "Detatched";
+    DebugState[DebugState["Paused"] = 1] = "Paused";
+    DebugState[DebugState["Running"] = 2] = "Running";
+    DebugState[DebugState["Done"] = 3] = "Done";
+})(DebugState || (DebugState = {}));
 var UI;
 (function (UI) {
     var Debug;
@@ -718,6 +580,10 @@ var UI;
             setDebugState(theDebugger.state());
         }
         Debug.Continue = Continue;
+        function Step() {
+            theDebugger.step();
+        }
+        Debug.Step = Step;
         function Pause() {
             theDebugger.pause();
             setDebugState(theDebugger.state());
@@ -768,10 +634,13 @@ var UI;
             if (prevState === undefined)
                 setDebugState(DebugState.Detatched);
             setInterval(function () {
+                var theThread = theDebugger === undefined ? undefined : theDebugger.threads()[0];
+                var thePos = theThread === undefined ? undefined : theThread.currentPos();
                 setDebugState(theDebugger === undefined ? DebugState.Detatched : theDebugger.state());
-                UI.Registers.update(theDebugger === undefined ? [] : theDebugger.threads()[0].registers());
+                UI.Registers.update(theDebugger === undefined ? [] : theThread.registers());
                 UI.Memory.update(theDebugger);
-            }, 100);
+                UI.Editor.setCurrentPosition(thePos === undefined ? -1 : thePos.line, thePos === undefined ? -1 : thePos.column);
+            }, 10);
         });
     })(Debug = UI.Debug || (UI.Debug = {}));
 })(UI || (UI = {}));
@@ -841,6 +710,36 @@ var UI;
             s.setAnnotations(errors.map(errorToAnnotation).filter(function (a) { return !!a; }));
         }
         Editor.setErrors = setErrors;
+        var currentMarker = undefined;
+        var currentLine = -1;
+        var currentCol = -1;
+        //let Range = ace.require("ace/Range").Range;
+        function setCurrentPosition(line, col) {
+            if (col === void 0) { col = -1; }
+            var s = editor().getSession();
+            if (currentLine != line) {
+                s.removeGutterDecoration(currentLine, "current-line");
+                currentLine = line - 1;
+                s.addGutterDecoration(currentLine, "current-line");
+            }
+            if (currentCol != col) {
+                currentCol = col;
+                if (currentMarker !== undefined)
+                    s.removeMarker(currentMarker);
+                if (col != -1) {
+                    //let range = <ace.Range>new (<any>Range)(line-1, col-1, line-1, col-0);
+                    //let range = new ace.Range(line-1, col-1, line-1, col-0);
+                    var range = s.getAWordRange(line - 1, col - 1);
+                    range.start.column = col - 1;
+                    range.end.column = col - 0;
+                    currentMarker = s.addMarker(range, "current-column", "text", false);
+                }
+                else {
+                    currentMarker = undefined;
+                }
+            }
+        }
+        Editor.setCurrentPosition = setCurrentPosition;
         addEventListener("load", function (e) {
             editor();
             // "Ace only resizes itself on window events. If you resize the editor div in another manner, and need Ace to resize, use the following"

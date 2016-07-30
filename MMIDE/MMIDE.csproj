@@ -34,7 +34,6 @@
     <TypeScriptCompile Include="examples.ts" />
     <TypeScriptCompile Include="ext\ace.d.ts" />
     <TypeScriptCompile Include="ext\d3\d3.d.ts" />
-    <TypeScriptCompile Include="lang\brainfuck\brainfuck_eval.ts" />
     <TypeScriptCompile Include="lang\brainfuck\brainfuck_ast.ts" />
     <TypeScriptCompile Include="lang\brainfuck\brainfuck_ast_optimize.ts" />
     <TypeScriptCompile Include="lang\brainfuck\brainfuck_js_compiler.ts" />

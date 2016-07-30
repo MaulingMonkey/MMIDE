@@ -9,6 +9,7 @@ type RegistersList = [string,string][];
 
 interface DebuggerThread {
 	registers():	RegistersList;
+	currentPos():	Brainfuck.AST.SourceLocation;
 }
 
 interface Debugger {
@@ -19,4 +20,5 @@ interface Debugger {
 	stop();					// Running, Paused	-> None
 	continue();				// Paused			-> Running
 	pause();				// Running			-> Paused
+	step();
 }
