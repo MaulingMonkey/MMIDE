@@ -37,7 +37,6 @@ var Brainfuck;
             SystemCall[SystemCall["TapeEnd"] = 3] = "TapeEnd";
         })(AST.SystemCall || (AST.SystemCall = {}));
         var SystemCall = AST.SystemCall;
-        function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
         function nodeToString(node) {
             return NodeType[node.type] + "(" +
                 "v=" + ((node.value === undefined) ? "0" : node.value.toString()) + "," +
@@ -83,9 +82,9 @@ var Brainfuck;
             var _scopeStack = [_root]; // Prefer scope/pushScope/popScope
             var atLocation = function (tempLocation, action) { var origLocation = location; location = tempLocation; action(); location = origLocation; };
             // Utils
-            var info = function (desc) { return _onError({ severity: ErrorSeverity.Info, description: desc, location: cloneSourceLocation(location) }); };
-            var warning = function (desc) { return _onError({ severity: ErrorSeverity.Warning, description: desc, location: cloneSourceLocation(location) }); };
-            var error = function (desc) { return _onError({ severity: ErrorSeverity.Error, description: desc, location: cloneSourceLocation(location) }); };
+            var info = function (desc) { return _onError({ severity: ErrorSeverity.Info, description: desc, location: Debugger.cloneSourceLocation(location) }); };
+            var warning = function (desc) { return _onError({ severity: ErrorSeverity.Warning, description: desc, location: Debugger.cloneSourceLocation(location) }); };
+            var error = function (desc) { return _onError({ severity: ErrorSeverity.Error, description: desc, location: Debugger.cloneSourceLocation(location) }); };
             var scope = function () { return _scopeStack[_scopeStack.length - 1]; };
             var pushScope = function () { var scope = []; _scopeStack.push(scope); return scope; };
             var popScope = function () { if (_scopeStack.length == 1)
@@ -96,25 +95,25 @@ var Brainfuck;
                 var ch = code[codeI];
                 switch (ch) {
                     case "<":
-                        scope().push({ type: NodeType.AddDataPtr, value: -1, location: cloneSourceLocation(location) });
+                        scope().push({ type: NodeType.AddDataPtr, value: -1, location: Debugger.cloneSourceLocation(location) });
                         break;
                     case ">":
-                        scope().push({ type: NodeType.AddDataPtr, value: +1, location: cloneSourceLocation(location) });
+                        scope().push({ type: NodeType.AddDataPtr, value: +1, location: Debugger.cloneSourceLocation(location) });
                         break;
                     case "+":
-                        scope().push({ type: NodeType.AddData, value: +1, location: cloneSourceLocation(location) });
+                        scope().push({ type: NodeType.AddData, value: +1, location: Debugger.cloneSourceLocation(location) });
                         break;
                     case "-":
-                        scope().push({ type: NodeType.AddData, value: -1, location: cloneSourceLocation(location) });
+                        scope().push({ type: NodeType.AddData, value: -1, location: Debugger.cloneSourceLocation(location) });
                         break;
                     case ",":
-                        scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Getch, location: cloneSourceLocation(location) });
+                        scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Getch, location: Debugger.cloneSourceLocation(location) });
                         break;
                     case ".":
-                        scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Putch, location: cloneSourceLocation(location) });
+                        scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Putch, location: Debugger.cloneSourceLocation(location) });
                         break;
                     case "[":
-                        scope().push({ type: NodeType.Loop, childScope: pushScope(), location: cloneSourceLocation(location) });
+                        scope().push({ type: NodeType.Loop, childScope: pushScope(), location: Debugger.cloneSourceLocation(location) });
                         break;
                     case "]":
                         popScope();
@@ -130,7 +129,7 @@ var Brainfuck;
                     ++location.column;
                 }
             }
-            scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.TapeEnd, location: cloneSourceLocation(location) });
+            scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.TapeEnd, location: Debugger.cloneSourceLocation(location) });
             if (_scopeStack.length > 1) {
                 for (var i = _scopeStack.length - 2; i >= 0; --i) {
                     var badScopeNode = _scopeStack[i][_scopeStack[i].length - 1];
@@ -387,32 +386,35 @@ var Brainfuck;
         function compile(program, ast) {
             for (var astI = 0; astI < ast.length; ++astI) {
                 var node = ast[astI];
-                program.locs.push(node.location);
+                var push = function (op) {
+                    program.ops.push(op);
+                    program.locs.push(node.location);
+                };
                 switch (node.type) {
                     case Brainfuck.AST.NodeType.AddDataPtr:
-                        program.ops.push({ type: VmOpType.AddDataPtr, value: node.value || 0, dataOffset: 0 });
+                        push({ type: VmOpType.AddDataPtr, value: node.value || 0, dataOffset: 0 });
                         break;
                     case Brainfuck.AST.NodeType.AddData:
-                        program.ops.push({ type: VmOpType.AddData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
+                        push({ type: VmOpType.AddData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
                         break;
                     case Brainfuck.AST.NodeType.SetData:
-                        program.ops.push({ type: VmOpType.SetData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
+                        push({ type: VmOpType.SetData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
                         break;
                     case Brainfuck.AST.NodeType.SystemCall:
-                        program.ops.push({ type: VmOpType.SystemCall, value: node.systemCall || 0, dataOffset: 0 });
+                        push({ type: VmOpType.SystemCall, value: node.systemCall || 0, dataOffset: 0 });
                         break;
                     case Brainfuck.AST.NodeType.BreakIf:
                         var afterSystemCall = program.ops.length + 2;
-                        program.ops.push({ type: VmOpType.JumpIfNot, value: afterSystemCall, dataOffset: 0 });
-                        program.ops.push({ type: VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0 });
+                        push({ type: VmOpType.JumpIfNot, value: afterSystemCall, dataOffset: 0 });
+                        push({ type: VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0 });
                         break;
                     case Brainfuck.AST.NodeType.Loop:
                         var firstJump = { type: VmOpType.JumpIfNot, value: undefined, dataOffset: 0 };
-                        program.ops.push(firstJump);
+                        push(firstJump);
                         var afterFirstJump = program.ops.length;
                         compile(program, node.childScope);
                         var lastJump = { type: VmOpType.JumpIf, value: afterFirstJump, dataOffset: 0 };
-                        program.ops.push(lastJump);
+                        push(lastJump);
                         var afterLastJump = program.ops.length;
                         firstJump.value = afterLastJump;
                         break;
@@ -480,6 +482,18 @@ var Brainfuck;
         function lpad(s, padding) { return padding.substr(0, padding.length - s.length) + s; }
         function addr(n) { return lpad(n.toString(16), "0x0000"); }
         function sourceLocToString(sl) { return !sl ? "unknown" : (sl.file + "(" + lpad(sl.line.toString(), "   ") + ")"); }
+        function createSymbolLookup(program) {
+            return {
+                addrToSourceLocation: function (address) { return program.locs[address]; },
+                sourceLocationToAddr: function (sourceLocation) {
+                    for (var i = 0; i < program.locs.length; ++i) {
+                        if (Debugger.sourceLocationEqualColumn(sourceLocation, program.locs[i])) {
+                            return i;
+                        }
+                    }
+                },
+            };
+        }
         function createDebugger(code, stdout) {
             var errors = false;
             var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
@@ -518,21 +532,21 @@ var Brainfuck;
                 ["code length (original)", code.length.toString()],
                 ["code length (bytecode)", program.ops.length.toString()],
             ]; };
-            var getCurrentPos = function () { return program.locs[vm.codePtr]; };
             var getThreads = function () { return [{
                     registers: getRegisters,
-                    currentPos: getCurrentPos,
+                    currentPos: function () { return vm.codePtr; },
                 }]; };
             var getMemory = function () { return vm.data; };
             var getState = function () {
-                return vm === undefined ? DebugState.Detatched
-                    : vm.codePtr >= vm.code.locs.length ? DebugState.Done
-                        : runHandle !== undefined ? DebugState.Running
-                            : DebugState.Paused;
+                return vm === undefined ? Debugger.State.Detatched
+                    : vm.codePtr >= vm.code.locs.length ? Debugger.State.Done
+                        : runHandle !== undefined ? Debugger.State.Running
+                            : Debugger.State.Paused;
             };
             vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { return stdout(String.fromCharCode(vm.data[vm.dataPtr])); };
             vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { return doStop(); };
             return {
+                symbols: createSymbolLookup(program),
                 state: getState,
                 threads: getThreads,
                 memory: getMemory,
@@ -545,13 +559,24 @@ var Brainfuck;
         VmCompiler.createDebugger = createDebugger;
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
-var DebugState;
-(function (DebugState) {
-    DebugState[DebugState["Detatched"] = 0] = "Detatched";
-    DebugState[DebugState["Paused"] = 1] = "Paused";
-    DebugState[DebugState["Running"] = 2] = "Running";
-    DebugState[DebugState["Done"] = 3] = "Done";
-})(DebugState || (DebugState = {}));
+var Debugger;
+(function (Debugger) {
+    (function (State) {
+        State[State["Detatched"] = 0] = "Detatched";
+        State[State["Paused"] = 1] = "Paused";
+        State[State["Running"] = 2] = "Running";
+        State[State["Done"] = 3] = "Done";
+    })(Debugger.State || (Debugger.State = {}));
+    var State = Debugger.State;
+    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
+    Debugger.cloneSourceLocation = cloneSourceLocation;
+    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
+    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
+    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
+    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
+    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
+    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
+})(Debugger || (Debugger = {}));
 var UI;
 (function (UI) {
     var Debug;
@@ -572,7 +597,7 @@ var UI;
         function Stop() {
             theDebugger.stop();
             theDebugger = undefined;
-            setDebugState(DebugState.Detatched);
+            setDebugState(Debugger.State.Detatched);
         }
         Debug.Stop = Stop;
         function Continue() {
@@ -610,16 +635,16 @@ var UI;
             var styles = "debug-state-detatched debug-state-done debug-state-running debug-state-paused".split(' ');
             var visibleStyle = "";
             switch (state) {
-                case DebugState.Detatched:
+                case Debugger.State.Detatched:
                     visibleStyle = "debug-state-detatched";
                     break;
-                case DebugState.Done:
+                case Debugger.State.Done:
                     visibleStyle = "debug-state-done";
                     break;
-                case DebugState.Running:
+                case Debugger.State.Running:
                     visibleStyle = "debug-state-running";
                     break;
-                case DebugState.Paused:
+                case Debugger.State.Paused:
                     visibleStyle = "debug-state-paused";
                     break;
             }
@@ -632,14 +657,15 @@ var UI;
         }
         addEventListener("load", function (e) {
             if (prevState === undefined)
-                setDebugState(DebugState.Detatched);
+                setDebugState(Debugger.State.Detatched);
             setInterval(function () {
-                var theThread = theDebugger === undefined ? undefined : theDebugger.threads()[0];
-                var thePos = theThread === undefined ? undefined : theThread.currentPos();
-                setDebugState(theDebugger === undefined ? DebugState.Detatched : theDebugger.state());
-                UI.Registers.update(theDebugger === undefined ? [] : theThread.registers());
+                var thread = theDebugger === undefined ? undefined : theDebugger.threads()[0];
+                var address = thread === undefined ? undefined : thread.currentPos();
+                var sourceLoc = theDebugger === undefined ? undefined : theDebugger.symbols.addrToSourceLocation(address);
+                setDebugState(theDebugger === undefined ? Debugger.State.Detatched : theDebugger.state());
+                UI.Registers.update(theDebugger === undefined ? [] : thread.registers());
                 UI.Memory.update(theDebugger);
-                UI.Editor.setCurrentPosition(thePos === undefined ? -1 : thePos.line, thePos === undefined ? -1 : thePos.column);
+                UI.Editor.setCurrentPosition(sourceLoc === undefined ? -1 : sourceLoc.line, sourceLoc === undefined ? -1 : sourceLoc.column);
             }, 10);
         });
     })(Debug = UI.Debug || (UI.Debug = {}));

@@ -18,20 +18,13 @@
 			TapeEnd,
 		}
 
-		export interface SourceLocation {
-			file:	string;
-			line:	number;
-			column:	number;
-		}
-		function cloneSourceLocation(sl: SourceLocation): SourceLocation { return { file: sl.file, line: sl.line, column: sl.column }; }
-
 		export interface Node {
 			type:			NodeType;
 			value?:			number;			// AddDataPtr, AddData, SetData
 			dataOffset?:	number;			// AddData, SetData
 			systemCall?:	SystemCall;		// SystemCall
 			childScope?:	Node[];			// Loop
-			location:		SourceLocation;
+			location:		Debugger.SourceLocation;
 		}
 		export function nodeToString(node: Node) {
 			return NodeType[node.type] + "(" +
@@ -61,7 +54,7 @@
 		export interface Error {
 			severity:		ErrorSeverity;
 			description:	string;
-			location?:		SourceLocation;
+			location?:		Debugger.SourceLocation;
 		}
 
 		export interface ParseArgs {
@@ -86,17 +79,17 @@
 			console.assert(args.code !== null,		"parse: args.code is not optional");
 
 			// Context
-			var location : SourceLocation = { file: "memory.bf", line: 1, column: 1 };
+			var location : Debugger.SourceLocation = { file: "memory.bf", line: 1, column: 1 };
 			let code = args.code;
 			let _onError = args.onError || defaultOnError; // Prefer softError/fatalError
 			let _root : Node[] = []; // You probably want scope
 			let _scopeStack = [_root]; // Prefer scope/pushScope/popScope
-			let atLocation = (tempLocation: SourceLocation, action: ()=>void) => { let origLocation = location; location = tempLocation; action(); location = origLocation; };
+			let atLocation = (tempLocation: Debugger.SourceLocation, action: ()=>void) => { let origLocation = location; location = tempLocation; action(); location = origLocation; };
 
 			// Utils
-			let info		= (desc: string) => _onError({ severity: ErrorSeverity.Info,	description: desc, location: cloneSourceLocation(location) });
-			let warning		= (desc: string) => _onError({ severity: ErrorSeverity.Warning,	description: desc, location: cloneSourceLocation(location) });
-			let error		= (desc: string) => _onError({ severity: ErrorSeverity.Error,	description: desc, location: cloneSourceLocation(location) });
+			let info		= (desc: string) => _onError({ severity: ErrorSeverity.Info,	description: desc, location: Debugger.cloneSourceLocation(location) });
+			let warning		= (desc: string) => _onError({ severity: ErrorSeverity.Warning,	description: desc, location: Debugger.cloneSourceLocation(location) });
+			let error		= (desc: string) => _onError({ severity: ErrorSeverity.Error,	description: desc, location: Debugger.cloneSourceLocation(location) });
 			let scope		= () => _scopeStack[_scopeStack.length-1];
 			let pushScope	= () => { let scope = []; _scopeStack.push(scope); return scope; }
 			let popScope	= () => { if (_scopeStack.length == 1) error("Reached end of scope ']', but was already at the root scope!"); else _scopeStack.pop(); };
@@ -104,13 +97,13 @@
 			for (let codeI = 0; codeI < code.length; ++codeI) {
 				let ch = code[codeI];
 				switch (ch) {
-				case "<":		scope().push({ type: NodeType.AddDataPtr,	value: -1,						location: cloneSourceLocation(location) }); break;
-				case ">":		scope().push({ type: NodeType.AddDataPtr,	value: +1,						location: cloneSourceLocation(location) }); break;
-				case "+":		scope().push({ type: NodeType.AddData,		value: +1,						location: cloneSourceLocation(location) }); break;
-				case "-":		scope().push({ type: NodeType.AddData,		value: -1,						location: cloneSourceLocation(location) }); break;
-				case ",":		scope().push({ type: NodeType.SystemCall,	systemCall: SystemCall.Getch,	location: cloneSourceLocation(location) }); break;
-				case ".":		scope().push({ type: NodeType.SystemCall,	systemCall: SystemCall.Putch,	location: cloneSourceLocation(location) }); break;
-				case "[":		scope().push({ type: NodeType.Loop,			childScope: pushScope(),		location: cloneSourceLocation(location) }); break;
+				case "<":		scope().push({ type: NodeType.AddDataPtr,	value: -1,						location: Debugger.cloneSourceLocation(location) }); break;
+				case ">":		scope().push({ type: NodeType.AddDataPtr,	value: +1,						location: Debugger.cloneSourceLocation(location) }); break;
+				case "+":		scope().push({ type: NodeType.AddData,		value: +1,						location: Debugger.cloneSourceLocation(location) }); break;
+				case "-":		scope().push({ type: NodeType.AddData,		value: -1,						location: Debugger.cloneSourceLocation(location) }); break;
+				case ",":		scope().push({ type: NodeType.SystemCall,	systemCall: SystemCall.Getch,	location: Debugger.cloneSourceLocation(location) }); break;
+				case ".":		scope().push({ type: NodeType.SystemCall,	systemCall: SystemCall.Putch,	location: Debugger.cloneSourceLocation(location) }); break;
+				case "[":		scope().push({ type: NodeType.Loop,			childScope: pushScope(),		location: Debugger.cloneSourceLocation(location) }); break;
 				case "]":		popScope(); break;
 				default:		/* noop */ break;
 				}
@@ -124,7 +117,7 @@
 				}
 			}
 
-			scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.TapeEnd, location: cloneSourceLocation(location) });
+			scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.TapeEnd, location: Debugger.cloneSourceLocation(location) });
 			if (_scopeStack.length > 1) {
 				for (let i=_scopeStack.length-2; i>=0; --i) {
 					let badScopeNode = _scopeStack[i][_scopeStack[i].length-1];

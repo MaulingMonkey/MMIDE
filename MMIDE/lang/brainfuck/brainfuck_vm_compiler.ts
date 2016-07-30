@@ -22,7 +22,7 @@
 		}
 		export interface Program {
 			ops:	VmOp[];
-			locs:	AST.SourceLocation[];
+			locs:	Debugger.SourceLocation[];
 		}
 		export interface State {
 			code:		Program;
@@ -38,27 +38,32 @@
 
 		export function compile(program: Program, ast: AST.Node[]) {
 			for (let astI=0; astI<ast.length; ++astI) {
-				let node = ast[astI];
+				var node = ast[astI];
 
-				program.locs.push(node.location);
+				let push = (op: VmOp) => {
+					program.ops.push(op);
+					program.locs.push(node.location);
+				};
+
 				switch (node.type) {
-					case AST.NodeType.AddDataPtr:	program.ops.push({type: VmOpType.AddDataPtr,	value: node.value || 0,		dataOffset: 0}); break;
-					case AST.NodeType.AddData:		program.ops.push({type: VmOpType.AddData,		value: node.value || 0,		dataOffset: node.dataOffset || 0 }); break;
-					case AST.NodeType.SetData:		program.ops.push({type: VmOpType.SetData,		value: node.value || 0,		dataOffset: node.dataOffset || 0 }); break;
-					case AST.NodeType.SystemCall:	program.ops.push({type: VmOpType.SystemCall,	value: node.systemCall || 0,dataOffset: 0}); break;
+					case AST.NodeType.AddDataPtr:	push({type: VmOpType.AddDataPtr,	value: node.value || 0,			dataOffset: 0}); break;
+					case AST.NodeType.AddData:		push({type: VmOpType.AddData,		value: node.value || 0,			dataOffset: node.dataOffset || 0 }); break;
+					case AST.NodeType.SetData:		push({type: VmOpType.SetData,		value: node.value || 0,			dataOffset: node.dataOffset || 0 }); break;
+					case AST.NodeType.SystemCall:	push({type: VmOpType.SystemCall,	value: node.systemCall || 0,	dataOffset: 0}); break;
 					case AST.NodeType.BreakIf:
 						let afterSystemCall = program.ops.length+2;
-						program.ops.push({type: VmOpType.JumpIfNot,		value: afterSystemCall,			dataOffset: 0});
-						program.ops.push({type: VmOpType.SystemCall,	value: AST.SystemCall.Break,	dataOffset: 0});
+						push({type: VmOpType.JumpIfNot,		value: afterSystemCall,			dataOffset: 0});
+						push({type: VmOpType.SystemCall,	value: AST.SystemCall.Break,	dataOffset: 0});
 						break;
 					case AST.NodeType.Loop:
 						let firstJump = {type: VmOpType.JumpIfNot, value: undefined, dataOffset: 0};
-						program.ops.push(firstJump);
+						push(firstJump);
 						let afterFirstJump = program.ops.length;
 
 						compile(program, node.childScope);
+
 						let lastJump = {type: VmOpType.JumpIf, value: afterFirstJump, dataOffset: 0};
-						program.ops.push(lastJump);
+						push(lastJump);
 						let afterLastJump = program.ops.length;
 
 						firstJump.value = afterLastJump;
@@ -101,7 +106,20 @@
 
 		function lpad(s: string, padding: string) { return padding.substr(0,padding.length-s.length) + s; }
 		function addr(n: number): string { return lpad(n.toString(16), "0x0000"); }
-		function sourceLocToString(sl: AST.SourceLocation) { return !sl ? "unknown" : (sl.file + "(" + lpad(sl.line.toString(), "   ") + ")"); }
+		function sourceLocToString(sl: Debugger.SourceLocation) { return !sl ? "unknown" : (sl.file + "(" + lpad(sl.line.toString(), "   ") + ")"); }
+
+		function createSymbolLookup(program: Program): Debugger.SymbolLookup {
+			return {
+				addrToSourceLocation: (address: number) => program.locs[address],
+				sourceLocationToAddr: (sourceLocation: Debugger.SourceLocation) => {
+					for (let i=0; i<program.locs.length; ++i) {
+						if (Debugger.sourceLocationEqualColumn(sourceLocation,program.locs[i])) {
+							return i;
+						}
+					}
+				},
+			};
+		}
 
 		export function createDebugger(code: string, stdout: (b: string) => void): Debugger {
 			let errors = false;
@@ -126,7 +144,7 @@
 			let doContinue		= () => { if (runHandle === undefined) runHandle = setInterval(() => runSome(vm, 100000), 0); }; // Increase instruction limit after fixing loop perf?
 			let doStop			= () => { doPause(); vm.dataPtr = vm.data.length; };
 			let doStep			= () => { runOne(vm); };
-			let getRegisters : ()=>RegistersList = () => [
+			let getRegisters : () => Debugger.RegistersList = () => [
 				[" code",	addr(vm.codePtr)																	],
 				["*code",	vmOpToString(vm.code.ops[vm.codePtr])												],
 				["@code",	sourceLocToString(vm.code.locs[vm.codePtr])											],
@@ -140,22 +158,22 @@
 				["code length (original)", code.length.toString()			],
 				["code length (bytecode)", program.ops.length.toString()	],
 			];
-			let getCurrentPos : () => AST.SourceLocation = () => program.locs[vm.codePtr];
-			let getThreads : () => DebuggerThread[] = () => [{
+			let getThreads : () => Debugger.Thread[] = () => [{
 				registers: getRegisters,
-				currentPos: getCurrentPos,
+				currentPos: () => vm.codePtr,
 			}];
 			let getMemory		= () => vm.data;
 			let getState		= () =>
-				vm === undefined ?						DebugState.Detatched
-				: vm.codePtr >= vm.code.locs.length ?	DebugState.Done
-				: runHandle !== undefined ?				DebugState.Running
-				:										DebugState.Paused;
+				vm === undefined ?						Debugger.State.Detatched
+				: vm.codePtr >= vm.code.locs.length ?	Debugger.State.Done
+				: runHandle !== undefined ?				Debugger.State.Running
+				:										Debugger.State.Paused;
 
 			vm.sysCalls[AST.SystemCall.Putch] = vm => stdout(String.fromCharCode(vm.data[vm.dataPtr]));
 			vm.sysCalls[AST.SystemCall.TapeEnd] = vm => doStop();
 
 			return {
+				symbols:	createSymbolLookup(program),
 				state:		getState,
 				threads:	getThreads,
 				memory:		getMemory,
@@ -163,7 +181,7 @@
 				pause:		doPause,
 				continue:	doContinue,
 				stop:		doStop,
-				step:	doStep,
+				step:		doStep,
 			};
 		}
 	}

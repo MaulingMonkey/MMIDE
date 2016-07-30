@@ -17,7 +17,7 @@
 		export function Stop() {
 			theDebugger.stop();
 			theDebugger = undefined;
-			setDebugState(DebugState.Detatched);
+			setDebugState(Debugger.State.Detatched);
 		}
 
 		export function Continue() {
@@ -48,17 +48,17 @@
 			}
 		}
 
-		var prevState : DebugState = undefined;
-		function setDebugState(state: DebugState) {
+		var prevState : Debugger.State = undefined;
+		function setDebugState(state: Debugger.State) {
 			if (prevState == state) return;
 			let styles = "debug-state-detatched debug-state-done debug-state-running debug-state-paused".split(' ');
 
 			let visibleStyle = "";
 			switch (state) {
-			case DebugState.Detatched:	visibleStyle = "debug-state-detatched";	break;
-			case DebugState.Done:		visibleStyle = "debug-state-done";		break;
-			case DebugState.Running:	visibleStyle = "debug-state-running";	break;
-			case DebugState.Paused:		visibleStyle = "debug-state-paused";	break;
+			case Debugger.State.Detatched:	visibleStyle = "debug-state-detatched";	break;
+			case Debugger.State.Done:		visibleStyle = "debug-state-done";		break;
+			case Debugger.State.Running:	visibleStyle = "debug-state-running";	break;
+			case Debugger.State.Paused:		visibleStyle = "debug-state-paused";	break;
 			}
 
 			console.log("state :=",visibleStyle);
@@ -69,17 +69,18 @@
 		}
 
 		addEventListener("load", (e) => {
-			if (prevState === undefined) setDebugState(DebugState.Detatched);
+			if (prevState === undefined) setDebugState(Debugger.State.Detatched);
 			setInterval(function() {
-				let theThread = theDebugger === undefined ? undefined : theDebugger.threads()[0];
-				let thePos = theThread === undefined ? undefined : theThread.currentPos();
+				let thread		= theDebugger === undefined ? undefined : theDebugger.threads()[0];
+				let address		= thread === undefined ? undefined : thread.currentPos();
+				let sourceLoc	= theDebugger === undefined ? undefined : theDebugger.symbols.addrToSourceLocation(address);
 
-				setDebugState(theDebugger === undefined ? DebugState.Detatched : theDebugger.state());
-				UI.Registers.update(theDebugger === undefined ? [] : theThread.registers());
+				setDebugState(theDebugger === undefined ? Debugger.State.Detatched : theDebugger.state());
+				UI.Registers.update(theDebugger === undefined ? [] : thread.registers());
 				UI.Memory.update(theDebugger);
 				UI.Editor.setCurrentPosition(
-					thePos === undefined ? -1 : thePos.line,
-					thePos === undefined ? -1 : thePos.column);
+					sourceLoc === undefined ? -1 : sourceLoc.line,
+					sourceLoc === undefined ? -1 : sourceLoc.column);
 			}, 10);
 		});
 	}

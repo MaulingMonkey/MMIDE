@@ -11,7 +11,7 @@
 		console.assert(toJsNumber(<number><any>"a") == "0");
 		console.assert(toJsNumber(<number><any>".") == "0");
 
-		function toJsLocString(l: AST.SourceLocation) {
+		function toJsLocString(l: Debugger.SourceLocation) {
 			let s = l.file + "(" + l.line + ")";
 			if (!/^[0-9a-zA-Z_.]+$/.exec(s)) return "\"unavailable\"";
 			return "\"" + s + "\"";
