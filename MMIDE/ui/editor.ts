@@ -112,10 +112,16 @@
 			// Takes maybe ~5ms/check from an initial look at Chrome timeline results?  Not nearly my biggest perf issue atm.
 			setInterval(function(){ ed.resize(false); }, 100);
 
+			var errors = [];
+			var lastScript = "";
 			setInterval(function(){
-				var errors = [];
+				let newScript = getScript();
+				if (newScript == lastScript) return;
+
+				lastScript = newScript;
+				errors = [];
 				Brainfuck.AST.parse({
-					code:		getScript(),
+					code:		newScript,
 					onError:	e => errors.push(e),
 				});
 				setErrors(errors);
