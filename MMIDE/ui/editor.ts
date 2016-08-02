@@ -4,6 +4,10 @@
 
 		function editor() {
 			if (_editor === undefined) {
+				if (!document.getElementById("editor") || !window["ace"]) {
+					_editor = null;
+					return;
+				}
 				_editor = ace.edit("editor");
 				_editor.setTheme("ace/theme/monokai");
 
@@ -15,16 +19,23 @@
 			return _editor;
 		}
 
+		export function isAvailable(): boolean {
+			return !!editor();
+		}
+
 		export function getScript(): string {
-			return editor().getValue();
+			let e = editor();
+			return e ? e.getValue() : "";
 		}
 
 		export function setScript(script: string) {
-			editor().setValue(script);
+			let e = editor();
+			if (e) e.setValue(script);
 		}
 
 		export function setTheme(theme: string) {
-			editor().setTheme("ace/theme/"+theme.toLowerCase().replace(' ','_'));
+			let e = editor();
+			if (e) e.setTheme("ace/theme/"+theme.toLowerCase().replace(' ','_'));
 		}
 
 		function errorToAnnotation(error: Brainfuck.AST.Error): ace.Annotation {
@@ -47,7 +58,9 @@
 		}
 
 		export function setErrors(errors: Brainfuck.AST.Error[]) {
-			let s = editor().getSession();
+			let e = editor();
+			if (!e) return;
+			let s = e.getSession();
 			let lineErrors : Brainfuck.AST.Error[][] = [];
 			errors.forEach(error => {
 				if (!error.location || !error.location.line) return;
@@ -64,7 +77,9 @@
 		let currentCol = -1;
 		//let Range = ace.require("ace/Range").Range;
 		export function setCurrentPosition(line: number, col: number = -1) {
-			let s = editor().getSession();
+			let e = editor();
+			if (!e) return;
+			let s = e.getSession();
 
 			if (currentLine != line) {
 				s.removeGutterDecoration(currentLine, "current-line");
@@ -88,13 +103,14 @@
 			}
 		}
 
-		addEventListener("load", function(e) {
-			editor();
+		addEventListener("load", function(ev) {
+			let ed = editor();
+			if (!ed) return;
 
 			// "Ace only resizes itself on window events. If you resize the editor div in another manner, and need Ace to resize, use the following"
 			// Currently, console output, memory dump resizes, etc. may alter the editor div size.
 			// Takes maybe ~5ms/check from an initial look at Chrome timeline results?  Not nearly my biggest perf issue atm.
-			setInterval(function(){ editor().resize(false); }, 100);
+			setInterval(function(){ ed.resize(false); }, 100);
 
 			setInterval(function(){
 				var errors = [];

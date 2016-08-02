@@ -4,8 +4,10 @@
 	}
 
 	addEventListener("load", (e) => {
-		LoadBrainfuckMandelbrot();
-		UI.Debug.Start(false);
+		if (UI.Editor.isAvailable()) { // XXX: Figure out a saner way of determining the master tab?
+			LoadBrainfuckMandelbrot();
+			UI.Debug.Start(false);
+		}
 	});
 
 	export function LoadBrainfuckMandelbrot() {
