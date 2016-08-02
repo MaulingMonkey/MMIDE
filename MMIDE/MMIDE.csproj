@@ -29,6 +29,7 @@
     <Content Include="memory.html" />
     <Content Include="mmide.css" />
     <Content Include="index.html" />
+    <Content Include="registers.html" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>

@@ -3,6 +3,7 @@ module ITC {
 	const log = (m, ...a) => {};
 	//const log = (m, ...a) => console.log(m, ...a);
 	const htmlRefresh = 100;
+	const noShortcut = true;
 
 
 
@@ -35,11 +36,8 @@ module ITC {
 	export function sendTo<Header extends AgingHeader>(key: string, header: AgingHeader) {
 		header._itc_last_updated = Date.now();
 		let local = localOnHeader[key];
-		if (local) {
-			local(header);
-		} else {
-			localStorage.setItem(key, JSON.stringify(header));
-		}
+		if (local) local(header);
+		if (!local || noShortcut) localStorage.setItem(key, JSON.stringify(header));
 	}
 
 	export function listenTo<Header extends AgingHeader>(key: string, onHeader: (header: Header) => void) {

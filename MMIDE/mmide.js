@@ -29,6 +29,7 @@ var ITC;
     };
     //const log = (m, ...a) => console.log(m, ...a);
     var htmlRefresh = 100;
+    var noShortcut = true;
     // TODO: Make culling automatic on sendToByClassName and listenToByClassName to reduce the chance of accidental leaks
     function peekAndCullAll(prefix) {
         var now = Date.now();
@@ -53,12 +54,10 @@ var ITC;
     function sendTo(key, header) {
         header._itc_last_updated = Date.now();
         var local = localOnHeader[key];
-        if (local) {
+        if (local)
             local(header);
-        }
-        else {
+        if (!local || noShortcut)
             localStorage.setItem(key, JSON.stringify(header));
-        }
     }
     ITC.sendTo = sendTo;
     function listenTo(key, onHeader) {
@@ -764,7 +763,7 @@ var UI;
                 var address = thread === undefined ? undefined : thread.currentPos();
                 var sourceLoc = theDebugger === undefined ? undefined : theDebugger.symbols.addrToSourceLocation(address);
                 setDebugState(theDebugger === undefined ? Debugger.State.Detatched : theDebugger.state());
-                UI.Registers.update(theDebugger === undefined ? [] : thread.registers());
+                UI.Registers.update(theDebugger);
                 UI.Memory.update(theDebugger);
                 UI.Editor.setCurrentPosition(sourceLoc === undefined ? -1 : sourceLoc.line, sourceLoc === undefined ? -1 : sourceLoc.column);
             }, 10);
@@ -1163,19 +1162,41 @@ var UI;
 (function (UI) {
     var Registers;
     (function (Registers) {
-        function update(registers) {
+        //const log = (m,...a) => console.log(m,...a);
+        var log = function (m) {
+            var a = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                a[_i - 1] = arguments[_i];
+            }
+        };
+        function update(localDebugger) {
+            if (!localDebugger)
+                return;
+            var registers = localDebugger.threads()[0].registers();
+            if (!registers)
+                return;
+            var msg = { registers: registers };
+            log("Sending registers...");
+            ITC.sendTo("mmide-registers", msg);
+        }
+        Registers.update = update;
+        ITC.listenTo("mmide-registers", function (update) {
+            log("Recieving registers...");
+            var els = document.getElementsByClassName("registers");
+            if (!els)
+                return;
+            log("Elements to update...");
+            var registers = update.registers;
             var flat = "";
             var lpad = "";
             var rpad = "                 ";
             registers.forEach(function (reg) { return flat += reg[0] + lpad.substring(reg[0].length) + " := " + rpad.substring(reg[1].length) + reg[1] + "\n"; });
             flat = flat.substr(0, flat.length - 1);
-            var els = document.getElementsByClassName("registers");
             for (var elI = 0; elI < els.length; ++elI) {
                 var el = els.item(elI);
                 el.textContent = flat;
             }
-        }
-        Registers.update = update;
+        });
     })(Registers = UI.Registers || (UI.Registers = {}));
 })(UI || (UI = {}));
 //# sourceMappingURL=mmide.js.map

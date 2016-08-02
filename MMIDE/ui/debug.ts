@@ -76,7 +76,7 @@
 				let sourceLoc	= theDebugger === undefined ? undefined : theDebugger.symbols.addrToSourceLocation(address);
 
 				setDebugState(theDebugger === undefined ? Debugger.State.Detatched : theDebugger.state());
-				UI.Registers.update(theDebugger === undefined ? [] : thread.registers());
+				UI.Registers.update(theDebugger);
 				UI.Memory.update(theDebugger);
 				UI.Editor.setCurrentPosition(
 					sourceLoc === undefined ? -1 : sourceLoc.line,

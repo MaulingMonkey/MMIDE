@@ -1,17 +1,39 @@
 ﻿module UI {
 	export module Registers {
-		export function update(registers: [string, string][]) {
+		//const log = (m,...a) => console.log(m,...a);
+		const log = (m,...a) => {};
+
+		export function update(localDebugger: Debugger) {
+			if (!localDebugger) return;
+			let registers = localDebugger.threads()[0].registers();
+			if (!registers) return;
+
+			let msg : RegistersUpdate = { registers: registers };
+			log("Sending registers...");
+			ITC.sendTo("mmide-registers", msg);
+		}
+
+		interface RegistersUpdate extends ITC.AgingHeader {
+			registers: [string,string][];
+		}
+
+		ITC.listenTo<RegistersUpdate>("mmide-registers", update => {
+			log("Recieving registers...");
+			let els = document.getElementsByClassName("registers");
+			if (!els) return;
+
+			log("Elements to update...");
+			let registers = update.registers;
 			let flat = "";
 			let lpad = "";
 			let rpad = "                 ";
 			registers.forEach(reg => flat += reg[0] + lpad.substring(reg[0].length) + " := " + rpad.substring(reg[1].length) + reg[1] + "\n");
 			flat = flat.substr(0, flat.length-1);
 
-			let els = document.getElementsByClassName("registers");
 			for (let elI=0; elI<els.length; ++elI) {
 				let el = <HTMLElement> els.item(elI);
 				el.textContent = flat;
 			}
-		}
+		});
 	}
 }
