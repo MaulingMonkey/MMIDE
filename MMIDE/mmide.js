@@ -116,6 +116,24 @@ var ITC;
         local(JSON.parse(ev.newValue));
     });
 })(ITC || (ITC = {}));
+var Debugger;
+(function (Debugger) {
+    (function (State) {
+        State[State["Detatched"] = 0] = "Detatched";
+        State[State["Paused"] = 1] = "Paused";
+        State[State["Running"] = 2] = "Running";
+        State[State["Done"] = 3] = "Done";
+    })(Debugger.State || (Debugger.State = {}));
+    var State = Debugger.State;
+    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
+    Debugger.cloneSourceLocation = cloneSourceLocation;
+    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
+    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
+    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
+    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
+    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
+    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
+})(Debugger || (Debugger = {}));
 var Brainfuck;
 (function (Brainfuck) {
     var AST;
@@ -607,9 +625,10 @@ var Brainfuck;
                 data: [],
                 codePtr: 0,
                 dataPtr: 0,
+                sysCalls: [],
                 insRan: 0,
                 runTime: 0,
-                sysCalls: [],
+                wallStart: Date.now(),
             };
             var runHandle = undefined;
             var doPause = function () { if (runHandle !== undefined)
@@ -619,18 +638,23 @@ var Brainfuck;
             var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
             var doStep = function () { runOne(vm); };
             var getRegisters = function () { return [
-                [" code", addr(vm.codePtr)],
-                ["*code", vmOpToString(vm.code.ops[vm.codePtr])],
-                ["@code", sourceLocToString(vm.code.locs[vm.codePtr])],
-                [" data", addr(vm.dataPtr)],
-                ["*data", (vm.data[vm.dataPtr] || "0").toString()],
-                ["     ", ""],
-                ["ran  ", vm.insRan.toLocaleString()],
-                ["ran/s", ((vm.insRan / vm.runTime) | 0).toLocaleString()],
-                ["    s", (vm.runTime | 0).toString()],
-                ["     ", ""],
-                ["code length (original)", code.length.toString()],
-                ["code length (bytecode)", program.ops.length.toString()],
+                ["Core Registers:", ""],
+                ["     code", addr(vm.codePtr)],
+                ["    *code", vmOpToString(vm.code.ops[vm.codePtr])],
+                ["    @code", sourceLocToString(vm.code.locs[vm.codePtr])],
+                ["     data", addr(vm.dataPtr)],
+                ["    *data", (vm.data[vm.dataPtr] || "0").toString()],
+                ["------------------------------", ""],
+                ["Performance", ""],
+                ["    ran  ", vm.insRan.toLocaleString()],
+                [" VM ran/s", ((vm.insRan / vm.runTime) | 0).toLocaleString()],
+                [" VM     s", (vm.runTime | 0).toString()],
+                [" Wa.ran/s", ((vm.insRan / (Date.now() - vm.wallStart) * 1000) | 0).toLocaleString()],
+                [" Wall   s", ((Date.now() - vm.wallStart) / 1000 | 0).toString()],
+                ["------------------------------", ""],
+                ["Code size:", ""],
+                ["Brainfuck", code.length.toString()],
+                [" Bytecode", program.ops.length.toString()],
             ]; };
             var getThreads = function () { return [{
                     registers: getRegisters,
@@ -659,24 +683,6 @@ var Brainfuck;
         VmCompiler.createDebugger = createDebugger;
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
-var Debugger;
-(function (Debugger) {
-    (function (State) {
-        State[State["Detatched"] = 0] = "Detatched";
-        State[State["Paused"] = 1] = "Paused";
-        State[State["Running"] = 2] = "Running";
-        State[State["Done"] = 3] = "Done";
-    })(Debugger.State || (Debugger.State = {}));
-    var State = Debugger.State;
-    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
-    Debugger.cloneSourceLocation = cloneSourceLocation;
-    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
-    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
-    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
-    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
-    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
-    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
-})(Debugger || (Debugger = {}));
 var UI;
 (function (UI) {
     var Debug;
@@ -1190,7 +1196,12 @@ var UI;
             var flat = "";
             var lpad = "";
             var rpad = "                 ";
-            registers.forEach(function (reg) { return flat += reg[0] + lpad.substring(reg[0].length) + " := " + rpad.substring(reg[1].length) + reg[1] + "\n"; });
+            registers.forEach(function (reg) {
+                if (!reg[1])
+                    flat += reg[0] + "\n";
+                else
+                    flat += reg[0] + lpad.substring(reg[0].length) + " := " + rpad.substring(reg[1].length) + reg[1] + "\n";
+            });
             flat = flat.substr(0, flat.length - 1);
             for (var elI = 0; elI < els.length; ++elI) {
                 var el = els.item(elI);

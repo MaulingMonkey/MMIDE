@@ -33,6 +33,7 @@
 
 			insRan:			number;
 			runTime:		number;
+			wallStart:		number,
 		}
 
 
@@ -130,13 +131,15 @@
 			compile(program, parseResult.optimizedAst);
 
 			let vm : State = {
-				code: program,
-				data: [],
-				codePtr: 0,
-				dataPtr: 0,
-				insRan: 0,
-				runTime: 0,
-				sysCalls: [],
+				code:		program,
+				data:		[],
+				codePtr:	0,
+				dataPtr:	0,
+				sysCalls:	[],
+
+				insRan:		0,
+				runTime:	0,
+				wallStart:	Date.now(),
 			};
 			let runHandle : number = undefined;
 
@@ -145,18 +148,23 @@
 			let doStop			= () => { doPause(); vm.dataPtr = vm.data.length; };
 			let doStep			= () => { runOne(vm); };
 			let getRegisters : () => Debugger.RegistersList = () => [
-				[" code",	addr(vm.codePtr)																	],
-				["*code",	vmOpToString(vm.code.ops[vm.codePtr])												],
-				["@code",	sourceLocToString(vm.code.locs[vm.codePtr])											],
-				[" data",	addr(vm.dataPtr)																	],
-				["*data",	(vm.data[vm.dataPtr] || "0").toString()												],
-				["     ",""],
-				["ran  ",	vm.insRan.toLocaleString()															],
-				["ran/s",	((vm.insRan / vm.runTime) | 0).toLocaleString()										],
-				["    s",	(vm.runTime|0).toString()															],
-				["     ",""],
-				["code length (original)", code.length.toString()			],
-				["code length (bytecode)", program.ops.length.toString()	],
+				["Core Registers:",""],
+				["     code",	addr(vm.codePtr)																	],
+				["    *code",	vmOpToString(vm.code.ops[vm.codePtr])												],
+				["    @code",	sourceLocToString(vm.code.locs[vm.codePtr])											],
+				["     data",	addr(vm.dataPtr)																	],
+				["    *data",	(vm.data[vm.dataPtr] || "0").toString()												],
+				["------------------------------",""],
+				["Performance",""],
+				["    ran  ",	vm.insRan.toLocaleString()															],
+				[" VM ran/s",	((vm.insRan / vm.runTime) | 0).toLocaleString()										],
+				[" VM     s",	(vm.runTime|0).toString()															],
+				[" Wa.ran/s",	((vm.insRan / (Date.now()-vm.wallStart) * 1000) | 0).toLocaleString()				],
+				[" Wall   s",	((Date.now()-vm.wallStart)/1000|0).toString()										],
+				["------------------------------",""],
+				["Code size:",""],
+				["Brainfuck",	code.length.toString()			],
+				[" Bytecode",	program.ops.length.toString()	],
 			];
 			let getThreads : () => Debugger.Thread[] = () => [{
 				registers: getRegisters,

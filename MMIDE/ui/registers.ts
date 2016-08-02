@@ -27,7 +27,10 @@
 			let flat = "";
 			let lpad = "";
 			let rpad = "                 ";
-			registers.forEach(reg => flat += reg[0] + lpad.substring(reg[0].length) + " := " + rpad.substring(reg[1].length) + reg[1] + "\n");
+			registers.forEach(reg => {
+				if (!reg[1]) flat += reg[0] + "\n";
+				else         flat += reg[0] + lpad.substring(reg[0].length) + " := " + rpad.substring(reg[1].length) + reg[1] + "\n";
+			});
 			flat = flat.substr(0, flat.length-1);
 
 			for (let elI=0; elI<els.length; ++elI) {
