@@ -34,23 +34,23 @@
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="examples.ts" />
+    <TypeScriptCompile Include="src\examples.ts" />
     <TypeScriptCompile Include="ext\ace.d.ts" />
     <TypeScriptCompile Include="ext\d3\d3.d.ts" />
-    <TypeScriptCompile Include="itc.ts" />
-    <TypeScriptCompile Include="lang\brainfuck\brainfuck_ast.ts" />
-    <TypeScriptCompile Include="lang\brainfuck\brainfuck_ast_optimize.ts" />
-    <TypeScriptCompile Include="lang\brainfuck\brainfuck_js_compiler.ts" />
-    <TypeScriptCompile Include="lang\brainfuck\brainfuck_vm_compiler.ts" />
-    <TypeScriptCompile Include="lang\_debugger.ts" />
-    <TypeScriptCompile Include="ui\debug.ts" />
-    <TypeScriptCompile Include="ui\editor.ts" />
-    <TypeScriptCompile Include="ui\memory\memory-cells.ts" />
-    <TypeScriptCompile Include="ui\memory\memory-update-table.ts" />
-    <TypeScriptCompile Include="ui\memory\memory-view-config.ts" />
-    <TypeScriptCompile Include="ui\memory\memory.ts" />
-    <TypeScriptCompile Include="ui\output.ts" />
-    <TypeScriptCompile Include="ui\registers.ts" />
+    <TypeScriptCompile Include="src\itc.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_ast.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_ast_optimize.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_js_compiler.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_vm_compiler.ts" />
+    <TypeScriptCompile Include="src\lang\_debugger.ts" />
+    <TypeScriptCompile Include="src\ui\debug.ts" />
+    <TypeScriptCompile Include="src\ui\editor.ts" />
+    <TypeScriptCompile Include="src\ui\memory\memory-cells.ts" />
+    <TypeScriptCompile Include="src\ui\memory\memory-update-table.ts" />
+    <TypeScriptCompile Include="src\ui\memory\memory-view-config.ts" />
+    <TypeScriptCompile Include="src\ui\memory\memory.ts" />
+    <TypeScriptCompile Include="src\ui\output.ts" />
+    <TypeScriptCompile Include="src\ui\registers.ts" />
   </ItemGroup>
   <ItemGroup>
     <None Include="web.Debug.config">
