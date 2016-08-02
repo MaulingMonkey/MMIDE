@@ -99,7 +99,6 @@
 		function runSome(vm: State, maxInstructions: number) {
 			let tStart = Date.now();
 			for (var instructionsRan=0; instructionsRan<maxInstructions; ++instructionsRan) runOne(vm);
-			//console.log("Ran",instructionsRan,"instructions (IP=", vm.codePtr, "(", vm.code[vm.codePtr],") DP=", vm.dataPtr, "(", vm.data[vm.dataPtr] ,"))");
 			let tStop = Date.now();
 			vm.insRan += instructionsRan;
 			vm.runTime += (tStop-tStart) / 1000;

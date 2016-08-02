@@ -33,7 +33,7 @@ module ITC {
 		return headers;
 	}
 
-	export function sendTo<Header extends AgingHeader>(key: string, header: AgingHeader) {
+	export function sendTo<Header extends AgingHeader>(key: string, header: Header) {
 		header._itc_last_updated = Date.now();
 		let local = localOnHeader[key];
 		if (local) local(header);

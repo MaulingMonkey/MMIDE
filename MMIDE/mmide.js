@@ -592,7 +592,6 @@ var Brainfuck;
             var tStart = Date.now();
             for (var instructionsRan = 0; instructionsRan < maxInstructions; ++instructionsRan)
                 runOne(vm);
-            //console.log("Ran",instructionsRan,"instructions (IP=", vm.codePtr, "(", vm.code[vm.codePtr],") DP=", vm.dataPtr, "(", vm.data[vm.dataPtr] ,"))");
             var tStop = Date.now();
             vm.insRan += instructionsRan;
             vm.runTime += (tStop - tStart) / 1000;
@@ -689,11 +688,11 @@ var UI;
     (function (Debug) {
         var theDebugger = undefined;
         function Start(paused) {
-            UI.Output.outputs().forEach(function (o) { return o.clear(); });
+            UI.Output.stdio().clear();
             var script = UI.Editor.getScript();
             //theDebugger = Brainfuck.Eval.createDebugger(script, (stdout) => {
             theDebugger = Brainfuck.VmCompiler.createDebugger(script, function (stdout) {
-                UI.Output.outputs().forEach(function (o) { return o.write(stdout); });
+                UI.Output.stdio().write(stdout);
             });
             if (!paused)
                 theDebugger.continue();
@@ -1103,66 +1102,82 @@ var UI;
 })(UI || (UI = {}));
 var UI;
 (function (UI) {
-    var Output = (function () {
-        function Output(element) {
-            this._element = element;
-            this._col = 0;
-        }
-        Output.prototype.write = function (data) {
-            //let maxCol = 120; // TODO: Replace with this.element data?
-            var maxCol = 180; // TODO: Replace with this.element data?
-            var col = this._col;
-            data = data.replace("\r", ""); // only care about \n
-            var i = 0;
-            var buf = "";
-            while (i < data.length) {
-                var nextSplit = data.indexOf("\n", i);
-                if (nextSplit === -1)
-                    nextSplit = data.length;
-                while (i < nextSplit) {
-                    console.assert(col <= maxCol - 1);
-                    var append = data.substr(i, Math.min(nextSplit - i, maxCol - col));
-                    console.assert(append.length >= 1);
-                    buf += append;
-                    col += append.length;
-                    i += append.length;
-                    if (col == maxCol) {
-                        buf += "\n";
-                        col = 0;
+    var Output;
+    (function (Output) {
+        var maxCol = 180;
+        var NamedOutput = (function () {
+            function NamedOutput(postfix) {
+                var className = this.className = "output-" + postfix;
+                var itcKey = this.itcKey = "mmide-output-" + postfix;
+                this.col = 0;
+                this.buffer = "";
+                this.lineBuffer = "";
+                this.dirty = false;
+                this.animated = false;
+                ITC.listenTo(itcKey, function (ev) {
+                    var els = document.getElementsByClassName(className);
+                    for (var i = 0; i < els.length; ++i) {
+                        var el = els.item(i);
+                        el.innerText = ev.buffer;
                     }
-                }
-                if (nextSplit < data.length) {
-                    buf += "\n";
-                    col = 0;
-                }
-                console.assert(i === nextSplit);
-                i = nextSplit + 1; // skip EOL
+                });
             }
-            this._element.textContent += buf;
-            this._col = col;
-        };
-        Output.prototype.clear = function () {
-            this._element.textContent = "";
-            this._col = 0;
-        };
-        Output.outputs = function () {
-            var outputElements = [];
-            var _outputElements = document.getElementsByClassName("output");
-            for (var i = 0; i < _outputElements.length; ++i)
-                outputElements.push(_outputElements.item(i));
-            outputElements.forEach(function (e) {
-                if (!Output._outputs.some(function (o) { return o._element === e; })) {
-                    Output._outputs.push(new Output(e));
+            NamedOutput.prototype.doSend = function () {
+                var nextEol = this.lineBuffer.indexOf("\n");
+                while (nextEol != -1) {
+                    while (nextEol > maxCol) {
+                        this.buffer += this.lineBuffer.substr(0, maxCol) + "\n";
+                        this.lineBuffer = this.lineBuffer.substr(maxCol);
+                        nextEol -= maxCol;
+                    }
+                    this.buffer += this.lineBuffer.substr(0, nextEol) + "\n";
+                    this.lineBuffer = this.lineBuffer.substr(nextEol + 1);
+                    nextEol = this.lineBuffer.indexOf("\n");
                 }
-            });
-            Output._outputs = Output._outputs.filter(function (o) { return outputElements.indexOf(o._element) !== -1; });
-            return Output._outputs;
-        };
-        Output._outputs = [];
-        return Output;
-    })();
-    UI.Output = Output;
-    ;
+                while (this.lineBuffer.length > maxCol) {
+                    this.buffer += this.lineBuffer.substr(0, maxCol) + "\n";
+                    this.lineBuffer = this.lineBuffer.substr(maxCol);
+                }
+                ITC.sendTo(this.itcKey, { buffer: this.buffer + this.lineBuffer });
+            };
+            NamedOutput.prototype.perFrame = function () {
+                var _this = this;
+                requestAnimationFrame(function () { return _this.perFrame(); });
+                if (this.dirty)
+                    this.doSend();
+                this.dirty = false;
+            };
+            NamedOutput.prototype.kickoffSend = function () {
+                var _this = this;
+                this.dirty = true;
+                if (this.animated)
+                    return;
+                this.animated = true;
+                requestAnimationFrame(function () { return _this.perFrame(); });
+                setInterval(function () { return _this.kickoffSend(); }, 1000);
+            };
+            NamedOutput.prototype.clear = function () {
+                this.buffer = this.lineBuffer = "";
+                this.kickoffSend();
+            };
+            NamedOutput.prototype.write = function (data) {
+                if (this.buffer.length + this.lineBuffer.length >= 1000000)
+                    return;
+                this.lineBuffer += data;
+                this.kickoffSend();
+            };
+            return NamedOutput;
+        })();
+        Output.NamedOutput = NamedOutput;
+        function lazyishNamedOutput(id) {
+            var no = undefined;
+            var callback = function () { if (!no)
+                no = new NamedOutput(id); return no; };
+            addEventListener("load", callback);
+            return callback;
+        }
+        Output.stdio = lazyishNamedOutput("stdio");
+    })(Output = UI.Output || (UI.Output = {}));
 })(UI || (UI = {}));
 var UI;
 (function (UI) {

@@ -3,12 +3,12 @@
 		let theDebugger : Debugger = undefined;
 
 		export function Start(paused: boolean) {
-			UI.Output.outputs().forEach(o => o.clear());
+			UI.Output.stdio().clear();
 
 			let script = UI.Editor.getScript();
 			//theDebugger = Brainfuck.Eval.createDebugger(script, (stdout) => {
 			theDebugger = Brainfuck.VmCompiler.createDebugger(script, (stdout) => {
-				UI.Output.outputs().forEach(o => o.write(stdout));
+				UI.Output.stdio().write(stdout);
 			});
 			if (!paused) theDebugger.continue();
 			setDebugState(theDebugger.state());
