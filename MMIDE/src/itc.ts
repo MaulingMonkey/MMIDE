@@ -42,6 +42,8 @@ module ITC {
 
 	export function listenTo<Header extends AgingHeader>(key: string, onHeader: (header: Header) => void) {
 		localOnHeader[key] = onHeader;
+		let existing = localStorage.getItem(key);
+		onHeader(<Header>JSON.parse(existing));
 	}
 
 	export function sendToByClassName<Header extends AgingHeader>(className: string, keyPrefix: string, eachElement: (args: {itcKey: string, element: HTMLElement}) => Header) {
@@ -60,7 +62,7 @@ module ITC {
 			elements.forEach(e => {
 				let itcKey = getItcKey(e);
 				m[itcKey] = true;
-				listenTo<Header>(keyPrefix+itcKey, h => onHeader({header: h, element: e}));
+				localOnHeader[keyPrefix+itcKey] = h => onHeader({header: <Header>h, element: e});
 			});
 			listening.forEach(e => {
 				let itcKey = getItcKey(e);

@@ -62,6 +62,8 @@ var ITC;
     ITC.sendTo = sendTo;
     function listenTo(key, onHeader) {
         localOnHeader[key] = onHeader;
+        var existing = localStorage.getItem(key);
+        onHeader(JSON.parse(existing));
     }
     ITC.listenTo = listenTo;
     function sendToByClassName(className, keyPrefix, eachElement) {
@@ -80,7 +82,7 @@ var ITC;
             elements.forEach(function (e) {
                 var itcKey = getItcKey(e);
                 m[itcKey] = true;
-                listenTo(keyPrefix + itcKey, function (h) { return onHeader({ header: h, element: e }); });
+                localOnHeader[keyPrefix + itcKey] = function (h) { return onHeader({ header: h, element: e }); };
             });
             listening.forEach(function (e) {
                 var itcKey = getItcKey(e);
@@ -683,33 +685,38 @@ var UI;
         function setDebugState(state) {
             if (Debug.prevState == state)
                 return;
-            var styles = "debug-state-detatched debug-state-done debug-state-running debug-state-paused".split(' ');
-            var visibleStyle = "";
-            switch (state) {
-                case Debugger.State.Detatched:
-                    visibleStyle = "debug-state-detatched";
-                    break;
-                case Debugger.State.Done:
-                    visibleStyle = "debug-state-done";
-                    break;
-                case Debugger.State.Running:
-                    visibleStyle = "debug-state-running";
-                    break;
-                case Debugger.State.Paused:
-                    visibleStyle = "debug-state-paused";
-                    break;
-            }
-            console.log("state :=", visibleStyle);
-            //console.assert(styles.indexOf(visibleStyle) !== -1);
-            styles.forEach(function (style) { if (style !== visibleStyle)
-                toggleClassVisibility(style, false); });
-            toggleClassVisibility(visibleStyle, true);
+            ITC.sendTo("mmide-debug-state", { newState: state });
             Debug.prevState = state;
         }
         Debug.setDebugState = setDebugState;
         function toggleClassVisibility(class_, visible) {
             UI.byClassName(class_).forEach(function (e) { return e.style.display = visible ? "" : "none"; });
         }
+        addEventListener("load", function (loadEvent) {
+            ITC.listenTo("mmide-debug-state", function (dsc) {
+                var styles = "debug-state-detatched debug-state-done debug-state-running debug-state-paused".split(' ');
+                var visibleStyle = "";
+                switch (dsc.newState) {
+                    case Debugger.State.Detatched:
+                        visibleStyle = "debug-state-detatched";
+                        break;
+                    case Debugger.State.Done:
+                        visibleStyle = "debug-state-done";
+                        break;
+                    case Debugger.State.Running:
+                        visibleStyle = "debug-state-running";
+                        break;
+                    case Debugger.State.Paused:
+                        visibleStyle = "debug-state-paused";
+                        break;
+                }
+                //console.log("state :=",visibleStyle);
+                //console.assert(styles.indexOf(visibleStyle) !== -1);
+                styles.forEach(function (style) { if (style !== visibleStyle)
+                    toggleClassVisibility(style, false); });
+                toggleClassVisibility(visibleStyle, true);
+            });
+        });
     })(Debug = UI.Debug || (UI.Debug = {}));
 })(UI || (UI = {}));
 var UI;
@@ -756,6 +763,8 @@ var UI;
         }
         Debug.Restart = Restart;
         addEventListener("load", function (e) {
+            if (!UI.Editor.isAvailable())
+                return; // We're not the "Main" tab, don't drive debug state
             if (Debug.prevState === undefined)
                 Debug.setDebugState(Debugger.State.Detatched);
             setInterval(function () {
@@ -1196,7 +1205,7 @@ var UI;
             ITC.sendTo("mmide-registers", msg);
         }
         Registers.update = update;
-        ITC.listenTo("mmide-registers", function (update) {
+        addEventListener("load", function (loadEvent) { return ITC.listenTo("mmide-registers", function (update) {
             log("Recieving registers...");
             var els = UI.byClassName("registers");
             if (!els)
@@ -1214,7 +1223,7 @@ var UI;
             });
             flat = flat.substr(0, flat.length - 1);
             els.forEach(function (el) { return el.textContent = flat; });
-        });
+        }); });
     })(Registers = UI.Registers || (UI.Registers = {}));
 })(UI || (UI = {}));
 var _ui_document = this["document"];

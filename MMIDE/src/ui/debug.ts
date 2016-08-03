@@ -40,6 +40,7 @@
 		}
 
 		addEventListener("load", (e) => {
+			if (!UI.Editor.isAvailable()) return; // We're not the "Main" tab, don't drive debug state
 			if (prevState === undefined) setDebugState(Debugger.State.Detatched);
 			setInterval(function() {
 				let thread		= theDebugger === undefined ? undefined : theDebugger.threads()[0];

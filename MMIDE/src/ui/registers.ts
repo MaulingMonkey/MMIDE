@@ -17,7 +17,7 @@
 			registers: [string,string][];
 		}
 
-		ITC.listenTo<RegistersUpdate>("mmide-registers", update => {
+		addEventListener("load", loadEvent => ITC.listenTo<RegistersUpdate>("mmide-registers", update => {
 			log("Recieving registers...");
 			let els = byClassName("registers");
 			if (!els) return;
@@ -34,6 +34,6 @@
 			flat = flat.substr(0, flat.length-1);
 
 			els.forEach(el => el.textContent = flat);
-		});
+		}));
 	}
 }
