@@ -4,7 +4,7 @@
 
 		function editor() {
 			if (_editor === undefined) {
-				if (!document.getElementById("editor") || !window["ace"]) {
+				if (!byId("editor") || !window["ace"]) {
 					_editor = null;
 					return;
 				}

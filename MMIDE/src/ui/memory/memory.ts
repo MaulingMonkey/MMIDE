@@ -35,13 +35,6 @@
 			});
 		}
 
-		// Remote update of memory
-		ITC.listenToByClassName<UpdateNotice>("memory", updatePrefix, ev => {
-			var config = getMemoryViewConfig(ev.element);
-			var table = collectTableCells(config, ev.header.baseAddress, ev.header.data);
-			updateTable(ev.element, config, table);
-		});
-
 		// Ensure we recieve remote updates of memory
 		function sendUpdateRequest() {
 			ITC.sendToByClassName("memory", listenerPrefix, args => {
@@ -56,6 +49,12 @@
 		}
 
 		addEventListener("load", ev => {
+			// Remote update of memory
+			ITC.listenToByClassName<UpdateNotice>("memory", updatePrefix, ev => {
+				var config = getMemoryViewConfig(ev.element);
+				var table = collectTableCells(config, ev.header.baseAddress, ev.header.data);
+				updateTable(ev.element, config, table);
+			});
 			sendUpdateRequest();
 			setInterval(sendUpdateRequest, 1000); // Keepalive
 		});

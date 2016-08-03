@@ -45,7 +45,7 @@ module ITC {
 	}
 
 	export function sendToByClassName<Header extends AgingHeader>(className: string, keyPrefix: string, eachElement: (args: {itcKey: string, element: HTMLElement}) => Header) {
-		let elements = getElementsByClassName(className);
+		let elements = UI.byClassName(className);
 		elements.forEach(e => {
 			let itcKey = getItcKey(e);
 			sendTo<Header>(keyPrefix+itcKey, eachElement({itcKey: itcKey, element: e}));
@@ -56,7 +56,7 @@ module ITC {
 		var listening : HTMLElement[] = [];
 		let update = () => {
 			let m = {};
-			let elements = getElementsByClassName(className);
+			let elements = UI.byClassName(className);
 			elements.forEach(e => {
 				let itcKey = getItcKey(e);
 				m[itcKey] = true;
@@ -80,13 +80,6 @@ module ITC {
 		if (key) return key;
 		key = a["__itc_key__"] = Math.random().toString(36).substr(2,5);
 		return key;
-	}
-
-	function getElementsByClassName(className: string) {
-		let a : HTMLElement[] = [];
-		let els = document.getElementsByClassName(className);
-		for (let i=0; i<els.length; ++i) a.push(<HTMLElement>els.item(i));
-		return a;
 	}
 
 	addEventListener("storage", ev => {

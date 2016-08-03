@@ -26,13 +26,7 @@
 				this.dirty		= false;
 				this.animated	= false;
 
-				ITC.listenTo<OutputState>(itcKey, ev => {
-					let els = document.getElementsByClassName(className);
-					for (let i=0; i<els.length; ++i) {
-						let el = <HTMLElement>els.item(i);
-						el.innerText = ev.buffer;
-					}
-				});
+				ITC.listenTo<OutputState>(itcKey, ev => byClassName(className).forEach(el => el.innerText = ev.buffer));
 			}
 
 			private doSend() {

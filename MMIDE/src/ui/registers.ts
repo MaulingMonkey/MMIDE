@@ -19,7 +19,7 @@
 
 		ITC.listenTo<RegistersUpdate>("mmide-registers", update => {
 			log("Recieving registers...");
-			let els = document.getElementsByClassName("registers");
+			let els = byClassName("registers");
 			if (!els) return;
 
 			log("Elements to update...");
@@ -33,10 +33,7 @@
 			});
 			flat = flat.substr(0, flat.length-1);
 
-			for (let elI=0; elI<els.length; ++elI) {
-				let el = <HTMLElement> els.item(elI);
-				el.textContent = flat;
-			}
+			els.forEach(el => el.textContent = flat);
 		});
 	}
 }

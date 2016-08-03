@@ -65,7 +65,7 @@ var ITC;
     }
     ITC.listenTo = listenTo;
     function sendToByClassName(className, keyPrefix, eachElement) {
-        var elements = getElementsByClassName(className);
+        var elements = UI.byClassName(className);
         elements.forEach(function (e) {
             var itcKey = getItcKey(e);
             sendTo(keyPrefix + itcKey, eachElement({ itcKey: itcKey, element: e }));
@@ -76,7 +76,7 @@ var ITC;
         var listening = [];
         var update = function () {
             var m = {};
-            var elements = getElementsByClassName(className);
+            var elements = UI.byClassName(className);
             elements.forEach(function (e) {
                 var itcKey = getItcKey(e);
                 m[itcKey] = true;
@@ -102,13 +102,6 @@ var ITC;
         key = a["__itc_key__"] = Math.random().toString(36).substr(2, 5);
         return key;
     }
-    function getElementsByClassName(className) {
-        var a = [];
-        var els = document.getElementsByClassName(className);
-        for (var i = 0; i < els.length; ++i)
-            a.push(els.item(i));
-        return a;
-    }
     addEventListener("storage", function (ev) {
         var local = localOnHeader[ev.key];
         if (!local)
@@ -116,24 +109,6 @@ var ITC;
         local(JSON.parse(ev.newValue));
     });
 })(ITC || (ITC = {}));
-var Debugger;
-(function (Debugger) {
-    (function (State) {
-        State[State["Detatched"] = 0] = "Detatched";
-        State[State["Paused"] = 1] = "Paused";
-        State[State["Running"] = 2] = "Running";
-        State[State["Done"] = 3] = "Done";
-    })(Debugger.State || (Debugger.State = {}));
-    var State = Debugger.State;
-    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
-    Debugger.cloneSourceLocation = cloneSourceLocation;
-    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
-    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
-    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
-    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
-    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
-    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
-})(Debugger || (Debugger = {}));
 var Brainfuck;
 (function (Brainfuck) {
     var AST;
@@ -682,60 +657,31 @@ var Brainfuck;
         VmCompiler.createDebugger = createDebugger;
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
+var Debugger;
+(function (Debugger) {
+    (function (State) {
+        State[State["Detatched"] = 0] = "Detatched";
+        State[State["Paused"] = 1] = "Paused";
+        State[State["Running"] = 2] = "Running";
+        State[State["Done"] = 3] = "Done";
+    })(Debugger.State || (Debugger.State = {}));
+    var State = Debugger.State;
+    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
+    Debugger.cloneSourceLocation = cloneSourceLocation;
+    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
+    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
+    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
+    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
+    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
+    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
+})(Debugger || (Debugger = {}));
 var UI;
 (function (UI) {
     var Debug;
     (function (Debug) {
-        var theDebugger = undefined;
-        function Start(paused) {
-            UI.Output.stdio().clear();
-            var script = UI.Editor.getScript();
-            //theDebugger = Brainfuck.Eval.createDebugger(script, (stdout) => {
-            theDebugger = Brainfuck.VmCompiler.createDebugger(script, function (stdout) {
-                UI.Output.stdio().write(stdout);
-            });
-            if (!paused)
-                theDebugger.continue();
-            setDebugState(theDebugger.state());
-        }
-        Debug.Start = Start;
-        function Stop() {
-            theDebugger.stop();
-            theDebugger = undefined;
-            setDebugState(Debugger.State.Detatched);
-        }
-        Debug.Stop = Stop;
-        function Continue() {
-            theDebugger.continue();
-            setDebugState(theDebugger.state());
-        }
-        Debug.Continue = Continue;
-        function Step() {
-            theDebugger.step();
-        }
-        Debug.Step = Step;
-        function Pause() {
-            theDebugger.pause();
-            setDebugState(theDebugger.state());
-        }
-        Debug.Pause = Pause;
-        function Restart(paused) {
-            if (theDebugger !== undefined)
-                Stop();
-            Start(paused);
-        }
-        Debug.Restart = Restart;
-        function toggleClassVisibility(class_, visible) {
-            var es = document.getElementsByClassName(class_);
-            //console.log(class_, "(", es.length, ") :=", visible);
-            for (var i = 0; i < es.length; ++i) {
-                var e = es.item(i);
-                e.style.display = visible ? "" : "none";
-            }
-        }
-        var prevState = undefined;
+        Debug.prevState = undefined;
         function setDebugState(state) {
-            if (prevState == state)
+            if (Debug.prevState == state)
                 return;
             var styles = "debug-state-detatched debug-state-done debug-state-running debug-state-paused".split(' ');
             var visibleStyle = "";
@@ -758,16 +704,65 @@ var UI;
             styles.forEach(function (style) { if (style !== visibleStyle)
                 toggleClassVisibility(style, false); });
             toggleClassVisibility(visibleStyle, true);
-            prevState = state;
+            Debug.prevState = state;
         }
+        Debug.setDebugState = setDebugState;
+        function toggleClassVisibility(class_, visible) {
+            UI.byClassName(class_).forEach(function (e) { return e.style.display = visible ? "" : "none"; });
+        }
+    })(Debug = UI.Debug || (UI.Debug = {}));
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Debug;
+    (function (Debug) {
+        var theDebugger = undefined;
+        function Start(paused) {
+            UI.Output.stdio().clear();
+            var script = UI.Editor.getScript();
+            //theDebugger = Brainfuck.Eval.createDebugger(script, (stdout) => {
+            theDebugger = Brainfuck.VmCompiler.createDebugger(script, function (stdout) {
+                UI.Output.stdio().write(stdout);
+            });
+            if (!paused)
+                theDebugger.continue();
+            Debug.setDebugState(theDebugger.state());
+        }
+        Debug.Start = Start;
+        function Stop() {
+            theDebugger.stop();
+            theDebugger = undefined;
+            Debug.setDebugState(Debugger.State.Detatched);
+        }
+        Debug.Stop = Stop;
+        function Continue() {
+            theDebugger.continue();
+            Debug.setDebugState(theDebugger.state());
+        }
+        Debug.Continue = Continue;
+        function Step() {
+            theDebugger.step();
+        }
+        Debug.Step = Step;
+        function Pause() {
+            theDebugger.pause();
+            Debug.setDebugState(theDebugger.state());
+        }
+        Debug.Pause = Pause;
+        function Restart(paused) {
+            if (theDebugger !== undefined)
+                Stop();
+            Start(paused);
+        }
+        Debug.Restart = Restart;
         addEventListener("load", function (e) {
-            if (prevState === undefined)
-                setDebugState(Debugger.State.Detatched);
+            if (Debug.prevState === undefined)
+                Debug.setDebugState(Debugger.State.Detatched);
             setInterval(function () {
                 var thread = theDebugger === undefined ? undefined : theDebugger.threads()[0];
                 var address = thread === undefined ? undefined : thread.currentPos();
                 var sourceLoc = theDebugger === undefined ? undefined : theDebugger.symbols.addrToSourceLocation(address);
-                setDebugState(theDebugger === undefined ? Debugger.State.Detatched : theDebugger.state());
+                Debug.setDebugState(theDebugger === undefined ? Debugger.State.Detatched : theDebugger.state());
                 UI.Registers.update(theDebugger);
                 UI.Memory.update(theDebugger);
                 UI.Editor.setCurrentPosition(sourceLoc === undefined ? -1 : sourceLoc.line, sourceLoc === undefined ? -1 : sourceLoc.column);
@@ -782,7 +777,7 @@ var UI;
         var _editor = undefined;
         function editor() {
             if (_editor === undefined) {
-                if (!document.getElementById("editor") || !window["ace"]) {
+                if (!UI.byId("editor") || !window["ace"]) {
                     _editor = null;
                     return;
                 }
@@ -1082,12 +1077,6 @@ var UI;
             });
         }
         Memory.update = update;
-        // Remote update of memory
-        ITC.listenToByClassName("memory", updatePrefix, function (ev) {
-            var config = Memory.getMemoryViewConfig(ev.element);
-            var table = Memory.collectTableCells(config, ev.header.baseAddress, ev.header.data);
-            Memory.updateTable(ev.element, config, table);
-        });
         // Ensure we recieve remote updates of memory
         function sendUpdateRequest() {
             ITC.sendToByClassName("memory", listenerPrefix, function (args) {
@@ -1101,6 +1090,12 @@ var UI;
             });
         }
         addEventListener("load", function (ev) {
+            // Remote update of memory
+            ITC.listenToByClassName("memory", updatePrefix, function (ev) {
+                var config = Memory.getMemoryViewConfig(ev.element);
+                var table = Memory.collectTableCells(config, ev.header.baseAddress, ev.header.data);
+                Memory.updateTable(ev.element, config, table);
+            });
             sendUpdateRequest();
             setInterval(sendUpdateRequest, 1000); // Keepalive
         });
@@ -1120,13 +1115,7 @@ var UI;
                 this.lineBuffer = "";
                 this.dirty = false;
                 this.animated = false;
-                ITC.listenTo(itcKey, function (ev) {
-                    var els = document.getElementsByClassName(className);
-                    for (var i = 0; i < els.length; ++i) {
-                        var el = els.item(i);
-                        el.innerText = ev.buffer;
-                    }
-                });
+                ITC.listenTo(itcKey, function (ev) { return UI.byClassName(className).forEach(function (el) { return el.innerText = ev.buffer; }); });
             }
             NamedOutput.prototype.doSend = function () {
                 var nextEol = this.lineBuffer.indexOf("\n");
@@ -1209,7 +1198,7 @@ var UI;
         Registers.update = update;
         ITC.listenTo("mmide-registers", function (update) {
             log("Recieving registers...");
-            var els = document.getElementsByClassName("registers");
+            var els = UI.byClassName("registers");
             if (!els)
                 return;
             log("Elements to update...");
@@ -1224,11 +1213,29 @@ var UI;
                     flat += reg[0] + lpad.substring(reg[0].length) + " := " + rpad.substring(reg[1].length) + reg[1] + "\n";
             });
             flat = flat.substr(0, flat.length - 1);
-            for (var elI = 0; elI < els.length; ++elI) {
-                var el = els.item(elI);
-                el.textContent = flat;
-            }
+            els.forEach(function (el) { return el.textContent = flat; });
         });
     })(Registers = UI.Registers || (UI.Registers = {}));
+})(UI || (UI = {}));
+var _ui_document = this["document"];
+var UI;
+(function (UI) {
+    function byClassName(className) {
+        if (!_ui_document)
+            return []; // Webworker context
+        var e = [];
+        var els = document.getElementsByClassName(className);
+        for (var i = 0; i < els.length; ++i)
+            e.push(els.item(i));
+        return e;
+    }
+    UI.byClassName = byClassName;
+    function byId(elementId) {
+        if (!_ui_document)
+            return null; // Webworker context
+        var e = document.getElementById(elementId);
+        return e;
+    }
+    UI.byId = byId;
 })(UI || (UI = {}));
 //# sourceMappingURL=mmide.js.map
