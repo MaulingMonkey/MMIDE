@@ -111,6 +111,24 @@ var ITC;
         local(JSON.parse(ev.newValue));
     });
 })(ITC || (ITC = {}));
+var Debugger;
+(function (Debugger) {
+    (function (State) {
+        State[State["Detatched"] = 0] = "Detatched";
+        State[State["Paused"] = 1] = "Paused";
+        State[State["Running"] = 2] = "Running";
+        State[State["Done"] = 3] = "Done";
+    })(Debugger.State || (Debugger.State = {}));
+    var State = Debugger.State;
+    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
+    Debugger.cloneSourceLocation = cloneSourceLocation;
+    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
+    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
+    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
+    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
+    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
+    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
+})(Debugger || (Debugger = {}));
 var Brainfuck;
 (function (Brainfuck) {
     var AST;
@@ -457,6 +475,8 @@ var Brainfuck;
         JsCompiler.compile = compile;
     })(JsCompiler = Brainfuck.JsCompiler || (Brainfuck.JsCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
+var _brainfuck_vm_global = this;
+var _brainfuck_vm_document = this["document"];
 var Brainfuck;
 (function (Brainfuck) {
     var VmCompiler;
@@ -588,6 +608,33 @@ var Brainfuck;
                 },
             };
         }
+        function getRegistersList(vm, src) {
+            return [
+                ["Core Registers:", ""],
+                ["     code", addr(vm.codePtr)],
+                ["    *code", vmOpToString(vm.code.ops[vm.codePtr])],
+                ["    @code", sourceLocToString(vm.code.locs[vm.codePtr])],
+                ["     data", addr(vm.dataPtr)],
+                ["    *data", (vm.data[vm.dataPtr] || "0").toString()],
+                ["------------------------------", ""],
+                ["Performance", ""],
+                ["    ran  ", vm.insRan.toLocaleString()],
+                [" VM ran/s", ((vm.insRan / vm.runTime) | 0).toLocaleString()],
+                [" VM     s", (vm.runTime | 0).toString()],
+                [" Wa.ran/s", ((vm.insRan / (Date.now() - vm.wallStart) * 1000) | 0).toLocaleString()],
+                [" Wall   s", ((Date.now() - vm.wallStart) / 1000 | 0).toString()],
+                ["------------------------------", ""],
+                ["Code size:", ""],
+                ["Brainfuck", src.length.toString()],
+                [" Bytecode", vm.code.ops.length.toString()],
+            ];
+        }
+        function getThreads(vm, src) {
+            return [{
+                    registers: function () { return getRegistersList(vm, src); },
+                    currentPos: function () { return vm.codePtr; },
+                }];
+        }
         function createDebugger(code, stdout) {
             var errors = false;
             var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
@@ -612,30 +659,7 @@ var Brainfuck;
             var doContinue = function () { if (runHandle === undefined)
                 runHandle = setInterval(function () { return runSome(vm, 100000); }, 0); }; // Increase instruction limit after fixing loop perf?
             var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
-            var doStep = function () { runOne(vm); };
-            var getRegisters = function () { return [
-                ["Core Registers:", ""],
-                ["     code", addr(vm.codePtr)],
-                ["    *code", vmOpToString(vm.code.ops[vm.codePtr])],
-                ["    @code", sourceLocToString(vm.code.locs[vm.codePtr])],
-                ["     data", addr(vm.dataPtr)],
-                ["    *data", (vm.data[vm.dataPtr] || "0").toString()],
-                ["------------------------------", ""],
-                ["Performance", ""],
-                ["    ran  ", vm.insRan.toLocaleString()],
-                [" VM ran/s", ((vm.insRan / vm.runTime) | 0).toLocaleString()],
-                [" VM     s", (vm.runTime | 0).toString()],
-                [" Wa.ran/s", ((vm.insRan / (Date.now() - vm.wallStart) * 1000) | 0).toLocaleString()],
-                [" Wall   s", ((Date.now() - vm.wallStart) / 1000 | 0).toString()],
-                ["------------------------------", ""],
-                ["Code size:", ""],
-                ["Brainfuck", code.length.toString()],
-                [" Bytecode", program.ops.length.toString()],
-            ]; };
-            var getThreads = function () { return [{
-                    registers: getRegisters,
-                    currentPos: function () { return vm.codePtr; },
-                }]; };
+            var doStep = function () { return runOne(vm); };
             var getMemory = function () { return vm.data; };
             var getState = function () {
                 return vm === undefined ? Debugger.State.Detatched
@@ -648,7 +672,7 @@ var Brainfuck;
             return {
                 symbols: createSymbolLookup(program),
                 state: getState,
-                threads: getThreads,
+                threads: function () { return getThreads(vm, code); },
                 memory: getMemory,
                 pause: doPause,
                 continue: doContinue,
@@ -657,26 +681,144 @@ var Brainfuck;
             };
         }
         VmCompiler.createDebugger = createDebugger;
+        var isWorker = !_brainfuck_vm_document;
+        var isMainTab = !isWorker;
+        var supportsWorker = _brainfuck_vm_global["Worker"];
+        function createAsyncDebugger(code, stdout) {
+            console.assert(isMainTab);
+            if (!isMainTab)
+                return undefined;
+            if (!supportsWorker)
+                return createDebugger(code, stdout);
+            var errors = false;
+            var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
+                    errors = true; } });
+            if (errors)
+                return undefined;
+            var program = { ops: [], locs: [] };
+            compile(program, parseResult.optimizedAst);
+            var vm = {
+                code: program,
+                data: [],
+                codePtr: 0,
+                dataPtr: 0,
+                sysCalls: [],
+                insRan: 0,
+                runTime: 0,
+                wallStart: Date.now(),
+            };
+            var state = Debugger.State.Paused;
+            var worker = new Worker("mmide.js");
+            worker.addEventListener("message", function (reply) {
+                switch (reply.data.desc) {
+                    case "update-state":
+                        state = reply.data.value;
+                        break;
+                    case "update-vm-data":
+                        var src = reply.data.value;
+                        vm.data = src.data;
+                        vm.codePtr = src.codePtr;
+                        vm.dataPtr = src.dataPtr;
+                        vm.insRan = src.insRan;
+                        vm.runTime = src.runTime;
+                        break;
+                    case "system-call-stdout":
+                        stdout(reply.data.value);
+                        break;
+                    case "system-call-tape-end":
+                        state = Debugger.State.Done;
+                        break;
+                    default:
+                        console.error("Unexpected worker message desc:", reply.data.desc);
+                        break;
+                }
+            });
+            worker.postMessage({ desc: "brainfuck-debugger-init", state: vm });
+            return {
+                symbols: createSymbolLookup(program),
+                state: function () { return state; },
+                threads: function () { return getThreads(vm, code); },
+                memory: function () { return vm.data; },
+                pause: function () { return worker.postMessage({ desc: "pause" }); },
+                continue: function () { return worker.postMessage({ desc: "continue" }); },
+                stop: function () { return worker.postMessage({ desc: "stop" }); },
+                step: function () { return worker.postMessage({ desc: "step" }); },
+            };
+        }
+        VmCompiler.createAsyncDebugger = createAsyncDebugger;
+        if (isWorker) {
+            var vm = undefined;
+            var runHandle = undefined;
+            var reply = _brainfuck_vm_global["postMessage"];
+            function updateVm() {
+                reply({ desc: "update-vm-data", value: { data: vm.data, codePtr: vm.codePtr, dataPtr: vm.dataPtr, insRan: vm.insRan, runTime: vm.runTime } });
+            }
+            function tick() {
+                //runSome(vm, 100000); // ? - ~10ms - ~24M/s instructions executed
+                runSome(vm, 300000); // 5 - ~30ms? - ~68M/s instructions executed - significantly diminishing returns beyond this point
+                //runSome(vm, 500000); // ? - ~50ms? - ~68M/s instructions executed - still seems perfectly responsive FWIW
+                updateVm();
+            }
+            function onInitMessage(ev) {
+                removeEventListener("message", onInitMessage);
+                if (ev.data.desc != "brainfuck-debugger-init")
+                    return;
+                addEventListener("message", onMessage);
+                vm = ev.data.state;
+                vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { reply({ desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); };
+                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { reply({ desc: "system-call-tape-end" }); updateVm(); _brainfuck_vm_global.stop(); };
+            }
+            function onMessage(ev) {
+                switch (ev.data.desc) {
+                    case "pause":
+                        if (runHandle !== undefined)
+                            clearInterval(runHandle);
+                        runHandle = undefined;
+                        reply({ desc: "update-state", value: Debugger.State.Paused });
+                        break;
+                    case "continue":
+                        if (runHandle === undefined)
+                            runHandle = setInterval(tick, 0);
+                        reply({ desc: "update-state", value: Debugger.State.Running });
+                        break;
+                    case "stop":
+                        if (runHandle !== undefined)
+                            clearInterval(runHandle);
+                        runHandle = undefined;
+                        reply({ desc: "update-state", value: Debugger.State.Done });
+                        break;
+                    case "step":
+                        runOne(vm);
+                        updateVm();
+                        // no update-state
+                        break;
+                }
+            }
+            addEventListener("message", onInitMessage);
+        }
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
-var Debugger;
-(function (Debugger) {
-    (function (State) {
-        State[State["Detatched"] = 0] = "Detatched";
-        State[State["Paused"] = 1] = "Paused";
-        State[State["Running"] = 2] = "Running";
-        State[State["Done"] = 3] = "Done";
-    })(Debugger.State || (Debugger.State = {}));
-    var State = Debugger.State;
-    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
-    Debugger.cloneSourceLocation = cloneSourceLocation;
-    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
-    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
-    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
-    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
-    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
-    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
-})(Debugger || (Debugger = {}));
+var _ui_document = this["document"];
+var UI;
+(function (UI) {
+    function byClassName(className) {
+        if (!_ui_document)
+            return []; // Webworker context
+        var e = [];
+        var els = document.getElementsByClassName(className);
+        for (var i = 0; i < els.length; ++i)
+            e.push(els.item(i));
+        return e;
+    }
+    UI.byClassName = byClassName;
+    function byId(elementId) {
+        if (!_ui_document)
+            return null; // Webworker context
+        var e = document.getElementById(elementId);
+        return e;
+    }
+    UI.byId = byId;
+})(UI || (UI = {}));
 var UI;
 (function (UI) {
     var Debug;
@@ -728,7 +870,8 @@ var UI;
             UI.Output.stdio().clear();
             var script = UI.Editor.getScript();
             //theDebugger = Brainfuck.Eval.createDebugger(script, (stdout) => {
-            theDebugger = Brainfuck.VmCompiler.createDebugger(script, function (stdout) {
+            //theDebugger = Brainfuck.VmCompiler.createDebugger(script, (stdout) => {
+            theDebugger = Brainfuck.VmCompiler.createAsyncDebugger(script, function (stdout) {
                 UI.Output.stdio().write(stdout);
             });
             if (!paused)
@@ -1225,26 +1368,5 @@ var UI;
             els.forEach(function (el) { return el.textContent = flat; });
         }); });
     })(Registers = UI.Registers || (UI.Registers = {}));
-})(UI || (UI = {}));
-var _ui_document = this["document"];
-var UI;
-(function (UI) {
-    function byClassName(className) {
-        if (!_ui_document)
-            return []; // Webworker context
-        var e = [];
-        var els = document.getElementsByClassName(className);
-        for (var i = 0; i < els.length; ++i)
-            e.push(els.item(i));
-        return e;
-    }
-    UI.byClassName = byClassName;
-    function byId(elementId) {
-        if (!_ui_document)
-            return null; // Webworker context
-        var e = document.getElementById(elementId);
-        return e;
-    }
-    UI.byId = byId;
 })(UI || (UI = {}));
 //# sourceMappingURL=mmide.js.map

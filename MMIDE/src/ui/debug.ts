@@ -7,7 +7,8 @@
 
 			let script = UI.Editor.getScript();
 			//theDebugger = Brainfuck.Eval.createDebugger(script, (stdout) => {
-			theDebugger = Brainfuck.VmCompiler.createDebugger(script, (stdout) => {
+			//theDebugger = Brainfuck.VmCompiler.createDebugger(script, (stdout) => {
+			theDebugger = Brainfuck.VmCompiler.createAsyncDebugger(script, (stdout) => {
 				UI.Output.stdio().write(stdout);
 			});
 			if (!paused) theDebugger.continue();
