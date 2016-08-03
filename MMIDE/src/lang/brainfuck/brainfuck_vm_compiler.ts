@@ -126,14 +126,14 @@ module Brainfuck {
 
 		function getRegistersList(vm: State, src: string): Debugger.RegistersList {
 			return  [
-				["Core Registers:",""],
+				["Registers:",""],
 				["     code",	addr(vm.codePtr)																	],
 				["    *code",	vmOpToString(vm.code.ops[vm.codePtr])												],
 				["    @code",	sourceLocToString(vm.code.locs[vm.codePtr])											],
 				["     data",	addr(vm.dataPtr)																	],
 				["    *data",	(vm.data[vm.dataPtr] || "0").toString()												],
 				["------------------------------",""],
-				["Performance",""],
+				["Performance:",""],
 				["    ran  ",	vm.insRan.toLocaleString()															],
 				[" VM ran/s",	((vm.insRan / vm.runTime) | 0).toLocaleString()										],
 				[" VM     s",	(vm.runTime|0).toString()															],
@@ -295,7 +295,7 @@ module Brainfuck {
 				vm = ev.data.state;
 
 				vm.sysCalls[AST.SystemCall.Putch]	= vm => { reply({desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); };
-				vm.sysCalls[AST.SystemCall.TapeEnd]	= vm => { reply({desc: "system-call-tape-end"}); updateVm(); _brainfuck_vm_global.stop(); };
+				vm.sysCalls[AST.SystemCall.TapeEnd]	= vm => { reply({desc: "system-call-tape-end"}); updateVm(); if (runHandle !== undefined) clearInterval(runHandle); runHandle = undefined; };
 			}
 
 			function onMessage(ev: MessageEvent) {

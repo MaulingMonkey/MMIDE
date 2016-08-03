@@ -18,8 +18,8 @@
 		const updatePrefix   = "mmide-memory-update-";
 		const listenerPrefix = "mmide-memory-listener-";
 
-		function getListeners(): ListenNotice[] { return ITC.peekAndCullAll<ListenNotice>(listenerPrefix); }
-		function getUpdates():   UpdateNotice[] { return ITC.peekAndCullAll<UpdateNotice>(updatePrefix); }
+		function getListeners(): ListenNotice[] { return ITC.peekAll<ListenNotice>(listenerPrefix); }
+		function getUpdates():   UpdateNotice[] { return ITC.peekAll<UpdateNotice>(updatePrefix); }
 
 		// Local update of memory
 		export function update(localDebugger: Debugger) {

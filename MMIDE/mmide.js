@@ -19,19 +19,49 @@ var Examples;
     Examples.LoadBrainfuckHelloWorld = LoadBrainfuckHelloWorld;
 })(Examples || (Examples = {}));
 // Intra-tab communications
+var _itc_root = this;
 var ITC;
 (function (ITC) {
+    //const log = (m, ...a) => {};
     var log = function (m) {
         var a = [];
         for (var _i = 1; _i < arguments.length; _i++) {
             a[_i - 1] = arguments[_i];
         }
+        return console.log.apply(console, [m].concat(a));
     };
-    //const log = (m, ...a) => console.log(m, ...a);
     var htmlRefresh = 100;
     var noShortcut = true;
+    function genSessionId() { return Math.random().toString(36).substr(2, 5); }
+    function newSession() { tabSessionId = genSessionId(); console.log("Generating a new tab session:", tabSessionId); localStorage.setItem("current-session", tabSessionId); }
+    ITC.newSession = newSession;
+    if (_itc_root["localStorage"])
+        addEventListener("focus", function (focusEvent) { console.log("Switching to", tabSessionId); localStorage.setItem("current-session", tabSessionId); });
+    var tabSessionId = _itc_root["localStorage"] ? localStorage.getItem("current-session") : undefined;
+    function cullHeaders() {
+        var now = Date.now();
+        for (var i = 0; i < localStorage.length; ++i) {
+            var key = localStorage.key(i);
+            if (key == "current-session")
+                continue;
+            var header = JSON.parse(localStorage.getItem(key));
+            if (Math.abs(header._itc_last_updated - now) > 3000) {
+                localStorage.removeItem(key); // Timeout
+                log(key, "timed out and removed");
+            }
+            else {
+            }
+        }
+    }
+    if (_itc_root["localStorage"]) {
+        cullHeaders();
+        addEventListener("load", function (loadEvent) {
+            setInterval(function () { return cullHeaders(); }, 10000);
+        });
+    }
     // TODO: Make culling automatic on sendToByClassName and listenToByClassName to reduce the chance of accidental leaks
-    function peekAndCullAll(prefix) {
+    function peekAll(prefix) {
+        prefix = tabSessionId + "-" + prefix;
         var now = Date.now();
         var headers = [];
         for (var i = 0; i < localStorage.length; ++i) {
@@ -39,30 +69,24 @@ var ITC;
             var matchesPrefix = key.substr(0, prefix.length) == prefix;
             if (matchesPrefix) {
                 var header = JSON.parse(localStorage.getItem(key));
-                if (Math.abs(header._itc_last_updated - now) > 3000) {
-                    localStorage.removeItem(key); // Timeout
-                    log(key, "timed out and removed");
-                }
-                else {
-                    headers.push(header);
-                }
+                headers.push(header);
             }
         }
         return headers;
     }
-    ITC.peekAndCullAll = peekAndCullAll;
+    ITC.peekAll = peekAll;
     function sendTo(key, header) {
         header._itc_last_updated = Date.now();
         var local = localOnHeader[key];
         if (local)
             local(header);
         if (!local || noShortcut)
-            localStorage.setItem(key, JSON.stringify(header));
+            localStorage.setItem(tabSessionId + "-" + key, JSON.stringify(header));
     }
     ITC.sendTo = sendTo;
     function listenTo(key, onHeader) {
         localOnHeader[key] = onHeader;
-        var existing = localStorage.getItem(key);
+        var existing = localStorage.getItem(tabSessionId + "-" + key);
         if (existing)
             onHeader(JSON.parse(existing));
     }
@@ -106,7 +130,13 @@ var ITC;
         return key;
     }
     addEventListener("storage", function (ev) {
-        var local = localOnHeader[ev.key];
+        var tabSessionIdPrefix = tabSessionId + "-";
+        if (ev.key.substr(0, tabSessionIdPrefix.length) != tabSessionIdPrefix)
+            return;
+        if (!ev.newValue)
+            return;
+        var key = ev.key.substr(tabSessionIdPrefix.length);
+        var local = localOnHeader[key];
         if (!local)
             return;
         local(JSON.parse(ev.newValue));
@@ -593,14 +623,14 @@ var Brainfuck;
         }
         function getRegistersList(vm, src) {
             return [
-                ["Core Registers:", ""],
+                ["Registers:", ""],
                 ["     code", addr(vm.codePtr)],
                 ["    *code", vmOpToString(vm.code.ops[vm.codePtr])],
                 ["    @code", sourceLocToString(vm.code.locs[vm.codePtr])],
                 ["     data", addr(vm.dataPtr)],
                 ["    *data", (vm.data[vm.dataPtr] || "0").toString()],
                 ["------------------------------", ""],
-                ["Performance", ""],
+                ["Performance:", ""],
                 ["    ran  ", vm.insRan.toLocaleString()],
                 [" VM ran/s", ((vm.insRan / vm.runTime) | 0).toLocaleString()],
                 [" VM     s", (vm.runTime | 0).toString()],
@@ -749,7 +779,8 @@ var Brainfuck;
                 addEventListener("message", onMessage);
                 vm = ev.data.state;
                 vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { reply({ desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); };
-                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { reply({ desc: "system-call-tape-end" }); updateVm(); _brainfuck_vm_global.stop(); };
+                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { reply({ desc: "system-call-tape-end" }); updateVm(); if (runHandle !== undefined)
+                    clearInterval(runHandle); runHandle = undefined; };
             }
             function onMessage(ev) {
                 switch (ev.data.desc) {
@@ -1193,8 +1224,8 @@ var UI;
     (function (Memory) {
         var updatePrefix = "mmide-memory-update-";
         var listenerPrefix = "mmide-memory-listener-";
-        function getListeners() { return ITC.peekAndCullAll(listenerPrefix); }
-        function getUpdates() { return ITC.peekAndCullAll(updatePrefix); }
+        function getListeners() { return ITC.peekAll(listenerPrefix); }
+        function getUpdates() { return ITC.peekAll(updatePrefix); }
         // Local update of memory
         function update(localDebugger) {
             if (!localDebugger)

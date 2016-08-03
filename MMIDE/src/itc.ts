@@ -1,9 +1,15 @@
 ﻿// Intra-tab communications
+let _itc_root = this;
 module ITC {
-	const log = (m, ...a) => {};
-	//const log = (m, ...a) => console.log(m, ...a);
+	//const log = (m, ...a) => {};
+	const log = (m, ...a) => console.log(m, ...a);
 	const htmlRefresh = 100;
 	const noShortcut = true;
+
+	function genSessionId() { return Math.random().toString(36).substr(2,5); }
+	export function newSession() { tabSessionId = genSessionId(); console.log("Generating a new tab session:",tabSessionId); localStorage.setItem("current-session", tabSessionId); }
+	if (_itc_root["localStorage"]) addEventListener("focus", focusEvent => { console.log("Switching to",tabSessionId); localStorage.setItem("current-session", tabSessionId); });
+	let tabSessionId = _itc_root["localStorage"] ? localStorage.getItem("current-session") : undefined;
 
 
 
@@ -11,8 +17,32 @@ module ITC {
 		_itc_last_updated? : number; // ~ Date.now()
 	}
 
+	function cullHeaders() {
+		let now = Date.now();
+
+		for (let i=0; i<localStorage.length; ++i) {
+			let key = localStorage.key(i);
+			if (key == "current-session") continue;
+			let header = <AgingHeader>JSON.parse(localStorage.getItem(key));
+			if (Math.abs(header._itc_last_updated-now) > 3000) {
+				localStorage.removeItem(key); // Timeout
+				log(key, "timed out and removed");
+			} else {
+				//log(key, "not timed out");
+			}
+		}
+	}
+
+	if (_itc_root["localStorage"]) {
+		cullHeaders();
+		addEventListener("load", loadEvent => {
+			setInterval(() => cullHeaders(), 10000);
+		});
+	}
+
 	// TODO: Make culling automatic on sendToByClassName and listenToByClassName to reduce the chance of accidental leaks
-	export function peekAndCullAll<Header extends AgingHeader>(prefix: string) : Header[] {
+	export function peekAll<Header extends AgingHeader>(prefix: string) : Header[] {
+		prefix = tabSessionId + "-" + prefix;
 		let now = Date.now();
 		let headers = [];
 
@@ -21,12 +51,7 @@ module ITC {
 			let matchesPrefix = key.substr(0,prefix.length) == prefix;
 			if (matchesPrefix) {
 				let header = <Header>JSON.parse(localStorage.getItem(key));
-				if (Math.abs(header._itc_last_updated-now) > 3000) {
-					localStorage.removeItem(key); // Timeout
-					log(key, "timed out and removed");
-				} else {
-					headers.push(header);
-				}
+				headers.push(header);
 			}
 		}
 
@@ -37,12 +62,12 @@ module ITC {
 		header._itc_last_updated = Date.now();
 		let local = localOnHeader[key];
 		if (local) local(header);
-		if (!local || noShortcut) localStorage.setItem(key, JSON.stringify(header));
+		if (!local || noShortcut) localStorage.setItem(tabSessionId+"-"+key, JSON.stringify(header));
 	}
 
 	export function listenTo<Header extends AgingHeader>(key: string, onHeader: (header: Header) => void) {
 		localOnHeader[key] = onHeader;
-		let existing = localStorage.getItem(key);
+		let existing = localStorage.getItem(tabSessionId+"-"+key);
 		if (existing) onHeader(<Header>JSON.parse(existing));
 	}
 
@@ -85,8 +110,14 @@ module ITC {
 	}
 
 	addEventListener("storage", ev => {
-		let local = localOnHeader[ev.key];
+		let tabSessionIdPrefix = tabSessionId+"-";
+		if (ev.key.substr(0,tabSessionIdPrefix.length) != tabSessionIdPrefix) return;
+		if (!ev.newValue) return;
+
+		let key = ev.key.substr(tabSessionIdPrefix.length);
+		let local = localOnHeader[key];
 		if (!local) return;
 		local(<AgingHeader>JSON.parse(ev.newValue));
 	});
 }
+
