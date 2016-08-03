@@ -43,7 +43,7 @@ module ITC {
 	export function listenTo<Header extends AgingHeader>(key: string, onHeader: (header: Header) => void) {
 		localOnHeader[key] = onHeader;
 		let existing = localStorage.getItem(key);
-		onHeader(<Header>JSON.parse(existing));
+		if (existing) onHeader(<Header>JSON.parse(existing));
 	}
 
 	export function sendToByClassName<Header extends AgingHeader>(className: string, keyPrefix: string, eachElement: (args: {itcKey: string, element: HTMLElement}) => Header) {

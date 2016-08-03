@@ -63,7 +63,8 @@ var ITC;
     function listenTo(key, onHeader) {
         localOnHeader[key] = onHeader;
         var existing = localStorage.getItem(key);
-        onHeader(JSON.parse(existing));
+        if (existing)
+            onHeader(JSON.parse(existing));
     }
     ITC.listenTo = listenTo;
     function sendToByClassName(className, keyPrefix, eachElement) {
@@ -111,24 +112,6 @@ var ITC;
         local(JSON.parse(ev.newValue));
     });
 })(ITC || (ITC = {}));
-var Debugger;
-(function (Debugger) {
-    (function (State) {
-        State[State["Detatched"] = 0] = "Detatched";
-        State[State["Paused"] = 1] = "Paused";
-        State[State["Running"] = 2] = "Running";
-        State[State["Done"] = 3] = "Done";
-    })(Debugger.State || (Debugger.State = {}));
-    var State = Debugger.State;
-    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
-    Debugger.cloneSourceLocation = cloneSourceLocation;
-    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
-    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
-    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
-    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
-    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
-    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
-})(Debugger || (Debugger = {}));
 var Brainfuck;
 (function (Brainfuck) {
     var AST;
@@ -798,27 +781,24 @@ var Brainfuck;
         }
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
-var _ui_document = this["document"];
-var UI;
-(function (UI) {
-    function byClassName(className) {
-        if (!_ui_document)
-            return []; // Webworker context
-        var e = [];
-        var els = document.getElementsByClassName(className);
-        for (var i = 0; i < els.length; ++i)
-            e.push(els.item(i));
-        return e;
-    }
-    UI.byClassName = byClassName;
-    function byId(elementId) {
-        if (!_ui_document)
-            return null; // Webworker context
-        var e = document.getElementById(elementId);
-        return e;
-    }
-    UI.byId = byId;
-})(UI || (UI = {}));
+var Debugger;
+(function (Debugger) {
+    (function (State) {
+        State[State["Detatched"] = 0] = "Detatched";
+        State[State["Paused"] = 1] = "Paused";
+        State[State["Running"] = 2] = "Running";
+        State[State["Done"] = 3] = "Done";
+    })(Debugger.State || (Debugger.State = {}));
+    var State = Debugger.State;
+    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
+    Debugger.cloneSourceLocation = cloneSourceLocation;
+    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
+    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
+    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
+    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
+    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
+    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
+})(Debugger || (Debugger = {}));
 var UI;
 (function (UI) {
     var Debug;
@@ -1368,5 +1348,26 @@ var UI;
             els.forEach(function (el) { return el.textContent = flat; });
         }); });
     })(Registers = UI.Registers || (UI.Registers = {}));
+})(UI || (UI = {}));
+var _ui_document = this["document"];
+var UI;
+(function (UI) {
+    function byClassName(className) {
+        if (!_ui_document)
+            return []; // Webworker context
+        var e = [];
+        var els = document.getElementsByClassName(className);
+        for (var i = 0; i < els.length; ++i)
+            e.push(els.item(i));
+        return e;
+    }
+    UI.byClassName = byClassName;
+    function byId(elementId) {
+        if (!_ui_document)
+            return null; // Webworker context
+        var e = document.getElementById(elementId);
+        return e;
+    }
+    UI.byId = byId;
 })(UI || (UI = {}));
 //# sourceMappingURL=mmide.js.map
