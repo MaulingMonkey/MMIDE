@@ -34,10 +34,11 @@
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="src\util\debounce.ts" />
     <TypeScriptCompile Include="src\examples.ts" />
     <TypeScriptCompile Include="ext\ace.d.ts" />
     <TypeScriptCompile Include="ext\d3\d3.d.ts" />
-    <TypeScriptCompile Include="src\itc.ts" />
+    <TypeScriptCompile Include="src\util\itc.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_ast.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_ast_optimize.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_js_compiler.ts" />
@@ -53,6 +54,7 @@
     <TypeScriptCompile Include="src\ui\output.ts" />
     <TypeScriptCompile Include="src\ui\registers.ts" />
     <TypeScriptCompile Include="src\ui\_byX.ts" />
+    <TypeScriptCompile Include="src\util\measure.ts" />
   </ItemGroup>
   <ItemGroup>
     <None Include="web.Debug.config">

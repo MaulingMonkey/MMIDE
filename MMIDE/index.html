@@ -1,4 +1,6 @@
-﻿<html><head>
+﻿<!DOCTYPE html>
+
+<html><head>
 	<title>MMIDE - Brainfuck Demo</title>
 	<link rel="stylesheet" href="mmide.css" type="text/css" />
 </head><body><div class="fullscreen" style="display: flex; flex-direction: column;">
@@ -68,29 +70,30 @@
 			| 32		<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='1'; m1['cols']='32'; m1['rows']='12'; return false" alt="Bytes" title="Bytes">By</a> <a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='2'; m1['cols']='16'; m1['rows']='12'; return false" alt="Words" title="Words">Wo</a> <a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='4'; m1['cols']= '8'; m1['rows']='12'; return false" alt="DWords" title="DWords">DW</a>
 			| 16		<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='1'; m1['cols']='16'; m1['rows']='24'; return false" alt="Bytes" title="Bytes">By</a> <a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='2'; m1['cols']= '8'; m1['rows']='24'; return false" alt="Words" title="Words">Wo</a> <a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['colSize']='4'; m1['cols']= '4'; m1['rows']='24'; return false" alt="DWords" title="DWords">DW</a>
 		-->
-		Size:	<input type="number" style="width: 3em; border: none; padding: 0;" value="64" min="1" onchange="var m1 = document.getElementById('memory1').dataset; m1['cols']=this.value; return false">
+		Size:	<input type="number" style="width: 3em; border: none; padding: 0;" value="10" min="1" onchange="var m1 = document.getElementById('memory1').dataset; m1['cols']=this.value; return false">
 		x		<input type="number" style="width: 3em; border: none; padding: 0;" value= "6" min="1" onchange="var m1 = document.getElementById('memory1').dataset; m1['rows']=this.value; return false">
 		x		<input type="number" style="width: 3em; border: none; padding: 0;" value= "1" min="1" onchange="var m1 = document.getElementById('memory1').dataset; m1['colSize']=this.value; return false">
 
 		</td><td><img src="icons/separator.png"></td><td>
 			Changes:
-			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['changedDisplay']='None';				return false">None</a>
-			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['changedDisplay']='DelayHighlight';	return false">Delay</a>
-			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['changedDisplay']='DurationHighlight';	return false">Duration</a>
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['forceChangedDisplay']='true'; m1['changedDisplay']='None';				return false">None</a>
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['forceChangedDisplay']='true'; m1['changedDisplay']='DelayHighlight';		return false">Delay</a>
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['forceChangedDisplay']='true'; m1['changedDisplay']='DurationHighlight';	return false">Duration</a>
 		</td>
 	</tr></table></div>
 	<div
 		id="memory1"
 		class="memory debug-state-running debug-state-paused debug-state-done"
-		data-address		="0x00000000"
-		data-little-endian	="false"
-		data-col-size		="1"
-		data-cols			="64"
-		data-rows			="6"
-		data-show-address	="true"
-		data-show-hex		="true"
-		data-show-data		="true"
-		data-changed-display="DelayHighlight"
+		data-address				="0x00000000"
+		data-little-endian			="false"
+		data-col-size				="1"
+		data-cols					="64"
+		data-rows					="6"
+		data-show-address			="true"
+		data-show-hex				="true"
+		data-show-data				="true"
+		data-force-changed-display	="false"
+		data-changed-display		="DelayHighlight"
 	></div>
 
 
