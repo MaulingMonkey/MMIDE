@@ -97,6 +97,77 @@
 			memoryElement.innerHTML = html;
 		}
 
+		// Sufficiently fast on IE (~15ms±3 ms on IE)
+		let prevRows : string[][] = [];
+		function updateCellChanged(col: number, row: number, value: string): boolean {
+			let prevRow = prevRows[row] = prevRows[row] || [];
+			let changed = prevRow[col] !== value;
+			prevRow[col] = value;
+			return changed;
+		}
+
+		function doUpdateTableCanvas(memoryElement: HTMLElement, config: MemoryViewConfig, rows: Cell[][]) {
+			let d3canvas = d3.select(memoryElement).select("canvas");
+			if (d3canvas.empty()) {
+				memoryElement.innerText = ""; // Clear possible previous text nodes
+				d3canvas = d3.select(memoryElement).append("canvas");
+			}
+
+			let font = "8pt Consolas, Courier New, Courier, monospace";
+			//let font = "8pt Consolas"
+			let canvas = <HTMLCanvasElement> d3canvas[0][0];
+			let context = canvas.getContext("2d");
+			context.font = font;
+
+
+			// Layout
+			let colWidths = [];
+			//let rowHeights = []; // XXX: measureText().width is all we can rely on for now
+			rows.forEach((row, rowI) => {
+				row.forEach((cell, cellI) => {
+					let m = context.measureText(cell.display);
+					colWidths[cellI] = Math.max((colWidths[cellI]||0), m.width);
+				});
+			});
+
+			let totalWidth = 0;
+			colWidths.forEach(w => totalWidth += w);
+
+			//let rowHeight = 16; // Arbitrary
+			let rowHeight = 13; // Arbitrary
+			let totalHeight = rows.length * rowHeight - 3;
+
+
+
+			// DOM Layout
+			canvas.width = canvas.clientWidth = totalWidth;
+			canvas.height = canvas.clientHeight = totalHeight;
+			context = canvas.getContext("2d"); // XXX: Not sure if this is necessary
+			context.font = font;
+
+
+			// Render
+			context.fillStyle = 'rgba(0,0,0,0.0)';
+			context.clearRect(0, 0, canvas.width, canvas.height);
+
+			let y=0;
+			rows.forEach((row, rowI) => {
+				//let rowHeight = rowHeight;
+				let x=0;
+				row.forEach((cell, cellI) => {
+					let colWidth = colWidths[cellI];
+					if (updateCellChanged(cellI, rowI, cell.data)) {
+						context.fillStyle = '#F66';
+						context.fillRect(x, y-1, colWidth, rowHeight);
+					}
+					context.fillStyle = '#000';
+					context.fillText(cell.display, x, y+rowHeight-3, colWidth);
+					x += colWidth;
+				});
+				y += rowHeight;
+			});
+		}
+
 		// Fucking fast (~1±1ms on IE)
 		function doUpdateTableText(memoryElement: HTMLElement, config: MemoryViewConfig, rows: Cell[][]) {
 			let text = "";
@@ -114,15 +185,17 @@
 		const updateD3TooSlowThreshhold = 30; // ms
 		let updateD3TooSlow = false;
 		function doUpdateTableSmart(memoryElement: HTMLElement, config: MemoryViewConfig, rows: Cell[][]) {
-			if (config.dataChangedDisplay && (!updateD3TooSlow || config.forceChangedDisplay)) {
+			if (!updateD3TooSlow) { // Slow path - sufficient on Chrome, too slow on IE
 				let s = Date.now();
 				doUpdateTableD3(memoryElement, config, rows);
 				let e = Date.now()-s;
 				if (e >= updateD3TooSlowThreshhold && !updateD3TooSlow) {
-					console.warn("doUpdateTableD3 took too long ("+e+"ms >= "+updateD3TooSlowThreshhold+"ms) to execute, falling back on doUpdateTableText until forced");
+					console.warn("doUpdateTableD3 took too long ("+e+"ms >= "+updateD3TooSlowThreshhold+"ms) to execute, falling back on doUpdateTableText & doUpdateTableCanvas");
 					updateD3TooSlow = true;
 				}
-			} else { // Take fast path
+			} else if (config.dataChangedDisplay) { // Medium path - sufficiently fast on IE, actually slower on Chrome than the d3 path (not by measurement, but by update frequency)
+				doUpdateTableCanvas(memoryElement, config, rows);
+			} else { // Fastest path - minor layout differences vs e.g. doUpdateTableD3
 				doUpdateTableText(memoryElement, config, rows);
 			}
 		}

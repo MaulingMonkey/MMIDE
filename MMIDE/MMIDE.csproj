@@ -53,7 +53,7 @@
     <TypeScriptCompile Include="src\ui\memory\memory.ts" />
     <TypeScriptCompile Include="src\ui\output.ts" />
     <TypeScriptCompile Include="src\ui\registers.ts" />
-    <TypeScriptCompile Include="src\ui\_byX.ts" />
+    <TypeScriptCompile Include="src\util\ui.ts" />
     <TypeScriptCompile Include="src\util\measure.ts" />
   </ItemGroup>
   <ItemGroup>

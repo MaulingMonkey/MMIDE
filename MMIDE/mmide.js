@@ -1,3 +1,21 @@
+function debounce(callback, waitMS) {
+    var _this = this;
+    var callNext = undefined;
+    var wrapped = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i - 0] = arguments[_i];
+        }
+        if (callNext === undefined) {
+            setTimeout(function () {
+                callNext.call.apply(callNext, [_this].concat(args));
+                callNext = undefined;
+            }, waitMS);
+        }
+        callNext = callback;
+    };
+    return wrapped;
+}
 var Examples;
 (function (Examples) {
     function LoadExample(example) {
@@ -18,24 +36,130 @@ var Examples;
     }
     Examples.LoadBrainfuckHelloWorld = LoadBrainfuckHelloWorld;
 })(Examples || (Examples = {}));
-var Debugger;
-(function (Debugger) {
-    (function (State) {
-        State[State["Detatched"] = 0] = "Detatched";
-        State[State["Paused"] = 1] = "Paused";
-        State[State["Running"] = 2] = "Running";
-        State[State["Done"] = 3] = "Done";
-    })(Debugger.State || (Debugger.State = {}));
-    var State = Debugger.State;
-    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
-    Debugger.cloneSourceLocation = cloneSourceLocation;
-    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
-    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
-    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
-    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
-    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
-    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
-})(Debugger || (Debugger = {}));
+// Intra-tab communications
+var _itc_root = this;
+var ITC;
+(function (ITC) {
+    //const log = (m, ...a) => {};
+    var log = function (m) {
+        var a = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            a[_i - 1] = arguments[_i];
+        }
+        return console.log.apply(console, [m].concat(a));
+    };
+    var htmlRefresh = 100;
+    var noShortcut = true;
+    function genSessionId() { return Math.random().toString(36).substr(2, 5); }
+    function newSession() { tabSessionId = genSessionId(); console.log("Generating a new tab session:", tabSessionId); localStorage.setItem("current-session", tabSessionId); }
+    ITC.newSession = newSession;
+    if (_itc_root["localStorage"])
+        addEventListener("focus", function (focusEvent) { console.log("Switching to", tabSessionId); localStorage.setItem("current-session", tabSessionId); });
+    var tabSessionId = _itc_root["localStorage"] ? localStorage.getItem("current-session") : undefined;
+    function cullHeaders() {
+        var now = Date.now();
+        for (var i = 0; i < localStorage.length; ++i) {
+            var key = localStorage.key(i);
+            if (key == "current-session")
+                continue;
+            var header = JSON.parse(localStorage.getItem(key));
+            if (Math.abs(header._itc_last_updated - now) > 3000) {
+                localStorage.removeItem(key); // Timeout
+                log(key, "timed out and removed");
+            }
+            else {
+            }
+        }
+    }
+    if (_itc_root["localStorage"]) {
+        cullHeaders();
+        addEventListener("load", function (loadEvent) {
+            setInterval(function () { return cullHeaders(); }, 10000);
+        });
+    }
+    // TODO: Make culling automatic on sendToByClassName and listenToByClassName to reduce the chance of accidental leaks
+    function peekAll(prefix) {
+        prefix = tabSessionId + "-" + prefix;
+        var now = Date.now();
+        var headers = [];
+        for (var i = 0; i < localStorage.length; ++i) {
+            var key = localStorage.key(i);
+            var matchesPrefix = key.substr(0, prefix.length) == prefix;
+            if (matchesPrefix) {
+                var header = JSON.parse(localStorage.getItem(key));
+                headers.push(header);
+            }
+        }
+        return headers;
+    }
+    ITC.peekAll = peekAll;
+    function sendTo(key, header) {
+        header._itc_last_updated = Date.now();
+        var local = localOnHeader[key];
+        if (local)
+            local(header);
+        if (!local || noShortcut)
+            localStorage.setItem(tabSessionId + "-" + key, JSON.stringify(header));
+    }
+    ITC.sendTo = sendTo;
+    function listenTo(key, onHeader) {
+        localOnHeader[key] = onHeader;
+        var existing = localStorage.getItem(tabSessionId + "-" + key);
+        if (existing)
+            onHeader(JSON.parse(existing));
+    }
+    ITC.listenTo = listenTo;
+    function sendToByClassName(className, keyPrefix, eachElement) {
+        var elements = UI.byClassName(className);
+        elements.forEach(function (e) {
+            var itcKey = getItcKey(e);
+            sendTo(keyPrefix + itcKey, eachElement({ itcKey: itcKey, element: e }));
+        });
+    }
+    ITC.sendToByClassName = sendToByClassName;
+    function listenToByClassName(className, keyPrefix, onHeader) {
+        var listening = [];
+        var update = function () {
+            var m = {};
+            var elements = UI.byClassName(className);
+            elements.forEach(function (e) {
+                var itcKey = getItcKey(e);
+                m[itcKey] = true;
+                localOnHeader[keyPrefix + itcKey] = function (h) { return onHeader({ header: h, element: e }); };
+            });
+            listening.forEach(function (e) {
+                var itcKey = getItcKey(e);
+                if (!m[itcKey])
+                    delete localOnHeader[keyPrefix + itcKey];
+            });
+            listening = elements;
+        };
+        update();
+        setInterval(update, htmlRefresh);
+    }
+    ITC.listenToByClassName = listenToByClassName;
+    var localOnHeader = {};
+    function getItcKey(e) {
+        var a = e;
+        var key = a["__itc_key__"];
+        if (key)
+            return key;
+        key = a["__itc_key__"] = Math.random().toString(36).substr(2, 5);
+        return key;
+    }
+    addEventListener("storage", function (ev) {
+        var tabSessionIdPrefix = tabSessionId + "-";
+        if (ev.key.substr(0, tabSessionIdPrefix.length) != tabSessionIdPrefix)
+            return;
+        if (!ev.newValue)
+            return;
+        var key = ev.key.substr(tabSessionIdPrefix.length);
+        var local = localOnHeader[key];
+        if (!local)
+            return;
+        local(JSON.parse(ev.newValue));
+    });
+})(ITC || (ITC = {}));
 var Brainfuck;
 (function (Brainfuck) {
     var AST;
@@ -706,27 +830,24 @@ var Brainfuck;
         }
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
-var _ui_document = this["document"];
-var UI;
-(function (UI) {
-    function byClassName(className) {
-        if (!_ui_document)
-            return []; // Webworker context
-        var e = [];
-        var els = document.getElementsByClassName(className);
-        for (var i = 0; i < els.length; ++i)
-            e.push(els.item(i));
-        return e;
-    }
-    UI.byClassName = byClassName;
-    function byId(elementId) {
-        if (!_ui_document)
-            return null; // Webworker context
-        var e = document.getElementById(elementId);
-        return e;
-    }
-    UI.byId = byId;
-})(UI || (UI = {}));
+var Debugger;
+(function (Debugger) {
+    (function (State) {
+        State[State["Detatched"] = 0] = "Detatched";
+        State[State["Paused"] = 1] = "Paused";
+        State[State["Running"] = 2] = "Running";
+        State[State["Done"] = 3] = "Done";
+    })(Debugger.State || (Debugger.State = {}));
+    var State = Debugger.State;
+    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
+    Debugger.cloneSourceLocation = cloneSourceLocation;
+    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
+    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
+    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
+    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
+    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
+    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
+})(Debugger || (Debugger = {}));
 var UI;
 (function (UI) {
     var Debug;
@@ -1116,6 +1237,64 @@ var UI;
             });
             memoryElement.innerHTML = html;
         }
+        // Sufficiently fast on IE (~15ms±3 ms on IE)
+        var prevRows = [];
+        function updateCellChanged(col, row, value) {
+            var prevRow = prevRows[row] = prevRows[row] || [];
+            var changed = prevRow[col] !== value;
+            prevRow[col] = value;
+            return changed;
+        }
+        function doUpdateTableCanvas(memoryElement, config, rows) {
+            var d3canvas = d3.select(memoryElement).select("canvas");
+            if (d3canvas.empty()) {
+                memoryElement.innerText = ""; // Clear possible previous text nodes
+                d3canvas = d3.select(memoryElement).append("canvas");
+            }
+            var font = "8pt Consolas, Courier New, Courier, monospace";
+            //let font = "8pt Consolas"
+            var canvas = d3canvas[0][0];
+            var context = canvas.getContext("2d");
+            context.font = font;
+            // Layout
+            var colWidths = [];
+            //let rowHeights = []; // XXX: measureText().width is all we can rely on for now
+            rows.forEach(function (row, rowI) {
+                row.forEach(function (cell, cellI) {
+                    var m = context.measureText(cell.display);
+                    colWidths[cellI] = Math.max((colWidths[cellI] || 0), m.width);
+                });
+            });
+            var totalWidth = 0;
+            colWidths.forEach(function (w) { return totalWidth += w; });
+            //let rowHeight = 16; // Arbitrary
+            var rowHeight = 13; // Arbitrary
+            var totalHeight = rows.length * rowHeight - 3;
+            // DOM Layout
+            canvas.width = canvas.clientWidth = totalWidth;
+            canvas.height = canvas.clientHeight = totalHeight;
+            context = canvas.getContext("2d"); // XXX: Not sure if this is necessary
+            context.font = font;
+            // Render
+            context.fillStyle = 'rgba(0,0,0,0.0)';
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            var y = 0;
+            rows.forEach(function (row, rowI) {
+                //let rowHeight = rowHeight;
+                var x = 0;
+                row.forEach(function (cell, cellI) {
+                    var colWidth = colWidths[cellI];
+                    if (updateCellChanged(cellI, rowI, cell.data)) {
+                        context.fillStyle = '#F66';
+                        context.fillRect(x, y - 1, colWidth, rowHeight);
+                    }
+                    context.fillStyle = '#000';
+                    context.fillText(cell.display, x, y + rowHeight - 3, colWidth);
+                    x += colWidth;
+                });
+                y += rowHeight;
+            });
+        }
         // Fucking fast (~1±1ms on IE)
         function doUpdateTableText(memoryElement, config, rows) {
             var text = "";
@@ -1130,14 +1309,17 @@ var UI;
         var updateD3TooSlowThreshhold = 30; // ms
         var updateD3TooSlow = false;
         function doUpdateTableSmart(memoryElement, config, rows) {
-            if (config.dataChangedDisplay && (!updateD3TooSlow || config.forceChangedDisplay)) {
+            if (!updateD3TooSlow) {
                 var s = Date.now();
                 doUpdateTableD3(memoryElement, config, rows);
                 var e = Date.now() - s;
                 if (e >= updateD3TooSlowThreshhold && !updateD3TooSlow) {
-                    console.warn("doUpdateTableD3 took too long (" + e + "ms >= " + updateD3TooSlowThreshhold + "ms) to execute, falling back on doUpdateTableText until forced");
+                    console.warn("doUpdateTableD3 took too long (" + e + "ms >= " + updateD3TooSlowThreshhold + "ms) to execute, falling back on doUpdateTableText & doUpdateTableCanvas");
                     updateD3TooSlow = true;
                 }
+            }
+            else if (config.dataChangedDisplay) {
+                doUpdateTableCanvas(memoryElement, config, rows);
             }
             else {
                 doUpdateTableText(memoryElement, config, rows);
@@ -1368,148 +1550,27 @@ var UI;
         }); });
     })(Registers = UI.Registers || (UI.Registers = {}));
 })(UI || (UI = {}));
-function debounce(callback, waitMS) {
-    var _this = this;
-    var callNext = undefined;
-    var wrapped = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i - 0] = arguments[_i];
-        }
-        if (callNext === undefined) {
-            setTimeout(function () {
-                callNext.call.apply(callNext, [_this].concat(args));
-                callNext = undefined;
-            }, waitMS);
-        }
-        callNext = callback;
-    };
-    return wrapped;
-}
-// Intra-tab communications
-var _itc_root = this;
-var ITC;
-(function (ITC) {
-    //const log = (m, ...a) => {};
-    var log = function (m) {
-        var a = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            a[_i - 1] = arguments[_i];
-        }
-        return console.log.apply(console, [m].concat(a));
-    };
-    var htmlRefresh = 100;
-    var noShortcut = true;
-    function genSessionId() { return Math.random().toString(36).substr(2, 5); }
-    function newSession() { tabSessionId = genSessionId(); console.log("Generating a new tab session:", tabSessionId); localStorage.setItem("current-session", tabSessionId); }
-    ITC.newSession = newSession;
-    if (_itc_root["localStorage"])
-        addEventListener("focus", function (focusEvent) { console.log("Switching to", tabSessionId); localStorage.setItem("current-session", tabSessionId); });
-    var tabSessionId = _itc_root["localStorage"] ? localStorage.getItem("current-session") : undefined;
-    function cullHeaders() {
-        var now = Date.now();
-        for (var i = 0; i < localStorage.length; ++i) {
-            var key = localStorage.key(i);
-            if (key == "current-session")
-                continue;
-            var header = JSON.parse(localStorage.getItem(key));
-            if (Math.abs(header._itc_last_updated - now) > 3000) {
-                localStorage.removeItem(key); // Timeout
-                log(key, "timed out and removed");
-            }
-            else {
-            }
-        }
+var _ui_document = this["document"];
+var UI;
+(function (UI) {
+    function byClassName(className) {
+        if (!_ui_document)
+            return []; // Webworker context
+        var e = [];
+        var els = document.getElementsByClassName(className);
+        for (var i = 0; i < els.length; ++i)
+            e.push(els.item(i));
+        return e;
     }
-    if (_itc_root["localStorage"]) {
-        cullHeaders();
-        addEventListener("load", function (loadEvent) {
-            setInterval(function () { return cullHeaders(); }, 10000);
-        });
+    UI.byClassName = byClassName;
+    function byId(elementId) {
+        if (!_ui_document)
+            return null; // Webworker context
+        var e = document.getElementById(elementId);
+        return e;
     }
-    // TODO: Make culling automatic on sendToByClassName and listenToByClassName to reduce the chance of accidental leaks
-    function peekAll(prefix) {
-        prefix = tabSessionId + "-" + prefix;
-        var now = Date.now();
-        var headers = [];
-        for (var i = 0; i < localStorage.length; ++i) {
-            var key = localStorage.key(i);
-            var matchesPrefix = key.substr(0, prefix.length) == prefix;
-            if (matchesPrefix) {
-                var header = JSON.parse(localStorage.getItem(key));
-                headers.push(header);
-            }
-        }
-        return headers;
-    }
-    ITC.peekAll = peekAll;
-    function sendTo(key, header) {
-        header._itc_last_updated = Date.now();
-        var local = localOnHeader[key];
-        if (local)
-            local(header);
-        if (!local || noShortcut)
-            localStorage.setItem(tabSessionId + "-" + key, JSON.stringify(header));
-    }
-    ITC.sendTo = sendTo;
-    function listenTo(key, onHeader) {
-        localOnHeader[key] = onHeader;
-        var existing = localStorage.getItem(tabSessionId + "-" + key);
-        if (existing)
-            onHeader(JSON.parse(existing));
-    }
-    ITC.listenTo = listenTo;
-    function sendToByClassName(className, keyPrefix, eachElement) {
-        var elements = UI.byClassName(className);
-        elements.forEach(function (e) {
-            var itcKey = getItcKey(e);
-            sendTo(keyPrefix + itcKey, eachElement({ itcKey: itcKey, element: e }));
-        });
-    }
-    ITC.sendToByClassName = sendToByClassName;
-    function listenToByClassName(className, keyPrefix, onHeader) {
-        var listening = [];
-        var update = function () {
-            var m = {};
-            var elements = UI.byClassName(className);
-            elements.forEach(function (e) {
-                var itcKey = getItcKey(e);
-                m[itcKey] = true;
-                localOnHeader[keyPrefix + itcKey] = function (h) { return onHeader({ header: h, element: e }); };
-            });
-            listening.forEach(function (e) {
-                var itcKey = getItcKey(e);
-                if (!m[itcKey])
-                    delete localOnHeader[keyPrefix + itcKey];
-            });
-            listening = elements;
-        };
-        update();
-        setInterval(update, htmlRefresh);
-    }
-    ITC.listenToByClassName = listenToByClassName;
-    var localOnHeader = {};
-    function getItcKey(e) {
-        var a = e;
-        var key = a["__itc_key__"];
-        if (key)
-            return key;
-        key = a["__itc_key__"] = Math.random().toString(36).substr(2, 5);
-        return key;
-    }
-    addEventListener("storage", function (ev) {
-        var tabSessionIdPrefix = tabSessionId + "-";
-        if (ev.key.substr(0, tabSessionIdPrefix.length) != tabSessionIdPrefix)
-            return;
-        if (!ev.newValue)
-            return;
-        var key = ev.key.substr(tabSessionIdPrefix.length);
-        var local = localOnHeader[key];
-        if (!local)
-            return;
-        local(JSON.parse(ev.newValue));
-    });
-})(ITC || (ITC = {}));
+    UI.byId = byId;
+})(UI || (UI = {}));
 function measure(callback, label) {
     var wrapped = function () {
         var args = [];
