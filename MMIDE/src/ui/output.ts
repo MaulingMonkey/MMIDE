@@ -26,7 +26,11 @@
 				this.dirty		= false;
 				this.animated	= false;
 
-				ITC.listenTo<OutputState>(itcKey, ev => byClassName(className).forEach(el => el.innerText = ev.buffer));
+				ITC.listenTo<OutputState>(itcKey, ev => byClassName(className).forEach(el => {
+					//let s = Date.now();
+					el.textContent = ev.buffer;
+					//console.log(Date.now()-s,"ms to update output");
+				}));
 			}
 
 			private doSend() {
