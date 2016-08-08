@@ -4,6 +4,7 @@ declare namespace ace {
 	type TextMode = any; // ???
 	type Object = any; // ???
 	type UndoManager = any;
+	type VirtualRenderer = any;
 
 	export function creadEditSession(text: Document | string, mode: TextMode): Document;
 	export function edit(el: string | HTMLElement): Editor;
@@ -62,14 +63,176 @@ declare namespace ace {
 
 	// ----------------------------------------------------------------------------------------------------
 	// https://ace.c9.io/#nav=api&api=editor
+	// https://github.com/ajaxorg/ace/blob/master/lib/ace/editor.js
 	// ----------------------------------------------------------------------------------------------------
-	interface Editor {
-		getValue(): string;
-		setValue(value: string);
-		setTheme(theme: string);
+	export class Editor {
+		// constructors
+		constructor(renderer: VirtualRenderer, session: EditSession);
+
+		// Events
+		on(event: string,					callback: (...args)			=> void);
+		on(event: "blur",					callback: ()				=> void);
+		on(event: "change",					callback: (e)				=> void);
+		on(event: "changeSelectionStyle",	callback: (data)			=> void);
+		on(event: "changeSession",			callback: (e)				=> void);
+		on(event: "copy",					callback: (text: string)	=> void);
+		on(event: "focus",					callback: ()				=> void);
+		on(event: "paste",					callback: (e)				=> void);
+
+		// Methods
+		addSelectionMarker(orientedRange: Range): Range;
+		alignCursors(): void;
+		blockOutdent(): void;
+		blur(): void;
+		centerSelection(): void;
+		clearSelection(): void;
+		copyLinesDown(): number;
+		copyLinesUp(): number;
+		destroy(): void;
+		// duplicateSession(): EditSession; // Undocumented
+		// execCommand(); // Undocumented
+		exitMultiSelectMode(): void;
+		find(needle: string, options, animate: boolean);
+		findAll(needle: string, options, animate: boolean): number;
+		findNext(options, animate: boolean);
+		findPrevious(options, animate: boolean);
+		focus(): void;
+		forEachSelectino(cmd: string, args: string);
+		// getAnimatedScroll(); // Undocumented
+		getBehavioursEnabled(): boolean;
+		getCopyText(): string;
+		getCursorPosition(): Position;
+		getCursorPositionScreen(): number;
+		// getDisplayIndentGuides(); // Undocumented
+		getDragDelay(): number;
+		// getFadeFoldWidgets(); // Undocumented
+		getFirstVisibleRow(): number;
+		getHighlightActiveLine(): boolean;
+		// getHighlightGutterLine(); // Undocumented
+		getHighlightSelectedWord(): boolean;
+		getKeyboardHandler(): string;
+		getLastSearchOptions(): any; // XXX
+		getLastVisibleRow(): number;
+		getNumberAt(row: number, column: number): number;
+		getOverwrite(): boolean;
+		getPrintMarginColumn(): number;
+		getReadOnly(): boolean;
+		getScrollSpeed(): number;
+		getSelection(): Selection;
+		getSelectionRange(): Range;
+		getSelectionStyle(): string;
 		getSession(): EditSession;
+		getShowFoldWidgets(): boolean;
+		getShowInvisibles(): boolean;
+		getShowPrintMargin(): boolean;
+		getTheme(): string;
+		getValue(): string;
+		getWrapBehavioursEnabled(): boolean;
+		gotoLine(lineNumber: number, column: number, animate: boolean): void;
+		gotoPageDown(): void;
+		gotoPageUp(): void;
+		indent(): void;
+		insert(text: string): void;
+		isFocused(): boolean;
+		isRowFullyVisible(row: number): boolean;
+		isRowVisible(row: number): boolean;
+		jumpToMatching(select);
+		modifyNumber(amount: number);
+		moveCursorTo(row: number, column: number);
+		moveCursorToPosition(pos: Position);
+		moveLinesDown(): number;
+		moveLinesUp(): number;
+		// moveText(); // Undocumented
+		navigateDown(times: number);
+		navigateFileEnd();
+		navigateFileStart();
+		navigateLeft(times: number);
+		navigateLineEnd();
+		navigateLineStart();
+		navigateRight(times: number);
+		navigateTo(row: number, column: number);
+		navigateUp(times: number);
+		navigateWordLeft();
+		navigateWordRight();
+		// onBlur(); // Undocumented
+		// onChangeAnnotation(); // Undocumented
+		// onChangeBackMarker(); // Undocumented
+		// onChangeBreakpoint(); // Undocumented
+		// onChangeFold(); // Undocumented
+		// onChangeFrontMarker(); // Undocumented
+		// onChangeMode(); // Undocumented
+		// onChangeWrapLimit(); // Undocumented
+		// onChangeWrapMode(); // Undocumented
+		// onCommandKey(); // Undocumented
+		// onCompositionEnd(); // Undocumented
+		// onCompositionStart(); // Undocumented
+		// onCompositionUpdate(); // Undocumented
+		onCopy();
+		onCursorChange();
+		onCut();
+		// onDocumentChange(); // Undocumented
+		// onFocus(); //  Undocumented
+		onPaste(text: string);
+		// onScrollLeftChange(); // Undocumented
+		// onScrollTopChange(); // Undocumented
+		// onSelectionChange(); // Undocumented
+		// onTextInput(); // Undocumented
+		// onTokenizerUpdate(); // Undocumented
+		redo(): void;
+		remove(dir: string): void;
+		removeLines();
+		removeSelectionMarker(the: Range);
+		removeToLineEnd();
+		removeToLineStart();
+		removeWordLeft();
+		removeWordRight();
+		replace(replacement: string, options);
+		replaceAll(replacement: string, options);
 		resize(force?: boolean);
-		// ...
+		// revealRange(); // Undocumented
+		scrollPageDown();
+		scrollPageUp();
+		scrollToLine(line: number, center: boolean, animate: boolean, callback: (...args) => any);
+		scrollToRow(row: number);
+		selectAll();
+		selectMore(dir: number, skip: boolean);
+		selectMoreLines(dir: number, skip: boolean);
+		selectPageDown();
+		selectPageUp();
+		// setAnimatedScroll(); // Undocumented
+		setBehaviorsEnabled(enabled: boolean);
+		// setDisplayIndentGuides(...args); // Undocumented
+		setDragDelay(dragDelay: number);
+		// setFadeFoldSWidgets(); // Undocumented
+		setFontSize(size: number);
+		setHighlightActiveLine(shouldHighlight: boolean);
+		// setHighlightGutterLine(shouldHighlight: boolean); // Undocumented
+		setHighlightSelectedWord(shouldHighlight: boolean);
+		setKeyboardHandler(keyboardHandler: string);
+		setOverwrite(overwrite: boolean);
+		setPrintMarginColumn(showPrintMargin: number);
+		setReadOnly(readOnly: boolean);
+		setScrollSpeed(speed: number);
+		setSelectionStyle(style: string);
+		setSession(session: EditSession);
+		setShowFoldWidgets(show: boolean);
+		setShowInvisibles(showInvisibles: boolean);
+		setShowPrintMargin(showPrintMargin: boolean);
+		setStyle(style: string);
+		setTheme(theme: string);
+		setValue(val: string, cursorPos?: number): string;
+		setWrapBehavioursEnabled(enabled: boolean);
+		// sortLines(); // Undocumented
+		splitLine();
+		toggleCommentLines();
+		toggleOverwrite();
+		toLowerCase();
+		toUpperCase();
+		transposeLetters();
+		transposeSelections(dir: number);
+		undo();
+		unsetStyle(style);
+		updateSelectionMarkers();
 	}
 
 
