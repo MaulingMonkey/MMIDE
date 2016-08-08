@@ -49,6 +49,11 @@ table	{ font: inherit; white-space: inherit; }
 	overflow-y:		auto;
 }
 
+.memory td
+{
+	padding: 0;
+}
+
 .editor
 {
 	padding:		5px;
@@ -83,7 +88,7 @@ table	{ font: inherit; white-space: inherit; }
 	overflow-y:		auto;
 }
 
-.fullscreen
+.position-fullscreen
 {
 	position:	absolute;
 	margin:		0;
@@ -94,4 +99,11 @@ table	{ font: inherit; white-space: inherit; }
 	height:		100vh;
 }
 
-.fullscreen td { padding: 0; }
+.position-center
+{
+	display:		inline-block;
+	position:		relative;
+	left:			50%;
+	transform:		translate(-50%,0);
+	margin-right:	-50%;
+}

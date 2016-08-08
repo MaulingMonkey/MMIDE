@@ -3,24 +3,24 @@
 <html><head>
 	<title>MMIDE - Brainfuck Demo</title>
 	<link rel="stylesheet" href="mmide.css" type="text/css" />
-</head><body><div class="fullscreen" style="display: flex; flex-direction: column;">
+</head><body><div class="position-fullscreen" style="display: flex; flex-direction: column;">
 
 	<div class="controls"><table style="border-collapse: collapse;"><tr>
 		<td class="debug-state-detatched">
 			<a href="#" onclick="UI.Debug.Start(false);		return false"><img src="icons/play.png"			title="Start"			alt="Start"			></a>
 			<a href="#" onclick="UI.Debug.Start(true);		return false"><img src="icons/start-paused.png"	title="Start paused"	alt="Start paused"	></a>
 		</td>
-		<td class="debug-state-done">
+		<td class="debug-state-done" style="display: none;">
 			<a href="#" onclick="UI.Debug.Stop();			return false"><img src="icons/stop.png"			title="Stop"			alt="Stop"			></a>
 			<a href="#" onclick="UI.Debug.Start(true);		return false"><img src="icons/start-paused.png"	title="Restart paused"	alt="Restart paused"></a>
 			<a href="#" onclick="UI.Debug.Start(false);		return false"><img src="icons/restart.png"		title="Restart"			alt="Restart"		></a>
 		</td>
-		<td class="debug-state-running">
+		<td class="debug-state-running" style="display: none;">
 			<a href="#" onclick="UI.Debug.Pause();			return false"><img src="icons/pause.png"		title="Pause"			alt="Pause"			></a>
 			<a href="#" onclick="UI.Debug.Stop();			return false"><img src="icons/stop.png"			title="Stop"			alt="Stop"			></a>
 			<a href="#" onclick="UI.Debug.Restart(false);	return false"><img src="icons/restart.png"		title="Restart"			alt="Restart"		></a>
 		</td>
-		<td class="debug-state-paused">
+		<td class="debug-state-paused" style="display: none;">
 			<a href="#" onclick="UI.Debug.Continue();		return false"><img src="icons/play.png"			title="Continue"		alt="Continue"		></a>
 			<a href="#" onclick="UI.Debug.Stop();			return false"><img src="icons/stop.png"			title="Stop"			alt="Stop"			></a>
 			<a href="#" onclick="UI.Debug.Restart(false);	return false"><img src="icons/restart.png"		title="Restart"			alt="Restart"		></a>
@@ -41,17 +41,19 @@
 		<td><a target="_blank" href="registers.html">Registers</a></td>
 		<td><img src="icons/separator.png"></td>
 		<td><a target="_blank" href="stdio.html">Console</a></td>
+		<td><img src="icons/separator.png"></td>
+		<td><a target="_blank" href="about.html">About</a></td>
 	</tr></table></div>
 
 
 
 	<!--<h2>Registers</h2>-->
-	<div class="registers debug-state-running debug-state-paused debug-state-done">registers</div>
+	<div class="registers debug-state-running debug-state-paused debug-state-done" style="display: none;">registers</div>
 
 
 
 	<!--<h2>Memory View</h2>-->
-	<div class="controls debug-state-running debug-state-paused debug-state-done"><table style="border-collapse: collapse;"><tr>
+	<div class="controls debug-state-running debug-state-paused debug-state-done" style="display: none;"><table style="border-collapse: collapse;"><tr>
 		<td>
 			<a href="memory.html" target="_blank">New</a>
 		</td><td><img src="icons/separator.png"></td><td>
@@ -82,8 +84,9 @@
 		</td>
 	</tr></table></div>
 	<div
-		id="memory1"
-		class="memory debug-state-running debug-state-paused debug-state-done"
+		id							="memory1"
+		class						="memory debug-state-running debug-state-paused debug-state-done"
+		style						="display: none;"
 		data-address				="0x00000000"
 		data-little-endian			="false"
 		data-col-size				="1"
@@ -99,12 +102,12 @@
 
 
 	<!--<h2>Output</h2>-->
-	<div class="output output-stdio debug-state-running debug-state-paused debug-state-done"></div>
+	<div class="output output-stdio debug-state-running debug-state-paused debug-state-done" style="display: none;"></div>
 
 
 	<!--<h2>Editor</h2>-->
 	<!--<div id="editor" class="editor" contenteditable="true">Insert Brainfuck Here</div>-->
-	<div class="controls" style="height: auto"><table style="border-collapse: collapse;"><tr>
+	<div class="controls" style="height: auto;"><table style="border-collapse: collapse;"><tr>
 		<td>
 			Themes:
 			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Ambiance</a>

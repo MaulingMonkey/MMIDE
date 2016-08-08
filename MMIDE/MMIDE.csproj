@@ -23,6 +23,7 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="about.html" />
     <Content Include="ext\ace\ace.js" />
     <Content Include="ext\d3\d3.js" />
     <Content Include="ext\d3\d3.min.js" />
