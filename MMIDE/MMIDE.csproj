@@ -34,6 +34,16 @@
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\createAsyncDebugger.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\Program\compileProgram.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\Program\createSymbolLookup.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\Program\_Program.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\State\getRegistersList.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\State\getThreads.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\State\runSome.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\State\_State.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\VmOp.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\VmOpType.ts" />
     <TypeScriptCompile Include="src\util\debounce.ts" />
     <TypeScriptCompile Include="src\examples.ts" />
     <TypeScriptCompile Include="ext\ace.d.ts" />
@@ -41,7 +51,7 @@
     <TypeScriptCompile Include="src\util\itc.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_ast.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_ast_optimize.ts" />
-    <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_vm_compiler.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\createDebugger.ts" />
     <TypeScriptCompile Include="src\lang\_debugger.ts" />
     <TypeScriptCompile Include="src\ui\debug-state.ts" />
     <TypeScriptCompile Include="src\ui\debug.ts" />

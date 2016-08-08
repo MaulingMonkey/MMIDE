@@ -1,3 +1,330 @@
+var _brainfuck_vm_global = this;
+var _brainfuck_vm_document = this["document"];
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        var isWorker = !_brainfuck_vm_document;
+        var isMainTab = !isWorker;
+        var supportsWorker = _brainfuck_vm_global["Worker"];
+        function createAsyncDebugger(code, stdout) {
+            console.assert(isMainTab);
+            if (!isMainTab)
+                return undefined;
+            if (!supportsWorker)
+                return VmCompiler.createDebugger(code, stdout);
+            var errors = false;
+            var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
+                    errors = true; } });
+            if (errors)
+                return undefined;
+            var program = VmCompiler.compileProgram(parseResult.optimizedAst);
+            var vm = {
+                code: program,
+                data: [],
+                codePtr: 0,
+                dataPtr: 0,
+                sysCalls: [],
+                insRan: 0,
+                runTime: 0,
+                wallStart: Date.now(),
+            };
+            var state = Debugger.State.Paused;
+            var worker = new Worker("mmide.js");
+            worker.addEventListener("message", function (reply) {
+                switch (reply.data.desc) {
+                    case "update-state":
+                        state = reply.data.value;
+                        break;
+                    case "update-vm-data":
+                        var src = reply.data.value;
+                        vm.data = src.data;
+                        vm.codePtr = src.codePtr;
+                        vm.dataPtr = src.dataPtr;
+                        vm.insRan = src.insRan;
+                        vm.runTime = src.runTime;
+                        break;
+                    case "system-call-stdout":
+                        stdout(reply.data.value);
+                        break;
+                    case "system-call-tape-end":
+                        state = Debugger.State.Done;
+                        break;
+                    default:
+                        console.error("Unexpected worker message desc:", reply.data.desc);
+                        break;
+                }
+            });
+            worker.postMessage({ desc: "brainfuck-debugger-init", state: vm });
+            return {
+                symbols: VmCompiler.createSymbolLookup(program),
+                state: function () { return state; },
+                threads: function () { return VmCompiler.getThreads(vm, code); },
+                memory: function () { return vm.data; },
+                pause: function () { return worker.postMessage({ desc: "pause" }); },
+                continue: function () { return worker.postMessage({ desc: "continue" }); },
+                stop: function () { return worker.postMessage({ desc: "stop" }); },
+                step: function () { return worker.postMessage({ desc: "step" }); },
+            };
+        }
+        VmCompiler.createAsyncDebugger = createAsyncDebugger;
+        if (isWorker) {
+            var vm = undefined;
+            var runHandle = undefined;
+            var reply = _brainfuck_vm_global["postMessage"];
+            function updateVm() {
+                reply({ desc: "update-vm-data", value: { data: vm.data, codePtr: vm.codePtr, dataPtr: vm.dataPtr, insRan: vm.insRan, runTime: vm.runTime } });
+            }
+            function tick() {
+                //runSome(vm, 100000); // ? - ~10ms - ~24M/s instructions executed
+                VmCompiler.runSome(vm, 300000); // 5 - ~30ms? - ~68M/s instructions executed - significantly diminishing returns beyond this point
+                //runSome(vm, 500000); // ? - ~50ms? - ~68M/s instructions executed - still seems perfectly responsive FWIW
+                updateVm();
+            }
+            function onInitMessage(ev) {
+                removeEventListener("message", onInitMessage);
+                if (ev.data.desc != "brainfuck-debugger-init")
+                    return;
+                addEventListener("message", onMessage);
+                vm = ev.data.state;
+                vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { reply({ desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); };
+                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { reply({ desc: "system-call-tape-end" }); updateVm(); if (runHandle !== undefined)
+                    clearInterval(runHandle); runHandle = undefined; };
+            }
+            function onMessage(ev) {
+                switch (ev.data.desc) {
+                    case "pause":
+                        if (runHandle !== undefined)
+                            clearInterval(runHandle);
+                        runHandle = undefined;
+                        reply({ desc: "update-state", value: Debugger.State.Paused });
+                        break;
+                    case "continue":
+                        if (runHandle === undefined)
+                            runHandle = setInterval(tick, 0);
+                        reply({ desc: "update-state", value: Debugger.State.Running });
+                        break;
+                    case "stop":
+                        if (runHandle !== undefined)
+                            clearInterval(runHandle);
+                        runHandle = undefined;
+                        reply({ desc: "update-state", value: Debugger.State.Done });
+                        break;
+                    case "step":
+                        VmCompiler.runOne(vm);
+                        updateVm();
+                        // no update-state
+                        break;
+                }
+            }
+            addEventListener("message", onInitMessage);
+        }
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function compileProgram(ast) {
+            var program = { ops: [], locs: [] };
+            compile(program, ast);
+            return program;
+        }
+        VmCompiler.compileProgram = compileProgram;
+        function compile(program, ast) {
+            for (var astI = 0; astI < ast.length; ++astI) {
+                var node = ast[astI];
+                var push = function (op) {
+                    program.ops.push(op);
+                    program.locs.push(node.location);
+                };
+                switch (node.type) {
+                    case Brainfuck.AST.NodeType.AddDataPtr:
+                        push({ type: VmCompiler.VmOpType.AddDataPtr, value: node.value || 0, dataOffset: 0 });
+                        break;
+                    case Brainfuck.AST.NodeType.AddData:
+                        push({ type: VmCompiler.VmOpType.AddData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
+                        break;
+                    case Brainfuck.AST.NodeType.SetData:
+                        push({ type: VmCompiler.VmOpType.SetData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
+                        break;
+                    case Brainfuck.AST.NodeType.SystemCall:
+                        push({ type: VmCompiler.VmOpType.SystemCall, value: node.systemCall || 0, dataOffset: 0 });
+                        break;
+                    case Brainfuck.AST.NodeType.BreakIf:
+                        var afterSystemCall = program.ops.length + 2;
+                        push({ type: VmCompiler.VmOpType.JumpIfNot, value: afterSystemCall, dataOffset: 0 });
+                        push({ type: VmCompiler.VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0 });
+                        break;
+                    case Brainfuck.AST.NodeType.Loop:
+                        var firstJump = { type: VmCompiler.VmOpType.JumpIfNot, value: undefined, dataOffset: 0 };
+                        push(firstJump);
+                        var afterFirstJump = program.ops.length;
+                        compile(program, node.childScope);
+                        var lastJump = { type: VmCompiler.VmOpType.JumpIf, value: afterFirstJump, dataOffset: 0 };
+                        push(lastJump);
+                        var afterLastJump = program.ops.length;
+                        firstJump.value = afterLastJump;
+                        break;
+                    default:
+                        console.error("Invalid node.type :=", node.type);
+                        break;
+                }
+            }
+        }
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function createSymbolLookup(program) {
+            return {
+                addrToSourceLocation: function (address) { return program.locs[address]; },
+                sourceLocationToAddr: function (sourceLocation) {
+                    for (var i = 0; i < program.locs.length; ++i) {
+                        if (Debugger.sourceLocationEqualColumn(sourceLocation, program.locs[i])) {
+                            return i;
+                        }
+                    }
+                },
+            };
+        }
+        VmCompiler.createSymbolLookup = createSymbolLookup;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function lpad(s, padding) { return padding.substr(0, padding.length - s.length) + s; }
+        function addr(n) { return lpad(n.toString(16), "0x0000"); }
+        function sourceLocationToString(sl) { return !sl ? "unknown" : (sl.file + "(" + lpad(sl.line.toString(), "   ") + ")"); }
+        function getRegistersList(vm, src) {
+            return [
+                ["Registers:", ""],
+                ["     code", addr(vm.codePtr)],
+                ["    *code", VmCompiler.vmOpToString(vm.code.ops[vm.codePtr])],
+                ["    @code", sourceLocationToString(vm.code.locs[vm.codePtr])],
+                ["     data", addr(vm.dataPtr)],
+                ["    *data", (vm.data[vm.dataPtr] || "0").toString()],
+                ["------------------------------", ""],
+                ["Performance:", ""],
+                ["    ran  ", vm.insRan.toLocaleString()],
+                [" VM ran/s", ((vm.insRan / vm.runTime) | 0).toLocaleString()],
+                [" VM     s", (vm.runTime | 0).toString()],
+                [" Wa.ran/s", ((vm.insRan / (Date.now() - vm.wallStart) * 1000) | 0).toLocaleString()],
+                [" Wall   s", ((Date.now() - vm.wallStart) / 1000 | 0).toString()],
+                ["------------------------------", ""],
+                ["Code size:", ""],
+                ["Brainfuck", src.length.toString()],
+                [" Bytecode", vm.code.ops.length.toString()],
+            ];
+        }
+        VmCompiler.getRegistersList = getRegistersList;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function getThreads(vm, src) {
+            return [{
+                    registers: function () { return VmCompiler.getRegistersList(vm, src); },
+                    currentPos: function () { return vm.codePtr; },
+                }];
+        }
+        VmCompiler.getThreads = getThreads;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function badSysCall(vm) {
+            console.error("Unexpected VmOpType", VmCompiler.VmOpType[vm.code[vm.codePtr].type]);
+            vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
+        }
+        function runOne(vm) {
+            var op = vm.code.ops[vm.codePtr];
+            if (!op) {
+                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
+                return;
+            }
+            var dp = vm.dataPtr + (op.dataOffset || 0);
+            switch (op.type) {
+                case VmCompiler.VmOpType.AddDataPtr:
+                    vm.dataPtr += op.value;
+                    ++vm.codePtr;
+                    break;
+                case VmCompiler.VmOpType.AddData:
+                    vm.data[dp] = (op.value + 256 + (vm.data[dp] || 0)) % 256;
+                    ++vm.codePtr;
+                    break;
+                case VmCompiler.VmOpType.SetData:
+                    vm.data[dp] = (op.value + 256) % 256;
+                    ++vm.codePtr;
+                    break;
+                case VmCompiler.VmOpType.JumpIf:
+                    if (vm.data[dp])
+                        vm.codePtr = op.value;
+                    else
+                        ++vm.codePtr;
+                    break;
+                case VmCompiler.VmOpType.JumpIfNot:
+                    if (!vm.data[dp])
+                        vm.codePtr = op.value;
+                    else
+                        ++vm.codePtr;
+                    break;
+                case VmCompiler.VmOpType.SystemCall:
+                    (vm.sysCalls[op.value] || badSysCall)(vm);
+                    ++vm.codePtr;
+                    break;
+                default:
+                    badSysCall(vm);
+                    break;
+            }
+        }
+        VmCompiler.runOne = runOne;
+        function runSome(vm, maxInstructions) {
+            var tStart = Date.now();
+            for (var instructionsRan = 0; instructionsRan < maxInstructions; ++instructionsRan)
+                runOne(vm);
+            var tStop = Date.now();
+            vm.insRan += instructionsRan;
+            vm.runTime += (tStop - tStart) / 1000;
+        }
+        VmCompiler.runSome = runSome;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function vmOpToString(op) {
+            return !op ? "??" : VmCompiler.VmOpType[op.type] +
+                (op.value ? (" (" + op.value + ")") : "") +
+                (op.dataOffset ? ("@ " + op.dataOffset) : "");
+        }
+        VmCompiler.vmOpToString = vmOpToString;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        (function (VmOpType) {
+            VmOpType[VmOpType["AddDataPtr"] = 0] = "AddDataPtr";
+            VmOpType[VmOpType["AddData"] = 1] = "AddData";
+            VmOpType[VmOpType["SetData"] = 2] = "SetData";
+            VmOpType[VmOpType["SystemCall"] = 3] = "SystemCall";
+            VmOpType[VmOpType["JumpIf"] = 4] = "JumpIf";
+            VmOpType[VmOpType["JumpIfNot"] = 5] = "JumpIfNot";
+        })(VmCompiler.VmOpType || (VmCompiler.VmOpType = {}));
+        var VmOpType = VmCompiler.VmOpType;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
 function debounce(callback, waitMS) {
     var _this = this;
     var callNext = undefined;
@@ -436,244 +763,15 @@ var Brainfuck;
 })(Brainfuck || (Brainfuck = {}));
 var Brainfuck;
 (function (Brainfuck) {
-    var JsCompiler;
-    (function (JsCompiler) {
-        function toJsNumber(n) {
-            var s = n.toString();
-            if (!/^(([0-9]+)|([0-9]+)\.([0-9]+))$/.exec(s))
-                return "0";
-            return s;
-        }
-        console.assert(toJsNumber("") == "0");
-        console.assert(toJsNumber("0") == "0");
-        console.assert(toJsNumber("123") == "123");
-        console.assert(toJsNumber("a") == "0");
-        console.assert(toJsNumber(".") == "0");
-        function toJsLocString(l) {
-            var s = l.file + "(" + l.line + ")";
-            if (!/^[0-9a-zA-Z_.]+$/.exec(s))
-                return "\"unavailable\"";
-            return "\"" + s + "\"";
-        }
-        //console.assert(toJsLocString({ file: "a", line: 1, column: 1 }) == "\"a(1)\"");
-        //console.assert(toJsLocString({ file: "0", line: 1, column: 1 }) == "\"0(1)\"");
-        console.assert(toJsLocString({ file: "!", line: 1, column: 1 }) == "\"unavailable\"");
-        function compileTo(js, ast, args) {
-            for (var astI = 0; astI < ast.length; ++astI) {
-                var op = ast[astI];
-                if (args.debug) {
-                    js.push("location = " + toJsLocString(op.location) + ";");
-                }
-                switch (op.type) {
-                    case Brainfuck.AST.NodeType.AddDataPtr:
-                        js.push("dataPtr += " + op.value + ";");
-                        break;
-                    case Brainfuck.AST.NodeType.AddData:
-                        js.push("data[dataPtr + (" + op.dataOffset + ")] += (" + op.value + " + 256) % 256;");
-                        break;
-                    case Brainfuck.AST.NodeType.SetData:
-                        js.push("data[dataPtr + (" + op.dataOffset + ")]  = (" + op.value + " + 256) % 256;");
-                        break;
-                    case Brainfuck.AST.NodeType.SystemCall:
-                        js.push(args.systemCalls[op.systemCall]);
-                        break;
-                    case Brainfuck.AST.NodeType.BreakIf:
-                        js.push("if (data[dataPtr]) {");
-                        js.push(args.systemCalls[Brainfuck.AST.SystemCall.Break]);
-                        js.push("}");
-                        break;
-                    case Brainfuck.AST.NodeType.Loop:
-                        js.push("while (data[dataPtr]) {");
-                        compileTo(js, op.childScope, args);
-                        js.push("}");
-                        break;
-                    default: return false;
-                }
-            }
-            return true;
-        }
-        function compile(ast, args) {
-            var js = [];
-            js.push("(function () {");
-            js.push("\"use strict\";");
-            if (args.debug)
-                js.push("var location = \"unavailable\";");
-            js.push("var data = [];");
-            js.push("var dataPtr = 0;");
-            compileTo(js, ast, args);
-            js.push("})();");
-        }
-        JsCompiler.compile = compile;
-    })(JsCompiler = Brainfuck.JsCompiler || (Brainfuck.JsCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var _brainfuck_vm_global = this;
-var _brainfuck_vm_document = this["document"];
-var Brainfuck;
-(function (Brainfuck) {
     var VmCompiler;
     (function (VmCompiler) {
-        (function (VmOpType) {
-            VmOpType[VmOpType["AddDataPtr"] = 0] = "AddDataPtr";
-            VmOpType[VmOpType["AddData"] = 1] = "AddData";
-            VmOpType[VmOpType["SetData"] = 2] = "SetData";
-            VmOpType[VmOpType["SystemCall"] = 3] = "SystemCall";
-            VmOpType[VmOpType["JumpIf"] = 4] = "JumpIf";
-            VmOpType[VmOpType["JumpIfNot"] = 5] = "JumpIfNot";
-        })(VmCompiler.VmOpType || (VmCompiler.VmOpType = {}));
-        var VmOpType = VmCompiler.VmOpType;
-        function vmOpTypeToString(type) { return VmOpType[type]; }
-        VmCompiler.vmOpTypeToString = vmOpTypeToString;
-        function vmOpToString(op) {
-            return !op ? "??" : vmOpTypeToString(op.type) +
-                (op.value ? (" (" + op.value + ")") : "") +
-                (op.dataOffset ? ("@ " + op.dataOffset) : "");
-        }
-        VmCompiler.vmOpToString = vmOpToString;
-        function compile(program, ast) {
-            for (var astI = 0; astI < ast.length; ++astI) {
-                var node = ast[astI];
-                var push = function (op) {
-                    program.ops.push(op);
-                    program.locs.push(node.location);
-                };
-                switch (node.type) {
-                    case Brainfuck.AST.NodeType.AddDataPtr:
-                        push({ type: VmOpType.AddDataPtr, value: node.value || 0, dataOffset: 0 });
-                        break;
-                    case Brainfuck.AST.NodeType.AddData:
-                        push({ type: VmOpType.AddData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
-                        break;
-                    case Brainfuck.AST.NodeType.SetData:
-                        push({ type: VmOpType.SetData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
-                        break;
-                    case Brainfuck.AST.NodeType.SystemCall:
-                        push({ type: VmOpType.SystemCall, value: node.systemCall || 0, dataOffset: 0 });
-                        break;
-                    case Brainfuck.AST.NodeType.BreakIf:
-                        var afterSystemCall = program.ops.length + 2;
-                        push({ type: VmOpType.JumpIfNot, value: afterSystemCall, dataOffset: 0 });
-                        push({ type: VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0 });
-                        break;
-                    case Brainfuck.AST.NodeType.Loop:
-                        var firstJump = { type: VmOpType.JumpIfNot, value: undefined, dataOffset: 0 };
-                        push(firstJump);
-                        var afterFirstJump = program.ops.length;
-                        compile(program, node.childScope);
-                        var lastJump = { type: VmOpType.JumpIf, value: afterFirstJump, dataOffset: 0 };
-                        push(lastJump);
-                        var afterLastJump = program.ops.length;
-                        firstJump.value = afterLastJump;
-                        break;
-                    default:
-                        console.error("Invalid node.type :=", node.type);
-                        break;
-                }
-            }
-        }
-        VmCompiler.compile = compile;
-        function badSysCall(vm) {
-            console.error("Unexpected VmOpType", VmOpType[vm.code[vm.codePtr].type]);
-            vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
-        }
-        function runOne(vm) {
-            var op = vm.code.ops[vm.codePtr];
-            if (!op) {
-                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
-                return;
-            }
-            var dp = vm.dataPtr + (op.dataOffset || 0);
-            switch (op.type) {
-                case VmOpType.AddDataPtr:
-                    vm.dataPtr += op.value;
-                    ++vm.codePtr;
-                    break;
-                case VmOpType.AddData:
-                    vm.data[dp] = (op.value + 256 + (vm.data[dp] || 0)) % 256;
-                    ++vm.codePtr;
-                    break;
-                case VmOpType.SetData:
-                    vm.data[dp] = (op.value + 256) % 256;
-                    ++vm.codePtr;
-                    break;
-                case VmOpType.JumpIf:
-                    if (vm.data[dp])
-                        vm.codePtr = op.value;
-                    else
-                        ++vm.codePtr;
-                    break;
-                case VmOpType.JumpIfNot:
-                    if (!vm.data[dp])
-                        vm.codePtr = op.value;
-                    else
-                        ++vm.codePtr;
-                    break;
-                case VmOpType.SystemCall:
-                    (vm.sysCalls[op.value] || badSysCall)(vm);
-                    ++vm.codePtr;
-                    break;
-                default:
-                    badSysCall(vm);
-                    break;
-            }
-        }
-        function runSome(vm, maxInstructions) {
-            var tStart = Date.now();
-            for (var instructionsRan = 0; instructionsRan < maxInstructions; ++instructionsRan)
-                runOne(vm);
-            var tStop = Date.now();
-            vm.insRan += instructionsRan;
-            vm.runTime += (tStop - tStart) / 1000;
-        }
-        function lpad(s, padding) { return padding.substr(0, padding.length - s.length) + s; }
-        function addr(n) { return lpad(n.toString(16), "0x0000"); }
-        function sourceLocToString(sl) { return !sl ? "unknown" : (sl.file + "(" + lpad(sl.line.toString(), "   ") + ")"); }
-        function createSymbolLookup(program) {
-            return {
-                addrToSourceLocation: function (address) { return program.locs[address]; },
-                sourceLocationToAddr: function (sourceLocation) {
-                    for (var i = 0; i < program.locs.length; ++i) {
-                        if (Debugger.sourceLocationEqualColumn(sourceLocation, program.locs[i])) {
-                            return i;
-                        }
-                    }
-                },
-            };
-        }
-        function getRegistersList(vm, src) {
-            return [
-                ["Registers:", ""],
-                ["     code", addr(vm.codePtr)],
-                ["    *code", vmOpToString(vm.code.ops[vm.codePtr])],
-                ["    @code", sourceLocToString(vm.code.locs[vm.codePtr])],
-                ["     data", addr(vm.dataPtr)],
-                ["    *data", (vm.data[vm.dataPtr] || "0").toString()],
-                ["------------------------------", ""],
-                ["Performance:", ""],
-                ["    ran  ", vm.insRan.toLocaleString()],
-                [" VM ran/s", ((vm.insRan / vm.runTime) | 0).toLocaleString()],
-                [" VM     s", (vm.runTime | 0).toString()],
-                [" Wa.ran/s", ((vm.insRan / (Date.now() - vm.wallStart) * 1000) | 0).toLocaleString()],
-                [" Wall   s", ((Date.now() - vm.wallStart) / 1000 | 0).toString()],
-                ["------------------------------", ""],
-                ["Code size:", ""],
-                ["Brainfuck", src.length.toString()],
-                [" Bytecode", vm.code.ops.length.toString()],
-            ];
-        }
-        function getThreads(vm, src) {
-            return [{
-                    registers: function () { return getRegistersList(vm, src); },
-                    currentPos: function () { return vm.codePtr; },
-                }];
-        }
         function createDebugger(code, stdout) {
             var errors = false;
             var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
                     errors = true; } });
             if (errors)
                 return undefined;
-            var program = { ops: [], locs: [] };
-            compile(program, parseResult.optimizedAst);
+            var program = VmCompiler.compileProgram(parseResult.optimizedAst);
             var vm = {
                 code: program,
                 data: [],
@@ -688,9 +786,9 @@ var Brainfuck;
             var doPause = function () { if (runHandle !== undefined)
                 clearInterval(runHandle); runHandle = undefined; };
             var doContinue = function () { if (runHandle === undefined)
-                runHandle = setInterval(function () { return runSome(vm, 100000); }, 0); }; // Increase instruction limit after fixing loop perf?
+                runHandle = setInterval(function () { return VmCompiler.runSome(vm, 100000); }, 0); }; // Increase instruction limit after fixing loop perf?
             var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
-            var doStep = function () { return runOne(vm); };
+            var doStep = function () { return VmCompiler.runOne(vm); };
             var getMemory = function () { return vm.data; };
             var getState = function () {
                 return vm === undefined ? Debugger.State.Detatched
@@ -701,9 +799,9 @@ var Brainfuck;
             vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { return stdout(String.fromCharCode(vm.data[vm.dataPtr])); };
             vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { return doStop(); };
             return {
-                symbols: createSymbolLookup(program),
+                symbols: VmCompiler.createSymbolLookup(program),
                 state: getState,
-                threads: function () { return getThreads(vm, code); },
+                threads: function () { return VmCompiler.getThreads(vm, code); },
                 memory: getMemory,
                 pause: doPause,
                 continue: doContinue,
@@ -712,122 +810,6 @@ var Brainfuck;
             };
         }
         VmCompiler.createDebugger = createDebugger;
-        var isWorker = !_brainfuck_vm_document;
-        var isMainTab = !isWorker;
-        var supportsWorker = _brainfuck_vm_global["Worker"];
-        function createAsyncDebugger(code, stdout) {
-            console.assert(isMainTab);
-            if (!isMainTab)
-                return undefined;
-            if (!supportsWorker)
-                return createDebugger(code, stdout);
-            var errors = false;
-            var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
-                    errors = true; } });
-            if (errors)
-                return undefined;
-            var program = { ops: [], locs: [] };
-            compile(program, parseResult.optimizedAst);
-            var vm = {
-                code: program,
-                data: [],
-                codePtr: 0,
-                dataPtr: 0,
-                sysCalls: [],
-                insRan: 0,
-                runTime: 0,
-                wallStart: Date.now(),
-            };
-            var state = Debugger.State.Paused;
-            var worker = new Worker("mmide.js");
-            worker.addEventListener("message", function (reply) {
-                switch (reply.data.desc) {
-                    case "update-state":
-                        state = reply.data.value;
-                        break;
-                    case "update-vm-data":
-                        var src = reply.data.value;
-                        vm.data = src.data;
-                        vm.codePtr = src.codePtr;
-                        vm.dataPtr = src.dataPtr;
-                        vm.insRan = src.insRan;
-                        vm.runTime = src.runTime;
-                        break;
-                    case "system-call-stdout":
-                        stdout(reply.data.value);
-                        break;
-                    case "system-call-tape-end":
-                        state = Debugger.State.Done;
-                        break;
-                    default:
-                        console.error("Unexpected worker message desc:", reply.data.desc);
-                        break;
-                }
-            });
-            worker.postMessage({ desc: "brainfuck-debugger-init", state: vm });
-            return {
-                symbols: createSymbolLookup(program),
-                state: function () { return state; },
-                threads: function () { return getThreads(vm, code); },
-                memory: function () { return vm.data; },
-                pause: function () { return worker.postMessage({ desc: "pause" }); },
-                continue: function () { return worker.postMessage({ desc: "continue" }); },
-                stop: function () { return worker.postMessage({ desc: "stop" }); },
-                step: function () { return worker.postMessage({ desc: "step" }); },
-            };
-        }
-        VmCompiler.createAsyncDebugger = createAsyncDebugger;
-        if (isWorker) {
-            var vm = undefined;
-            var runHandle = undefined;
-            var reply = _brainfuck_vm_global["postMessage"];
-            function updateVm() {
-                reply({ desc: "update-vm-data", value: { data: vm.data, codePtr: vm.codePtr, dataPtr: vm.dataPtr, insRan: vm.insRan, runTime: vm.runTime } });
-            }
-            function tick() {
-                //runSome(vm, 100000); // ? - ~10ms - ~24M/s instructions executed
-                runSome(vm, 300000); // 5 - ~30ms? - ~68M/s instructions executed - significantly diminishing returns beyond this point
-                //runSome(vm, 500000); // ? - ~50ms? - ~68M/s instructions executed - still seems perfectly responsive FWIW
-                updateVm();
-            }
-            function onInitMessage(ev) {
-                removeEventListener("message", onInitMessage);
-                if (ev.data.desc != "brainfuck-debugger-init")
-                    return;
-                addEventListener("message", onMessage);
-                vm = ev.data.state;
-                vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { reply({ desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); };
-                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { reply({ desc: "system-call-tape-end" }); updateVm(); if (runHandle !== undefined)
-                    clearInterval(runHandle); runHandle = undefined; };
-            }
-            function onMessage(ev) {
-                switch (ev.data.desc) {
-                    case "pause":
-                        if (runHandle !== undefined)
-                            clearInterval(runHandle);
-                        runHandle = undefined;
-                        reply({ desc: "update-state", value: Debugger.State.Paused });
-                        break;
-                    case "continue":
-                        if (runHandle === undefined)
-                            runHandle = setInterval(tick, 0);
-                        reply({ desc: "update-state", value: Debugger.State.Running });
-                        break;
-                    case "stop":
-                        if (runHandle !== undefined)
-                            clearInterval(runHandle);
-                        runHandle = undefined;
-                        reply({ desc: "update-state", value: Debugger.State.Done });
-                        break;
-                    case "step":
-                        runOne(vm);
-                        updateVm();
-                        // no update-state
-                        break;
-                }
-            }
-            addEventListener("message", onInitMessage);
-        }
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
 var Debugger;
