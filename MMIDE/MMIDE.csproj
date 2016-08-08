@@ -41,7 +41,6 @@
     <TypeScriptCompile Include="src\util\itc.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_ast.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_ast_optimize.ts" />
-    <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_js_compiler.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_vm_compiler.ts" />
     <TypeScriptCompile Include="src\lang\_debugger.ts" />
     <TypeScriptCompile Include="src\ui\debug-state.ts" />
