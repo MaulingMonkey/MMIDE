@@ -24,7 +24,7 @@
 			let doContinue		= () => { if (runHandle === undefined) runHandle = setInterval(() => runSome(vm, 100000), 0); }; // Increase instruction limit after fixing loop perf?
 			let doStop			= () => { doPause(); vm.dataPtr = vm.data.length; };
 			let doStep			= () => runOne(vm);
-			let getMemory		= () => vm.data;
+			let getMemory		= (start: number, size: number) => vm.data.slice(start, start+size);
 			let getState		= () =>
 				vm === undefined ?						Debugger.State.Detatched
 				: vm.codePtr >= vm.code.locs.length ?	Debugger.State.Done

@@ -63,7 +63,7 @@ module Brainfuck {
 				symbols:	createSymbolLookup(program),
 				state:		() => state,
 				threads:	() => getThreads(vm, code),
-				memory:		() => vm.data,
+				memory:		(start, size) => vm.data.slice(start, start+size),
 
 				pause:		() => worker.postMessage({desc: "pause"}),
 				continue:	() => worker.postMessage({desc: "continue"}),

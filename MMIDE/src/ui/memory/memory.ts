@@ -29,7 +29,7 @@
 			getListeners().forEach(req => {
 				let response : UpdateNotice = {
 					baseAddress:	req.baseAddress,
-					data:			localDebugger.memory().slice(req.baseAddress, req.baseAddress + req.size),
+					data:			localDebugger.memory(req.baseAddress, req.size),
 				};
 				ITC.sendTo(req.responseKey, response);
 			});

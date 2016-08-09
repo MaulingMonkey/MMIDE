@@ -19,11 +19,11 @@
 	}
 
 	export interface Debugger {
-		symbols:		SymbolLookup;
+		symbols:								SymbolLookup;
 
-		state():		State;
-		threads():		Thread[];
-		memory():		number[];
+		state():								State;
+		threads():								Thread[];
+		memory(start: number, size: number):	number[];
 
 		stop();					// Running, Paused	-> None
 		continue();				// Paused			-> Running

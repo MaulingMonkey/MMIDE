@@ -97,7 +97,7 @@ declare namespace ace {
 		findNext(options, animate: boolean);
 		findPrevious(options, animate: boolean);
 		focus(): void;
-		forEachSelectino(cmd: string, args: string);
+		forEachSelection(cmd: string, args: string);
 		// getAnimatedScroll(); // Undocumented
 		getBehavioursEnabled(): boolean;
 		getCopyText(): string;
