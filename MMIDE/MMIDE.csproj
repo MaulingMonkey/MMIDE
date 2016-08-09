@@ -45,6 +45,7 @@
     <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\State\_State.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\VmOp.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\VmOpType.ts" />
+    <TypeScriptCompile Include="src\ui\breakpoints.ts" />
     <TypeScriptCompile Include="src\util\debounce.ts" />
     <TypeScriptCompile Include="src\examples.ts" />
     <TypeScriptCompile Include="ext\ace.d.ts" />

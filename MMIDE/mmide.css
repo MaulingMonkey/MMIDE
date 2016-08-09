@@ -5,88 +5,9 @@
 	background: #BBB;
 }
 
-*		{ font-family: inherit; }
-h1		{ font-family: inherit; text-align: center; }
-h2		{ font-family: inherit; text-align: center; }
-table	{ font: inherit; white-space: inherit; }
 
-/*.ace_gutter-cell*/	.current-line	{ background-image: url(icons/current-line.png); }
-/*.ace_line*/			.current-column	{ /*background-color: #FF0;*/ border: 2px solid #FF0; position: absolute; z-index: 10; margin-left: -2px; margin-top: -2px; }
 
-.controls
-{
-	padding:		5px;
-	margin:			5px;
-	border-radius:	5px;
-	background:		#DDD;
-	color:			#000;
-	height:			16px;
-}
-
-.registers
-{
-	padding:		5px;
-	margin:			5px;
-	border-radius:	5px;
-	background:		#DDD;
-	color:			#000;
-	white-space:	pre;
-
-	display:		block;
-	overflow-y:		auto;
-}
-
-.memory
-{
-	padding:		5px;
-	margin:			5px;
-	border-radius:	5px;
-	background:		#DDD;
-	color:			#000;
-	white-space:	pre;
-
-	display:		block;
-	overflow-y:		auto;
-}
-
-.memory td
-{
-	padding: 0;
-}
-
-.editor
-{
-	padding:		5px;
-	margin:			5px;
-	border-radius:	5px;
-	background:		#FFF;
-	color:			#000;
-	white-space:	pre;
-
-	min-height:		200px;
-	flex-grow:		2;
-	flex-shrink:	2;
-	flex-basis:		500px;
-	display:		block;
-	overflow-y:		auto;
-}
-
-.output
-{
-	padding:		5px;
-	margin:			5px;
-	border-radius:	5px;
-	background:		#000;
-	color:			#FFF;
-	white-space:	pre;
-
-	min-height:		200px;
-	flex-grow:		1;
-	flex-shrink:	1;
-	flex-basis:		300px;
-	display:		block;
-	overflow-y:		auto;
-}
+/* Layout Styles */
 
 .position-fullscreen
 {
@@ -107,3 +28,75 @@ table	{ font: inherit; white-space: inherit; }
 	transform:		translate(-50%,0);
 	margin-right:	-50%;
 }
+
+
+
+/* Common Panel Styles */
+
+.panel
+{
+	padding:		5px;
+	margin:			5px;
+	border-radius:	5px;
+	background:		#DDD;
+	color:			#000;
+}
+
+.panel-16
+{
+	height:			16px;
+}
+
+.panel-block
+{
+	white-space:	pre;
+	display:		block;
+	overflow-y:		auto;
+}
+
+.panel td
+{
+	padding: 0;
+}
+
+
+
+/* Basic style resets */
+
+*		{ font-family: inherit; }
+h1		{ font-family: inherit; text-align: center; }
+h2		{ font-family: inherit; text-align: center; }
+table	{ font: inherit; white-space: inherit; }
+
+
+
+/* Once-off Styles */
+
+.editor
+{
+	min-height:		200px;
+	flex-grow:		2;
+	flex-shrink:	2;
+	flex-basis:		500px;
+}
+
+.output
+{
+	background:		#000;
+	color:			#FFF;
+
+	min-height:		200px;
+	flex-grow:		1;
+	flex-shrink:	1;
+	flex-basis:		300px;
+}
+
+
+
+
+
+
+
+/* Ace Editor Styles */
+/*.ace_gutter-cell*/	.current-line	{ background-image: url(icons/current-line.png); }
+/*.ace_line*/			.current-column	{ /*background-color: #FF0;*/ border: 2px solid #FF0; position: absolute; z-index: 10; margin-left: -2px; margin-top: -2px; }

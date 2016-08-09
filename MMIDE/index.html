@@ -5,7 +5,7 @@
 	<link rel="stylesheet" href="mmide.css" type="text/css" />
 </head><body><div class="position-fullscreen" style="display: flex; flex-direction: column;">
 
-	<div class="controls"><table style="border-collapse: collapse;"><tr>
+	<div class="panel panel-16"><table style="border-collapse: collapse;"><tr>
 		<td class="debug-state-detatched">
 			<a href="#" onclick="UI.Debug.Start(false);		return false"><img src="icons/play.png"			title="Start"			alt="Start"			></a>
 			<a href="#" onclick="UI.Debug.Start(true);		return false"><img src="icons/start-paused.png"	title="Start paused"	alt="Start paused"	></a>
@@ -33,7 +33,7 @@
 		</td>
 	</tr></table></div>
 
-	<div class="controls"><table style="border-collapse: collapse;"><tr>
+	<div class="panel panel-16"><table style="border-collapse: collapse;"><tr>
 		<td>New Tabs</td>
 		<td><img src="icons/separator.png"></td>
 		<td><a target="_blank" href="memory.html">Memory</a></td>
@@ -48,12 +48,12 @@
 
 
 	<!--<h2>Registers</h2>-->
-	<div class="registers debug-state-running debug-state-paused debug-state-done" style="display: none;">registers</div>
+	<div class="panel panel-block registers debug-state-running debug-state-paused debug-state-done" style="display: none;">registers</div>
 
 
 
 	<!--<h2>Memory View</h2>-->
-	<div class="controls debug-state-running debug-state-paused debug-state-done" style="display: none;"><table style="border-collapse: collapse;"><tr>
+	<div class="panel panel-16 debug-state-running debug-state-paused debug-state-done" style="display: none;"><table style="border-collapse: collapse;"><tr>
 		<td>
 			<a href="memory.html" target="_blank">New</a>
 		</td><td><img src="icons/separator.png"></td><td>
@@ -85,7 +85,7 @@
 	</tr></table></div>
 	<div
 		id							="memory1"
-		class						="memory debug-state-running debug-state-paused debug-state-done"
+		class						="panel panel-block memory debug-state-running debug-state-paused debug-state-done"
 		style						="display: none;"
 		data-address				="0x00000000"
 		data-little-endian			="false"
@@ -102,12 +102,12 @@
 
 
 	<!--<h2>Output</h2>-->
-	<div class="output output-stdio debug-state-running debug-state-paused debug-state-done" style="display: none;"></div>
+	<div class="panel panel-block output output-stdio debug-state-running debug-state-paused debug-state-done" style="display: none;"></div>
 
 
 	<!--<h2>Editor</h2>-->
 	<!--<div id="editor" class="editor" contenteditable="true">Insert Brainfuck Here</div>-->
-	<div class="controls" style="height: auto;"><table style="border-collapse: collapse;"><tr>
+	<div class="panel" style="height: auto;"><table style="border-collapse: collapse;"><tr>
 		<td>
 			Themes:
 			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">Ambiance</a>
@@ -146,7 +146,20 @@
 			<a href="#" onclick="UI.Editor.setTheme(this.innerText);	return false">XCode</a>
 		</td>
 	</tr></table></div>
-	<div id="editor" class="editor">Insert Brainfuck Here</div>
+	<div id="editor" class="panel panel-block editor">Insert Brainfuck Here</div>
+
+
+
+	<!--<h2>Breakpoints</h2>-->
+	<div class="panel breakpoints"><table><thead><tr>
+		<th colspan="3">Breakpoints</th>
+	</tr><tr>
+		<th data-breakpoint-column="location">Location</th>
+		<th data-breakpoint-column="condition">Condition</th>
+		<th data-breakpoint-column="on-hit">On Hit</th>
+	</tr></thead><tbody></tbody></table></div>
+
+
 
 	<script src="ext/ace/ace.js" charset="utf-8"></script>
 	<script src="ext/d3/d3.min.js"></script>
