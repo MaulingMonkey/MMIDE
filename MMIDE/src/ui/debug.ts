@@ -46,7 +46,7 @@
 			setInterval(function() {
 				let thread		= theDebugger === undefined ? undefined : theDebugger.threads()[0];
 				let address		= thread === undefined ? undefined : thread.currentPos();
-				let sourceLoc	= theDebugger === undefined ? undefined : theDebugger.symbols.addrToSourceLocation(address);
+				let sourceLoc	= theDebugger === undefined || theDebugger.symbols === undefined ? undefined : theDebugger.symbols.addrToSourceLocation(address);
 
 				setDebugState(theDebugger === undefined ? Debugger.State.Detatched : theDebugger.state());
 				UI.Registers.update(theDebugger);
