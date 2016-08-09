@@ -103,6 +103,19 @@
 			}
 		}
 
+		export interface LineBreakpoint {
+			line:		number;
+			enabled:	boolean;
+		}
+		export function setLineBreakpoints(breakpoints: LineBreakpoint[]) {
+			let e = editor();
+			if (!e) return;
+			let session = e.getSession();
+			session.clearBreakpoints();
+			breakpoints.forEach(bp => session.setBreakpoint(bp.line-1, bp.enabled ? "breakpoint-enabled-line" : "breakpoint-disabled-line"));
+			//console.log("Set breakpoints:",breakpoints[0],breakpoints[1]);
+		}
+
 		addEventListener("load", function(ev) {
 			let ed = editor();
 			if (!ed) return;

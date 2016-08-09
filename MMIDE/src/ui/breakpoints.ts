@@ -25,7 +25,9 @@
 				active === breakpoint.elements.onHit;
 		}
 
-		function newBreakpointRow(tableElement: HTMLTableElement): HTMLTableRowElement {
+		function newBreakpointRow(tableElement: HTMLTableElement, breakpoint: Breakpoint): HTMLTableRowElement {
+			if (!breakpoint) breakpoint = { enabled: true, location: "", condition: "", onHit: "" };
+
 			let d3body = d3.select(tableElement).select("tbody");
 			if (d3body.empty()) d3body = d3.select(tableElement).append("tbody");
 
@@ -39,15 +41,16 @@
 				let newCell = newRow.append("td");
 				switch (colType) {
 					case "location":
-						newCell.append("input").classed("breakpoint-enabled", true).attr({type: "checkbox", checked: "", title: "Enabled", alt: "Enabled"});
+						let e = newCell.append("input").classed("breakpoint-enabled", true).attr({type: "checkbox", title: "Enabled", alt: "Enabled"});
+						if (breakpoint.enabled) e.attr("checked","");
 						newCell.append("span").text(" ");
-						newCell.append("input").classed("breakpoint-location", true).attr({type: "text", value: "", placeholder: "(no location)"});
+						newCell.append("input").classed("breakpoint-location", true).attr({type: "text", value: breakpoint.location || "", placeholder: "(no location)"});
 						break;
 					case "condition":
-						newCell.append("input").classed("breakpoint-condition",true).attr({type: "text", value: "", placeholder: "(no condition)"});
+						newCell.append("input").classed("breakpoint-condition",true).attr({type: "text", value: breakpoint.condition || "", placeholder: "(no condition)"});
 						break;
 					case "on-hit":
-						newCell.append("input").classed("breakpoint-on-hit",true).attr({type: "text", value: "", placeholder: "(no action on hit)"});
+						newCell.append("input").classed("breakpoint-on-hit",true).attr({type: "text", value: breakpoint.onHit || "", placeholder: "(no action on hit)"});
 						break;
 					default:
 						console.error("Unexpected data-breakpoint-column:", colType);
@@ -102,7 +105,7 @@
 			condition:		string;
 			onHit:			string;
 		}
-		function getTableBreakpoints(tableElement: HTMLTableElement) {
+		function getTableBreakpoints(tableElement: HTMLTableElement): Breakpoint[] {
 			return getTableBreakpointElements(tableElement).map(elements => {
 				return {
 					elements:	elements,
@@ -113,6 +116,18 @@
 				};
 			});
 		}
+		function isBreakpointEqual(lhs: Breakpoint, rhs: Breakpoint): boolean {
+			return lhs.elements === rhs.elements &&
+				lhs.location === rhs.location &&
+				lhs.condition === rhs.condition &&
+				lhs.onHit === rhs.onHit;
+		}
+		function breakpointListsAreEqual(lhs: Breakpoint[], rhs: Breakpoint[]): boolean {
+			if (!!lhs !== !!rhs) return false;
+			if (lhs.length !== rhs.length) return false;
+			for (let i=0, n=lhs.length; i<n; ++i) if (!isBreakpointEqual(lhs[i], rhs[i])) return false;
+			return true;
+		}
 
 
 
@@ -120,24 +135,50 @@
 			let breakpoints = getTableBreakpoints(tableElement);
 
 			if (breakpoints.length == 0) {
-				newBreakpointRow(tableElement);
+				newBreakpointRow(tableElement, undefined);
 			} else {
 				let lastBreakpoint = breakpoints[breakpoints.length-1];
 				breakpoints.filter(bp => isBreakpointBlank(bp) && !isBreakpointFocused(bp) && bp != lastBreakpoint).forEach(e => e.elements.row.remove());
-				if (!isBreakpointBlank(lastBreakpoint)) newBreakpointRow(tableElement);
+				if (!isBreakpointBlank(lastBreakpoint)) newBreakpointRow(tableElement, undefined);
 			}
 		}
 
 
 
+		const reFileLine = /^(.+)(?:(?:\((\d+)\))|(?:\:(\d+)))$/;
+		var prevBreakpoints : Breakpoint[] = [];
 		addEventListener("load", ()=>{
 			let table = <HTMLTableElement> d3.select(".breakpoints").select("table")[0][0];
 			if (!table) return;
-			newBreakpointRow(table);
+			newBreakpointRow(table, { enabled: true, location: "memory.bf(3)", condition: "", onHit: "" });
+			newBreakpointRow(table, { enabled: true, location: "memory.bf:4", condition: "", onHit: "" });
 
 			setInterval(()=>{
 				manageSingleBlankBreakpoint(table);
-			}, 100);
+				let newBreakpoints = getTableBreakpoints(table);
+				if (breakpointListsAreEqual(prevBreakpoints, newBreakpoints)) return;
+				prevBreakpoints = newBreakpoints;
+
+				let editorFileName = "memory.bf"; // XXX
+				let list : Editor.LineBreakpoint[] = [];
+				let byLine : Editor.LineBreakpoint[] = [];
+
+				newBreakpoints.forEach(b => {
+					let m = reFileLine.exec(b.location||"");
+					if (!m) return;
+					let file = m[1];
+					let line = parseInt(m[2] || m[3]);
+					if (file != editorFileName) return;
+					let bp = byLine[line];
+					if (!bp) {
+						bp = byLine[line] = { line: line, enabled: false };
+						list.push(bp);
+					}
+					if (b.enabled) bp.enabled = true;
+				});
+
+				Editor.setLineBreakpoints(list);
+			}, 10);
 		});
 	}
 }

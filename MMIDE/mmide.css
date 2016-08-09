@@ -100,3 +100,6 @@ table	{ font: inherit; white-space: inherit; }
 /* Ace Editor Styles */
 /*.ace_gutter-cell*/	.current-line	{ background-image: url(icons/current-line.png); }
 /*.ace_line*/			.current-column	{ /*background-color: #FF0;*/ border: 2px solid #FF0; position: absolute; z-index: 10; margin-left: -2px; margin-top: -2px; }
+
+.breakpoint-enabled-line	{ background-image: url(icons/breakpoint-enabled.png); }
+.breakpoint-disabled-line	{ background-image: url(icons/breakpoint-disabled.png); }

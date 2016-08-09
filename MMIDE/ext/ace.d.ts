@@ -331,7 +331,7 @@ declare namespace ace {
 		screenToDocumentPosition(screenRow: number, screenColumn: number): Position;
 		//screenToDocumentRow(); // Undocumented
 		setAnnotations(annotations: Annotation[]);
-		setBreakpoint(row: number, className: string);
+		setBreakpoint(row: number, className?: string);
 		setBreakpoints(rows: number[]);
 		setDocument(doc: Document);
 		//setMode(); // Undocumented

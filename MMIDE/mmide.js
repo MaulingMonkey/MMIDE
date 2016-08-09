@@ -354,7 +354,9 @@ var UI;
                 active === breakpoint.elements.location ||
                 active === breakpoint.elements.onHit;
         }
-        function newBreakpointRow(tableElement) {
+        function newBreakpointRow(tableElement, breakpoint) {
+            if (!breakpoint)
+                breakpoint = { enabled: true, location: "", condition: "", onHit: "" };
             var d3body = d3.select(tableElement).select("tbody");
             if (d3body.empty())
                 d3body = d3.select(tableElement).append("tbody");
@@ -367,15 +369,17 @@ var UI;
                 var newCell = newRow.append("td");
                 switch (colType) {
                     case "location":
-                        newCell.append("input").classed("breakpoint-enabled", true).attr({ type: "checkbox", checked: "", title: "Enabled", alt: "Enabled" });
+                        var e = newCell.append("input").classed("breakpoint-enabled", true).attr({ type: "checkbox", title: "Enabled", alt: "Enabled" });
+                        if (breakpoint.enabled)
+                            e.attr("checked", "");
                         newCell.append("span").text(" ");
-                        newCell.append("input").classed("breakpoint-location", true).attr({ type: "text", value: "", placeholder: "(no location)" });
+                        newCell.append("input").classed("breakpoint-location", true).attr({ type: "text", value: breakpoint.location || "", placeholder: "(no location)" });
                         break;
                     case "condition":
-                        newCell.append("input").classed("breakpoint-condition", true).attr({ type: "text", value: "", placeholder: "(no condition)" });
+                        newCell.append("input").classed("breakpoint-condition", true).attr({ type: "text", value: breakpoint.condition || "", placeholder: "(no condition)" });
                         break;
                     case "on-hit":
-                        newCell.append("input").classed("breakpoint-on-hit", true).attr({ type: "text", value: "", placeholder: "(no action on hit)" });
+                        newCell.append("input").classed("breakpoint-on-hit", true).attr({ type: "text", value: breakpoint.onHit || "", placeholder: "(no action on hit)" });
                         break;
                     default:
                         console.error("Unexpected data-breakpoint-column:", colType);
@@ -418,26 +422,69 @@ var UI;
                 };
             });
         }
+        function isBreakpointEqual(lhs, rhs) {
+            return lhs.elements === rhs.elements &&
+                lhs.location === rhs.location &&
+                lhs.condition === rhs.condition &&
+                lhs.onHit === rhs.onHit;
+        }
+        function breakpointListsAreEqual(lhs, rhs) {
+            if (!!lhs !== !!rhs)
+                return false;
+            if (lhs.length !== rhs.length)
+                return false;
+            for (var i = 0, n = lhs.length; i < n; ++i)
+                if (!isBreakpointEqual(lhs[i], rhs[i]))
+                    return false;
+            return true;
+        }
         function manageSingleBlankBreakpoint(tableElement) {
             var breakpoints = getTableBreakpoints(tableElement);
             if (breakpoints.length == 0) {
-                newBreakpointRow(tableElement);
+                newBreakpointRow(tableElement, undefined);
             }
             else {
                 var lastBreakpoint = breakpoints[breakpoints.length - 1];
                 breakpoints.filter(function (bp) { return isBreakpointBlank(bp) && !isBreakpointFocused(bp) && bp != lastBreakpoint; }).forEach(function (e) { return e.elements.row.remove(); });
                 if (!isBreakpointBlank(lastBreakpoint))
-                    newBreakpointRow(tableElement);
+                    newBreakpointRow(tableElement, undefined);
             }
         }
+        var reFileLine = /^(.+)(?:(?:\((\d+)\))|(?:\:(\d+)))$/;
+        var prevBreakpoints = [];
         addEventListener("load", function () {
             var table = d3.select(".breakpoints").select("table")[0][0];
             if (!table)
                 return;
-            newBreakpointRow(table);
+            newBreakpointRow(table, { enabled: true, location: "memory.bf(3)", condition: "", onHit: "" });
+            newBreakpointRow(table, { enabled: true, location: "memory.bf:4", condition: "", onHit: "" });
             setInterval(function () {
                 manageSingleBlankBreakpoint(table);
-            }, 100);
+                var newBreakpoints = getTableBreakpoints(table);
+                if (breakpointListsAreEqual(prevBreakpoints, newBreakpoints))
+                    return;
+                prevBreakpoints = newBreakpoints;
+                var editorFileName = "memory.bf"; // XXX
+                var list = [];
+                var byLine = [];
+                newBreakpoints.forEach(function (b) {
+                    var m = reFileLine.exec(b.location || "");
+                    if (!m)
+                        return;
+                    var file = m[1];
+                    var line = parseInt(m[2] || m[3]);
+                    if (file != editorFileName)
+                        return;
+                    var bp = byLine[line];
+                    if (!bp) {
+                        bp = byLine[line] = { line: line, enabled: false };
+                        list.push(bp);
+                    }
+                    if (b.enabled)
+                        bp.enabled = true;
+                });
+                UI.Editor.setLineBreakpoints(list);
+            }, 10);
         });
     })(Breakpoints = UI.Breakpoints || (UI.Breakpoints = {}));
 })(UI || (UI = {}));
@@ -1164,6 +1211,16 @@ var UI;
             }
         }
         Editor.setCurrentPosition = setCurrentPosition;
+        function setLineBreakpoints(breakpoints) {
+            var e = editor();
+            if (!e)
+                return;
+            var session = e.getSession();
+            session.clearBreakpoints();
+            breakpoints.forEach(function (bp) { return session.setBreakpoint(bp.line - 1, bp.enabled ? "breakpoint-enabled-line" : "breakpoint-disabled-line"); });
+            //console.log("Set breakpoints:",breakpoints[0],breakpoints[1]);
+        }
+        Editor.setLineBreakpoints = setLineBreakpoints;
         addEventListener("load", function (ev) {
             var ed = editor();
             if (!ed)
