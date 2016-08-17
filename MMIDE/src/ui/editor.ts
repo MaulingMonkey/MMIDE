@@ -72,35 +72,42 @@
 			s.setAnnotations(errors.map(errorToAnnotation).filter(a => !!a));
 		}
 
-		let currentMarker : number = undefined;
-		let currentLine = -1;
-		let currentCol = -1;
+		let oldMarker : number = undefined;
+		let oldLineIndex = -1;
+		let oldColIndex  = -1;
 		//let Range = ace.require("ace/Range").Range;
-		export function setCurrentPosition(line: number, col: number = -1) {
+		export function setCurrentPosition(lineNo: number, colNo: number = 0) {
+			let newLineIndex = lineNo-1;
+			let newColIndex = colNo-1;
+
+			let lineIndexChanged = oldLineIndex !== newLineIndex;
+			let colIndexChanged  = oldColIndex  !== newColIndex  || lineIndexChanged;
+
 			let e = editor();
 			if (!e) return;
 			let s = e.getSession();
 
-			if (currentLine != line) {
-				s.removeGutterDecoration(currentLine, "current-line");
-				currentLine = line-1;
-				s.addGutterDecoration(currentLine, "current-line");
+			if (lineIndexChanged) {
+				s.removeGutterDecoration(oldLineIndex, "current-line");
+				s.addGutterDecoration(newLineIndex, "current-line");
 			}
 
-			if (currentCol != col) {
-				currentCol = col;
-				if (currentMarker !== undefined) s.removeMarker(currentMarker);
-				if (col != -1) {
+			if (colIndexChanged) {
+				if (oldMarker !== undefined) s.removeMarker(oldMarker);
+				if (newColIndex != -1) {
 					//let range = <ace.Range>new (<any>Range)(line-1, col-1, line-1, col-0);
 					//let range = new ace.Range(line-1, col-1, line-1, col-0);
-					let range = s.getAWordRange(line-1, col-1);
-					range.start.column = col-1;
-					range.end.column = col-0;
-					currentMarker = s.addMarker(range, "current-column", "text", false);
+					let range = s.getAWordRange(newLineIndex, newColIndex);
+					range.start.column = newColIndex+0;
+					range.end.column = newColIndex+1;
+					oldMarker = s.addMarker(range, "current-column", "text", false);
 				} else {
-					currentMarker = undefined;
+					oldMarker = undefined;
 				}
 			}
+
+			oldLineIndex = newLineIndex;
+			oldColIndex = newColIndex;
 		}
 
 		export interface LineBreakpoint {

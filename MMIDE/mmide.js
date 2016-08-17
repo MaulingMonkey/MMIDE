@@ -1,572 +1,3 @@
-var _brainfuck_vm_global = this;
-var _brainfuck_vm_document = this["document"];
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        var isWorker = !_brainfuck_vm_document;
-        var isMainTab = !isWorker;
-        var supportsWorker = _brainfuck_vm_global["Worker"];
-        function createAsyncDebugger(code, stdout) {
-            console.assert(isMainTab);
-            if (!isMainTab)
-                return undefined;
-            if (!supportsWorker)
-                return VmCompiler.createDebugger(code, stdout);
-            var errors = false;
-            var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
-                    errors = true; } });
-            if (errors)
-                return undefined;
-            var program = VmCompiler.compileProgram(parseResult.optimizedAst);
-            var vm = VmCompiler.createInitState(program);
-            var state = Debugger.State.Paused;
-            var worker = new Worker("mmide.js");
-            worker.addEventListener("message", function (reply) {
-                switch (reply.data.desc) {
-                    case "update-state":
-                        state = reply.data.value;
-                        break;
-                    case "update-vm-data":
-                        var src = reply.data.value;
-                        vm.data = src.data;
-                        vm.codePtr = src.codePtr;
-                        vm.dataPtr = src.dataPtr;
-                        vm.insRan = src.insRan;
-                        vm.runTime = src.runTime;
-                        break;
-                    case "system-call-stdout":
-                        stdout(reply.data.value);
-                        break;
-                    case "system-call-tape-end":
-                        state = Debugger.State.Done;
-                        break;
-                    default:
-                        console.error("Unexpected worker message desc:", reply.data.desc);
-                        break;
-                }
-            });
-            worker.postMessage({ desc: "brainfuck-debugger-init", state: vm });
-            var debug = {
-                symbols: VmCompiler.createSymbolLookup(program),
-                breakpoints: { setBreakpoints: function (breakpoints) { return worker.postMessage({ desc: "breakpoints.set", data: breakpoints }); } },
-                state: function () { return state; },
-                threads: function () { return VmCompiler.getThreads(vm, code); },
-                memory: function (start, size) { return vm.data.slice(start, start + size); },
-                pause: function () { return worker.postMessage({ desc: "pause" }); },
-                continue: function () { return worker.postMessage({ desc: "continue" }); },
-                stop: function () { return worker.postMessage({ desc: "stop" }); },
-                step: function () { return worker.postMessage({ desc: "step" }); },
-            };
-            return debug;
-        }
-        VmCompiler.createAsyncDebugger = createAsyncDebugger;
-        if (isWorker) {
-            var vm = undefined;
-            var runHandle = undefined;
-            var reply = _brainfuck_vm_global["postMessage"];
-            function updateVm() {
-                reply({ desc: "update-vm-data", value: { data: vm.data, codePtr: vm.codePtr, dataPtr: vm.dataPtr, insRan: vm.insRan, runTime: vm.runTime } });
-            }
-            function tick() {
-                //runSome(vm, 100000); // ? - ~10ms - ~24M/s instructions executed
-                VmCompiler.runSome(vm, 300000); // 5 - ~30ms? - ~68M/s instructions executed - significantly diminishing returns beyond this point
-                //runSome(vm, 500000); // ? - ~50ms? - ~68M/s instructions executed - still seems perfectly responsive FWIW
-                updateVm();
-            }
-            function onInitMessage(ev) {
-                removeEventListener("message", onInitMessage);
-                if (ev.data.desc != "brainfuck-debugger-init")
-                    return;
-                addEventListener("message", onMessage);
-                vm = ev.data.state;
-                vm.sysCalls[Brainfuck.AST.SystemCall.Break] = function (vm) {
-                    var isInjectedBreak = vm.program.ops[vm.codePtr] !== vm.loadedCode[vm.codePtr];
-                    // Pause the VM
-                    if (runHandle !== undefined)
-                        clearInterval(runHandle);
-                    runHandle = undefined;
-                    reply({ desc: "update-state", value: Debugger.State.Paused });
-                    --vm.codePtr; // Prevent advancing of codePtr after handling this sysCall
-                };
-                vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { reply({ desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); };
-                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { reply({ desc: "system-call-tape-end" }); updateVm(); if (runHandle !== undefined)
-                    clearInterval(runHandle); runHandle = undefined; };
-            }
-            function onMessage(ev) {
-                switch (ev.data.desc) {
-                    case "breakpoints.set":
-                        if (!vm)
-                            return;
-                        var breakpoints = ev.data.data;
-                        var breakLocs = breakpoints.filter(function (bp) { return bp.enabled; }).map(function (bp) { return Debugger.parseSourceLocation(bp.location); }).filter(function (loc) { return !!loc; });
-                        vm.loadedCode = vm.program.ops.map(function (op, i) {
-                            var loc = vm.program.locs[i];
-                            var shouldBreak = breakLocs.some(function (bl) {
-                                if (bl.file && bl.file !== loc.file)
-                                    return false;
-                                if (bl.line && bl.line !== loc.line)
-                                    return false;
-                                if (bl.column && bl.column !== loc.column)
-                                    return false;
-                                return true;
-                            });
-                            var replacementOp = !shouldBreak ? op : { type: VmCompiler.VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0 };
-                            return replacementOp;
-                        });
-                        break;
-                    case "pause":
-                        if (runHandle !== undefined)
-                            clearInterval(runHandle);
-                        runHandle = undefined;
-                        reply({ desc: "update-state", value: Debugger.State.Paused });
-                        break;
-                    case "continue":
-                        if (runHandle === undefined)
-                            runHandle = setInterval(tick, 0);
-                        reply({ desc: "update-state", value: Debugger.State.Running });
-                        break;
-                    case "stop":
-                        if (runHandle !== undefined)
-                            clearInterval(runHandle);
-                        runHandle = undefined;
-                        reply({ desc: "update-state", value: Debugger.State.Done });
-                        break;
-                    case "step":
-                        VmCompiler.runOne(vm);
-                        updateVm();
-                        // no update-state
-                        break;
-                }
-            }
-            addEventListener("message", onInitMessage);
-        }
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        function compileProgram(ast) {
-            var program = { ops: [], locs: [] };
-            compile(program, ast);
-            return program;
-        }
-        VmCompiler.compileProgram = compileProgram;
-        function compile(program, ast) {
-            for (var astI = 0; astI < ast.length; ++astI) {
-                var node = ast[astI];
-                var push = function (op) {
-                    program.ops.push(op);
-                    program.locs.push(node.location);
-                };
-                switch (node.type) {
-                    case Brainfuck.AST.NodeType.AddDataPtr:
-                        push({ type: VmCompiler.VmOpType.AddDataPtr, value: node.value || 0, dataOffset: 0 });
-                        break;
-                    case Brainfuck.AST.NodeType.AddData:
-                        push({ type: VmCompiler.VmOpType.AddData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
-                        break;
-                    case Brainfuck.AST.NodeType.SetData:
-                        push({ type: VmCompiler.VmOpType.SetData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
-                        break;
-                    case Brainfuck.AST.NodeType.SystemCall:
-                        push({ type: VmCompiler.VmOpType.SystemCall, value: node.systemCall || 0, dataOffset: 0 });
-                        break;
-                    case Brainfuck.AST.NodeType.BreakIf:
-                        var afterSystemCall = program.ops.length + 2;
-                        push({ type: VmCompiler.VmOpType.JumpIfNot, value: afterSystemCall, dataOffset: 0 });
-                        push({ type: VmCompiler.VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0 });
-                        break;
-                    case Brainfuck.AST.NodeType.Loop:
-                        var firstJump = { type: VmCompiler.VmOpType.JumpIfNot, value: undefined, dataOffset: 0 };
-                        push(firstJump);
-                        var afterFirstJump = program.ops.length;
-                        compile(program, node.childScope);
-                        var lastJump = { type: VmCompiler.VmOpType.JumpIf, value: afterFirstJump, dataOffset: 0 };
-                        push(lastJump);
-                        var afterLastJump = program.ops.length;
-                        firstJump.value = afterLastJump;
-                        break;
-                    default:
-                        console.error("Invalid node.type :=", node.type);
-                        break;
-                }
-            }
-        }
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        function createSymbolLookup(program) {
-            return {
-                addrToSourceLocation: function (address) { return program.locs[address]; },
-                sourceLocationToAddr: function (sourceLocation) {
-                    for (var i = 0; i < program.locs.length; ++i) {
-                        if (Debugger.sourceLocationEqualColumn(sourceLocation, program.locs[i])) {
-                            return i;
-                        }
-                    }
-                },
-            };
-        }
-        VmCompiler.createSymbolLookup = createSymbolLookup;
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        function lpad(s, padding) { return padding.substr(0, padding.length - s.length) + s; }
-        function addr(n) { return lpad(n.toString(16), "0x0000"); }
-        function sourceLocationToString(sl) { return !sl ? "unknown" : (sl.file + "(" + lpad(sl.line.toString(), "   ") + ")"); }
-        function getRegistersList(vm, src) {
-            return [
-                ["Registers:", ""],
-                ["     code", addr(vm.codePtr)],
-                ["    *code", VmCompiler.vmOpToString(vm.program.ops[vm.codePtr])],
-                ["    @code", sourceLocationToString(vm.program.locs[vm.codePtr])],
-                ["     data", addr(vm.dataPtr)],
-                ["    *data", (vm.data[vm.dataPtr] || "0").toString()],
-                ["------------------------------", ""],
-                ["Performance:", ""],
-                ["    ran  ", vm.insRan.toLocaleString()],
-                [" VM ran/s", ((vm.insRan / vm.runTime) | 0).toLocaleString()],
-                [" VM     s", (vm.runTime | 0).toString()],
-                [" Wa.ran/s", ((vm.insRan / (Date.now() - vm.wallStart) * 1000) | 0).toLocaleString()],
-                [" Wall   s", ((Date.now() - vm.wallStart) / 1000 | 0).toString()],
-                ["------------------------------", ""],
-                ["Code size:", ""],
-                ["Brainfuck", src.length.toString()],
-                [" Bytecode", vm.program.ops.length.toString()],
-            ];
-        }
-        VmCompiler.getRegistersList = getRegistersList;
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        function getThreads(vm, src) {
-            return [{
-                    registers: function () { return VmCompiler.getRegistersList(vm, src); },
-                    currentPos: function () { return vm.codePtr; },
-                }];
-        }
-        VmCompiler.getThreads = getThreads;
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        function badSysCall(vm) {
-            console.error("Unexpected VmOpType", VmCompiler.VmOpType[vm.program[vm.codePtr].type]);
-            vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
-        }
-        function runOne(vm) {
-            var op = vm.loadedCode[vm.codePtr];
-            if (!op) {
-                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
-                return;
-            }
-            var dp = vm.dataPtr + (op.dataOffset || 0);
-            switch (op.type) {
-                case VmCompiler.VmOpType.AddDataPtr:
-                    vm.dataPtr += op.value;
-                    ++vm.codePtr;
-                    break;
-                case VmCompiler.VmOpType.AddData:
-                    vm.data[dp] = (op.value + 256 + (vm.data[dp] || 0)) % 256;
-                    ++vm.codePtr;
-                    break;
-                case VmCompiler.VmOpType.SetData:
-                    vm.data[dp] = (op.value + 256) % 256;
-                    ++vm.codePtr;
-                    break;
-                case VmCompiler.VmOpType.JumpIf:
-                    if (vm.data[dp])
-                        vm.codePtr = op.value;
-                    else
-                        ++vm.codePtr;
-                    break;
-                case VmCompiler.VmOpType.JumpIfNot:
-                    if (!vm.data[dp])
-                        vm.codePtr = op.value;
-                    else
-                        ++vm.codePtr;
-                    break;
-                case VmCompiler.VmOpType.SystemCall:
-                    (vm.sysCalls[op.value] || badSysCall)(vm);
-                    ++vm.codePtr;
-                    break;
-                default:
-                    badSysCall(vm);
-                    break;
-            }
-        }
-        VmCompiler.runOne = runOne;
-        function runSome(vm, maxInstructions) {
-            var tStart = Date.now();
-            for (var instructionsRan = 0; instructionsRan < maxInstructions; ++instructionsRan)
-                runOne(vm);
-            var tStop = Date.now();
-            vm.insRan += instructionsRan;
-            vm.runTime += (tStop - tStart) / 1000;
-        }
-        VmCompiler.runSome = runSome;
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        function createInitState(program) {
-            return {
-                program: program,
-                loadedCode: program.ops.map(function (op) { return op; }),
-                data: [],
-                codePtr: 0,
-                dataPtr: 0,
-                sysCalls: [],
-                insRan: 0,
-                runTime: 0,
-                wallStart: Date.now()
-            };
-        }
-        VmCompiler.createInitState = createInitState;
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        function vmOpToString(op) {
-            return !op ? "??" : VmCompiler.VmOpType[op.type] +
-                (op.value ? (" (" + op.value + ")") : "") +
-                (op.dataOffset ? ("@ " + op.dataOffset) : "");
-        }
-        VmCompiler.vmOpToString = vmOpToString;
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        (function (VmOpType) {
-            VmOpType[VmOpType["AddDataPtr"] = 0] = "AddDataPtr";
-            VmOpType[VmOpType["AddData"] = 1] = "AddData";
-            VmOpType[VmOpType["SetData"] = 2] = "SetData";
-            VmOpType[VmOpType["SystemCall"] = 3] = "SystemCall";
-            VmOpType[VmOpType["JumpIf"] = 4] = "JumpIf";
-            VmOpType[VmOpType["JumpIfNot"] = 5] = "JumpIfNot";
-        })(VmCompiler.VmOpType || (VmCompiler.VmOpType = {}));
-        var VmOpType = VmCompiler.VmOpType;
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var UI;
-(function (UI) {
-    var Breakpoints;
-    (function (Breakpoints) {
-        //const log = (m,...a) => console.log(m,...a);
-        var log = function (m) {
-            var a = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                a[_i - 1] = arguments[_i];
-            }
-        };
-        var lastDebugger = undefined;
-        var lastVersion = -1;
-        function update(d) {
-            if (d === lastDebugger && lastVersion === breakpointsVersion)
-                return;
-            log("Updating breakpoints...", lastVersion);
-            lastDebugger = d;
-            lastVersion = breakpointsVersion;
-            d.breakpoints.setBreakpoints(breakpoints.map(function (b) {
-                return {
-                    enabled: b.enabled,
-                    location: b.location,
-                    condition: b.condition,
-                    onHit: b.onHit
-                };
-            }));
-        }
-        Breakpoints.update = update;
-        function isBreakpointActive(breakpoint) {
-            return breakpoint.enabled && !!breakpoint.location;
-        }
-        function isBreakpointBlank(breakpoint) {
-            return !breakpoint.location && !breakpoint.condition && !breakpoint.onHit;
-        }
-        function isBreakpointCullable(breakpoint, ignoreFocus) {
-            return isBreakpointBlank(breakpoint) && (ignoreFocus || !isBreakpointFocused(breakpoint));
-        }
-        function isBreakpointFocused(breakpoint) {
-            if (!breakpoint.elements)
-                return false;
-            var active = document.activeElement;
-            return active === breakpoint.elements.enabled ||
-                active === breakpoint.elements.condition ||
-                active === breakpoint.elements.location ||
-                active === breakpoint.elements.onHit;
-        }
-        function newBreakpointRow(tableElement, breakpoint) {
-            if (!breakpoint)
-                breakpoint = { enabled: true, location: "", condition: "", onHit: "" };
-            var d3body = d3.select(tableElement).select("tbody");
-            if (d3body.empty())
-                d3body = d3.select(tableElement).append("tbody");
-            var newRow = d3body.append("tr");
-            newRow.classed("breakpoint-row", true);
-            var d3cols = d3.select(tableElement).select("thead").selectAll("[data-breakpoint-column]");
-            d3cols.each(function () {
-                var header = this;
-                var colType = header.dataset["breakpointColumn"];
-                var newCell = newRow.append("td");
-                switch (colType) {
-                    case "location":
-                        var e = newCell.append("input").classed("breakpoint-enabled", true).attr({ type: "checkbox", title: "Enabled", alt: "Enabled" });
-                        if (breakpoint.enabled)
-                            e.attr("checked", "");
-                        newCell.append("span").text(" ");
-                        newCell.append("input").classed("breakpoint-location", true).attr({ type: "text", value: breakpoint.location || "", placeholder: "(no location)" });
-                        break;
-                    case "condition":
-                        newCell.append("input").classed("breakpoint-condition", true).attr({ type: "text", value: breakpoint.condition || "", placeholder: "(no condition)" });
-                        break;
-                    case "on-hit":
-                        newCell.append("input").classed("breakpoint-on-hit", true).attr({ type: "text", value: breakpoint.onHit || "", placeholder: "(no action on hit)" });
-                        break;
-                    default:
-                        console.error("Unexpected data-breakpoint-column:", colType);
-                        break;
-                }
-            });
-            var rowElement = newRow[0][0];
-            return rowElement;
-        }
-        function getRowBreakpointElements(row) {
-            var eEnabled = row.getElementsByClassName("breakpoint-enabled").item(0);
-            var eLocation = row.getElementsByClassName("breakpoint-location").item(0);
-            var eCondition = row.getElementsByClassName("breakpoint-condition").item(0);
-            var eOnHit = row.getElementsByClassName("breakpoint-on-hit").item(0);
-            var breakpointElements = {
-                row: row,
-                enabled: eEnabled,
-                location: eLocation,
-                condition: eCondition,
-                onHit: eOnHit,
-            };
-            return breakpointElements;
-        }
-        function getTableBreakpointElements(tableElement) {
-            var breakpointElements = [];
-            d3.select(tableElement).select("tbody").selectAll(".breakpoint-row").each(function () {
-                var row = this;
-                breakpointElements.push(getRowBreakpointElements(row));
-            });
-            return breakpointElements;
-        }
-        function getTableBreakpoints(tableElement) {
-            return getTableBreakpointElements(tableElement).map(function (elements) {
-                return {
-                    elements: elements,
-                    enabled: elements.enabled.checked,
-                    location: elements.location.value,
-                    condition: elements.condition.value,
-                    onHit: elements.onHit.value,
-                };
-            });
-        }
-        function isBreakpointEqual(lhs, rhs) {
-            return lhs.enabled === rhs.enabled &&
-                lhs.location === rhs.location &&
-                lhs.condition === rhs.condition &&
-                lhs.onHit === rhs.onHit;
-        }
-        function breakpointListsAreEqual(lhs, rhs) {
-            if (!!lhs !== !!rhs)
-                return false;
-            if (lhs.length !== rhs.length)
-                return false;
-            for (var i = 0, n = lhs.length; i < n; ++i)
-                if (!isBreakpointEqual(lhs[i], rhs[i]))
-                    return false;
-            return true;
-        }
-        function manageSingleBlankBreakpoint(tableElement) {
-            var breakpoints = getTableBreakpoints(tableElement);
-            if (breakpoints.length == 0) {
-                newBreakpointRow(tableElement, undefined);
-            }
-            else {
-                var lastBreakpoint = breakpoints[breakpoints.length - 1];
-                breakpoints.filter(function (bp) { return isBreakpointBlank(bp) && !isBreakpointFocused(bp) && bp != lastBreakpoint; }).forEach(function (e) { return e.elements.row.remove(); });
-                if (!isBreakpointBlank(lastBreakpoint))
-                    newBreakpointRow(tableElement, undefined);
-            }
-        }
-        var breakpointsVersion = 0;
-        var breakpoints = [];
-        addEventListener("load", function () {
-            var table = d3.select(".breakpoints").select("table")[0][0];
-            if (!table)
-                return;
-            newBreakpointRow(table, { enabled: true, location: "memory.bf(13)", condition: "", onHit: "" });
-            newBreakpointRow(table, { enabled: true, location: "memory.bf:15", condition: "", onHit: "" });
-            setInterval(function () {
-                manageSingleBlankBreakpoint(table);
-                var newBreakpoints = getTableBreakpoints(table);
-                if (breakpointListsAreEqual(breakpoints, newBreakpoints))
-                    return;
-                log("Breakpoint lists not equal");
-                // Breakpoints updating!
-                breakpoints = newBreakpoints;
-                ++breakpointsVersion;
-                var editorFileName = "memory.bf"; // XXX
-                var list = [];
-                var byLine = [];
-                newBreakpoints.forEach(function (b) {
-                    var loc = Debugger.parseSourceLocation(b.location);
-                    if (!loc)
-                        return;
-                    if (loc.file != editorFileName)
-                        return;
-                    var bp = byLine[loc.line];
-                    if (!bp) {
-                        bp = byLine[loc.line] = { line: loc.line, enabled: false };
-                        list.push(bp);
-                    }
-                    if (b.enabled)
-                        bp.enabled = true;
-                });
-                UI.Editor.setLineBreakpoints(list); // XXX: How OK am I with this kind of direct cross UI module communication?  Should I have a messaging system or something instead?  KISS for now...
-            }, 10);
-        });
-    })(Breakpoints = UI.Breakpoints || (UI.Breakpoints = {}));
-})(UI || (UI = {}));
-function debounce(callback, waitMS) {
-    var _this = this;
-    var callNext = undefined;
-    var wrapped = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i - 0] = arguments[_i];
-        }
-        if (callNext === undefined) {
-            setTimeout(function () {
-                callNext.call.apply(callNext, [_this].concat(args));
-                callNext = undefined;
-            }, waitMS);
-        }
-        callNext = callback;
-    };
-    return wrapped;
-}
 var Examples;
 (function (Examples) {
     function LoadExample(example) {
@@ -587,130 +18,48 @@ var Examples;
     }
     Examples.LoadBrainfuckHelloWorld = LoadBrainfuckHelloWorld;
 })(Examples || (Examples = {}));
-// Intra-tab communications
-var _itc_root = this;
-var ITC;
-(function (ITC) {
-    //const log = (m, ...a) => {};
-    var log = function (m) {
-        var a = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            a[_i - 1] = arguments[_i];
-        }
-        return console.log.apply(console, [m].concat(a));
-    };
-    var htmlRefresh = 100;
-    var noShortcut = true;
-    function genSessionId() { return Math.random().toString(36).substr(2, 5); }
-    function newSession() { tabSessionId = genSessionId(); console.log("Generating a new tab session:", tabSessionId); localStorage.setItem("current-session", tabSessionId); }
-    ITC.newSession = newSession;
-    if (_itc_root["localStorage"])
-        addEventListener("focus", function (focusEvent) { console.log("Switching to", tabSessionId); localStorage.setItem("current-session", tabSessionId); });
-    var tabSessionId = _itc_root["localStorage"] ? localStorage.getItem("current-session") : undefined;
-    function cullHeaders() {
-        var now = Date.now();
-        for (var i = 0; i < localStorage.length; ++i) {
-            var key = localStorage.key(i);
-            if (key == "current-session")
-                continue;
-            var header = JSON.parse(localStorage.getItem(key));
-            if (Math.abs(header._itc_last_updated - now) > 3000) {
-                localStorage.removeItem(key); // Timeout
-                log(key, "timed out and removed");
+var Debugger;
+(function (Debugger) {
+    (function (State) {
+        State[State["Detatched"] = 0] = "Detatched";
+        State[State["Paused"] = 1] = "Paused";
+        State[State["Running"] = 2] = "Running";
+        State[State["Done"] = 3] = "Done";
+    })(Debugger.State || (Debugger.State = {}));
+    var State = Debugger.State;
+    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
+    Debugger.cloneSourceLocation = cloneSourceLocation;
+    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
+    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
+    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
+    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
+    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
+    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
+    var reFileLine = /^(.+)(?:(?:\((\d+)\))|(?:\:(\d+)))$/;
+    function parseSourceLocation(text) {
+        var m = reFileLine.exec(text);
+        if (!m)
+            return null;
+        var file = m[1];
+        var line = parseInt(m[2] || m[3]);
+        return { file: m[1], line: parseInt(m[2] || m[3]), column: 0 };
+    }
+    Debugger.parseSourceLocation = parseSourceLocation;
+    function sourceLocationToString(sl) {
+        var s = sl.file;
+        if (sl.line) {
+            s += "(";
+            s += sl.line.toString();
+            if (sl.column) {
+                s += ",";
+                s += sl.column.toString();
             }
-            else {
-            }
+            s += ")";
         }
+        return s;
     }
-    if (_itc_root["localStorage"]) {
-        cullHeaders();
-        addEventListener("load", function (loadEvent) {
-            setInterval(function () { return cullHeaders(); }, 10000);
-        });
-    }
-    // TODO: Make culling automatic on sendToByClassName and listenToByClassName to reduce the chance of accidental leaks
-    function peekAll(prefix) {
-        prefix = tabSessionId + "-" + prefix;
-        var now = Date.now();
-        var headers = [];
-        for (var i = 0; i < localStorage.length; ++i) {
-            var key = localStorage.key(i);
-            var matchesPrefix = key.substr(0, prefix.length) == prefix;
-            if (matchesPrefix) {
-                var header = JSON.parse(localStorage.getItem(key));
-                headers.push(header);
-            }
-        }
-        return headers;
-    }
-    ITC.peekAll = peekAll;
-    function sendTo(key, header) {
-        header._itc_last_updated = Date.now();
-        var local = localOnHeader[key];
-        if (local)
-            local(header);
-        if (!local || noShortcut)
-            localStorage.setItem(tabSessionId + "-" + key, JSON.stringify(header));
-    }
-    ITC.sendTo = sendTo;
-    function listenTo(key, onHeader) {
-        localOnHeader[key] = onHeader;
-        var existing = localStorage.getItem(tabSessionId + "-" + key);
-        if (existing)
-            onHeader(JSON.parse(existing));
-    }
-    ITC.listenTo = listenTo;
-    function sendToByClassName(className, keyPrefix, eachElement) {
-        var elements = UI.byClassName(className);
-        elements.forEach(function (e) {
-            var itcKey = getItcKey(e);
-            sendTo(keyPrefix + itcKey, eachElement({ itcKey: itcKey, element: e }));
-        });
-    }
-    ITC.sendToByClassName = sendToByClassName;
-    function listenToByClassName(className, keyPrefix, onHeader) {
-        var listening = [];
-        var update = function () {
-            var m = {};
-            var elements = UI.byClassName(className);
-            elements.forEach(function (e) {
-                var itcKey = getItcKey(e);
-                m[itcKey] = true;
-                localOnHeader[keyPrefix + itcKey] = function (h) { return onHeader({ header: h, element: e }); };
-            });
-            listening.forEach(function (e) {
-                var itcKey = getItcKey(e);
-                if (!m[itcKey])
-                    delete localOnHeader[keyPrefix + itcKey];
-            });
-            listening = elements;
-        };
-        update();
-        setInterval(update, htmlRefresh);
-    }
-    ITC.listenToByClassName = listenToByClassName;
-    var localOnHeader = {};
-    function getItcKey(e) {
-        var a = e;
-        var key = a["__itc_key__"];
-        if (key)
-            return key;
-        key = a["__itc_key__"] = Math.random().toString(36).substr(2, 5);
-        return key;
-    }
-    addEventListener("storage", function (ev) {
-        var tabSessionIdPrefix = tabSessionId + "-";
-        if (ev.key.substr(0, tabSessionIdPrefix.length) != tabSessionIdPrefix)
-            return;
-        if (!ev.newValue)
-            return;
-        var key = ev.key.substr(tabSessionIdPrefix.length);
-        var local = localOnHeader[key];
-        if (!local)
-            return;
-        local(JSON.parse(ev.newValue));
-    });
-})(ITC || (ITC = {}));
+    Debugger.sourceLocationToString = sourceLocationToString;
+})(Debugger || (Debugger = {}));
 var Brainfuck;
 (function (Brainfuck) {
     var AST;
@@ -985,6 +334,151 @@ var Brainfuck;
         AST.optimize = optimize;
     })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
 })(Brainfuck || (Brainfuck = {}));
+var _brainfuck_vm_global = this;
+var _brainfuck_vm_document = this["document"];
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        var isWorker = !_brainfuck_vm_document;
+        var isMainTab = !isWorker;
+        var supportsWorker = _brainfuck_vm_global["Worker"];
+        function createAsyncDebugger(code, stdout) {
+            console.assert(isMainTab);
+            if (!isMainTab)
+                return undefined;
+            if (!supportsWorker)
+                return VmCompiler.createDebugger(code, stdout);
+            var errors = false;
+            var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
+                    errors = true; } });
+            if (errors)
+                return undefined;
+            var program = VmCompiler.compileProgram(parseResult.optimizedAst);
+            var vm = VmCompiler.createInitState(program);
+            var state = Debugger.State.Paused;
+            var worker = new Worker("mmide.js");
+            worker.addEventListener("message", function (reply) {
+                switch (reply.data.desc) {
+                    case "update-state":
+                        state = reply.data.value;
+                        break;
+                    case "update-vm-data":
+                        var src = reply.data.value;
+                        vm.data = src.data;
+                        vm.codePtr = src.codePtr;
+                        vm.dataPtr = src.dataPtr;
+                        vm.insRan = src.insRan;
+                        vm.runTime = src.runTime;
+                        break;
+                    case "system-call-stdout":
+                        stdout(reply.data.value);
+                        break;
+                    case "system-call-tape-end":
+                        state = Debugger.State.Done;
+                        break;
+                    default:
+                        console.error("Unexpected worker message desc:", reply.data.desc);
+                        break;
+                }
+            });
+            worker.postMessage({ desc: "brainfuck-debugger-init", state: vm });
+            var debug = {
+                symbols: VmCompiler.createSymbolLookup(program),
+                breakpoints: { setBreakpoints: function (breakpoints) { return worker.postMessage({ desc: "breakpoints.set", data: breakpoints }); } },
+                state: function () { return state; },
+                threads: function () { return VmCompiler.getThreads(vm, code); },
+                memory: function (start, size) { return vm.data.slice(start, start + size); },
+                pause: function () { return worker.postMessage({ desc: "pause" }); },
+                continue: function () { return worker.postMessage({ desc: "continue" }); },
+                stop: function () { return worker.postMessage({ desc: "stop" }); },
+                step: function () { return worker.postMessage({ desc: "step" }); },
+            };
+            return debug;
+        }
+        VmCompiler.createAsyncDebugger = createAsyncDebugger;
+        if (isWorker) {
+            var vm = undefined;
+            var runHandle = undefined;
+            var reply = _brainfuck_vm_global["postMessage"];
+            function updateVm() {
+                reply({ desc: "update-vm-data", value: { data: vm.data, codePtr: vm.codePtr, dataPtr: vm.dataPtr, insRan: vm.insRan, runTime: vm.runTime } });
+            }
+            function tick() {
+                //runSome(vm, 100000); // ? - ~10ms - ~24M/s instructions executed
+                VmCompiler.runSome(vm, 300000); // 5 - ~30ms? - ~68M/s instructions executed - significantly diminishing returns beyond this point
+                //runSome(vm, 500000); // ? - ~50ms? - ~68M/s instructions executed - still seems perfectly responsive FWIW
+                updateVm();
+            }
+            function onInitMessage(ev) {
+                removeEventListener("message", onInitMessage);
+                if (ev.data.desc != "brainfuck-debugger-init")
+                    return;
+                addEventListener("message", onMessage);
+                vm = ev.data.state;
+                vm.sysCalls[Brainfuck.AST.SystemCall.Break] = function (vm) {
+                    var isInjectedBreak = vm.program.ops[vm.codePtr] !== vm.loadedCode[vm.codePtr];
+                    // Pause the VM
+                    if (runHandle !== undefined)
+                        clearInterval(runHandle);
+                    runHandle = undefined;
+                    reply({ desc: "update-state", value: Debugger.State.Paused });
+                    --vm.codePtr; // Prevent advancing of codePtr after handling this sysCall
+                };
+                vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { reply({ desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); };
+                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { reply({ desc: "system-call-tape-end" }); updateVm(); if (runHandle !== undefined)
+                    clearInterval(runHandle); runHandle = undefined; };
+            }
+            function onMessage(ev) {
+                switch (ev.data.desc) {
+                    case "breakpoints.set":
+                        if (!vm)
+                            return;
+                        var breakpoints = ev.data.data;
+                        var breakLocs = breakpoints.filter(function (bp) { return bp.enabled; }).map(function (bp) { return Debugger.parseSourceLocation(bp.location); }).filter(function (loc) { return !!loc; });
+                        vm.loadedCode = vm.program.ops.map(function (op, i) {
+                            var loc = vm.program.locs[i];
+                            var shouldBreak = breakLocs.some(function (bl) {
+                                if (bl.file && bl.file !== loc.file)
+                                    return false;
+                                if (bl.line && bl.line !== loc.line)
+                                    return false;
+                                if (bl.column && bl.column !== loc.column)
+                                    return false;
+                                return true;
+                            });
+                            var replacementOp = !shouldBreak ? op : { type: VmCompiler.VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0 };
+                            return replacementOp;
+                        });
+                        break;
+                    case "pause":
+                        if (runHandle !== undefined)
+                            clearInterval(runHandle);
+                        runHandle = undefined;
+                        reply({ desc: "update-state", value: Debugger.State.Paused });
+                        break;
+                    case "continue":
+                        if (runHandle === undefined)
+                            runHandle = setInterval(tick, 0);
+                        reply({ desc: "update-state", value: Debugger.State.Running });
+                        break;
+                    case "stop":
+                        if (runHandle !== undefined)
+                            clearInterval(runHandle);
+                        runHandle = undefined;
+                        reply({ desc: "update-state", value: Debugger.State.Done });
+                        break;
+                    case "step":
+                        VmCompiler.runOne(vm);
+                        updateVm();
+                        // no update-state
+                        break;
+                }
+            }
+            addEventListener("message", onInitMessage);
+        }
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
 var Brainfuck;
 (function (Brainfuck) {
     var VmCompiler;
@@ -1028,48 +522,412 @@ var Brainfuck;
         VmCompiler.createDebugger = createDebugger;
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
-var Debugger;
-(function (Debugger) {
-    (function (State) {
-        State[State["Detatched"] = 0] = "Detatched";
-        State[State["Paused"] = 1] = "Paused";
-        State[State["Running"] = 2] = "Running";
-        State[State["Done"] = 3] = "Done";
-    })(Debugger.State || (Debugger.State = {}));
-    var State = Debugger.State;
-    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
-    Debugger.cloneSourceLocation = cloneSourceLocation;
-    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
-    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
-    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
-    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
-    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
-    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
-    var reFileLine = /^(.+)(?:(?:\((\d+)\))|(?:\:(\d+)))$/;
-    function parseSourceLocation(text) {
-        var m = reFileLine.exec(text);
-        if (!m)
-            return null;
-        var file = m[1];
-        var line = parseInt(m[2] || m[3]);
-        return { file: m[1], line: parseInt(m[2] || m[3]), column: 0 };
-    }
-    Debugger.parseSourceLocation = parseSourceLocation;
-    function sourceLocationToString(sl) {
-        var s = sl.file;
-        if (sl.line) {
-            s += "(";
-            s += sl.line.toString();
-            if (sl.column) {
-                s += ",";
-                s += sl.column.toString();
-            }
-            s += ")";
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function compileProgram(ast) {
+            var program = { ops: [], locs: [] };
+            compile(program, ast);
+            return program;
         }
-        return s;
-    }
-    Debugger.sourceLocationToString = sourceLocationToString;
-})(Debugger || (Debugger = {}));
+        VmCompiler.compileProgram = compileProgram;
+        function compile(program, ast) {
+            for (var astI = 0; astI < ast.length; ++astI) {
+                var node = ast[astI];
+                var push = function (op) {
+                    program.ops.push(op);
+                    program.locs.push(node.location);
+                };
+                switch (node.type) {
+                    case Brainfuck.AST.NodeType.AddDataPtr:
+                        push({ type: VmCompiler.VmOpType.AddDataPtr, value: node.value || 0, dataOffset: 0 });
+                        break;
+                    case Brainfuck.AST.NodeType.AddData:
+                        push({ type: VmCompiler.VmOpType.AddData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
+                        break;
+                    case Brainfuck.AST.NodeType.SetData:
+                        push({ type: VmCompiler.VmOpType.SetData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
+                        break;
+                    case Brainfuck.AST.NodeType.SystemCall:
+                        push({ type: VmCompiler.VmOpType.SystemCall, value: node.systemCall || 0, dataOffset: 0 });
+                        break;
+                    case Brainfuck.AST.NodeType.BreakIf:
+                        var afterSystemCall = program.ops.length + 2;
+                        push({ type: VmCompiler.VmOpType.JumpIfNot, value: afterSystemCall, dataOffset: 0 });
+                        push({ type: VmCompiler.VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0 });
+                        break;
+                    case Brainfuck.AST.NodeType.Loop:
+                        var firstJump = { type: VmCompiler.VmOpType.JumpIfNot, value: undefined, dataOffset: 0 };
+                        push(firstJump);
+                        var afterFirstJump = program.ops.length;
+                        compile(program, node.childScope);
+                        var lastJump = { type: VmCompiler.VmOpType.JumpIf, value: afterFirstJump, dataOffset: 0 };
+                        push(lastJump);
+                        var afterLastJump = program.ops.length;
+                        firstJump.value = afterLastJump;
+                        break;
+                    default:
+                        console.error("Invalid node.type :=", node.type);
+                        break;
+                }
+            }
+        }
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function createSymbolLookup(program) {
+            return {
+                addrToSourceLocation: function (address) { return program.locs[address]; },
+                sourceLocationToAddr: function (sourceLocation) {
+                    for (var i = 0; i < program.locs.length; ++i) {
+                        if (Debugger.sourceLocationEqualColumn(sourceLocation, program.locs[i])) {
+                            return i;
+                        }
+                    }
+                },
+            };
+        }
+        VmCompiler.createSymbolLookup = createSymbolLookup;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function createInitState(program) {
+            return {
+                program: program,
+                loadedCode: program.ops.map(function (op) { return op; }),
+                data: [],
+                codePtr: 0,
+                dataPtr: 0,
+                sysCalls: [],
+                insRan: 0,
+                runTime: 0,
+                wallStart: Date.now()
+            };
+        }
+        VmCompiler.createInitState = createInitState;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function lpad(s, padding) { return padding.substr(0, padding.length - s.length) + s; }
+        function addr(n) { return lpad(n.toString(16), "0x0000"); }
+        function sourceLocationToString(sl) { return !sl ? "unknown" : (sl.file + "(" + lpad(sl.line.toString(), "   ") + ")"); }
+        function getRegistersList(vm, src) {
+            return [
+                ["Registers:", ""],
+                ["     code", addr(vm.codePtr)],
+                ["    *code", VmCompiler.vmOpToString(vm.program.ops[vm.codePtr])],
+                ["    @code", sourceLocationToString(vm.program.locs[vm.codePtr])],
+                ["     data", addr(vm.dataPtr)],
+                ["    *data", (vm.data[vm.dataPtr] || "0").toString()],
+                ["------------------------------", ""],
+                ["Performance:", ""],
+                ["    ran  ", vm.insRan.toLocaleString()],
+                [" VM ran/s", ((vm.insRan / vm.runTime) | 0).toLocaleString()],
+                [" VM     s", (vm.runTime | 0).toString()],
+                [" Wa.ran/s", ((vm.insRan / (Date.now() - vm.wallStart) * 1000) | 0).toLocaleString()],
+                [" Wall   s", ((Date.now() - vm.wallStart) / 1000 | 0).toString()],
+                ["------------------------------", ""],
+                ["Code size:", ""],
+                ["Brainfuck", src.length.toString()],
+                [" Bytecode", vm.program.ops.length.toString()],
+            ];
+        }
+        VmCompiler.getRegistersList = getRegistersList;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function getThreads(vm, src) {
+            return [{
+                    registers: function () { return VmCompiler.getRegistersList(vm, src); },
+                    currentPos: function () { return vm.codePtr; },
+                }];
+        }
+        VmCompiler.getThreads = getThreads;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function badSysCall(vm) {
+            console.error("Unexpected VmOpType", VmCompiler.VmOpType[vm.program[vm.codePtr].type]);
+            vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
+        }
+        function runOne(vm) {
+            var op = vm.loadedCode[vm.codePtr];
+            if (!op) {
+                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
+                return;
+            }
+            var dp = vm.dataPtr + (op.dataOffset || 0);
+            switch (op.type) {
+                case VmCompiler.VmOpType.AddDataPtr:
+                    vm.dataPtr += op.value;
+                    ++vm.codePtr;
+                    break;
+                case VmCompiler.VmOpType.AddData:
+                    vm.data[dp] = (op.value + 256 + (vm.data[dp] || 0)) % 256;
+                    ++vm.codePtr;
+                    break;
+                case VmCompiler.VmOpType.SetData:
+                    vm.data[dp] = (op.value + 256) % 256;
+                    ++vm.codePtr;
+                    break;
+                case VmCompiler.VmOpType.JumpIf:
+                    if (vm.data[dp])
+                        vm.codePtr = op.value;
+                    else
+                        ++vm.codePtr;
+                    break;
+                case VmCompiler.VmOpType.JumpIfNot:
+                    if (!vm.data[dp])
+                        vm.codePtr = op.value;
+                    else
+                        ++vm.codePtr;
+                    break;
+                case VmCompiler.VmOpType.SystemCall:
+                    (vm.sysCalls[op.value] || badSysCall)(vm);
+                    ++vm.codePtr;
+                    break;
+                default:
+                    badSysCall(vm);
+                    break;
+            }
+        }
+        VmCompiler.runOne = runOne;
+        function runSome(vm, maxInstructions) {
+            var tStart = Date.now();
+            for (var instructionsRan = 0; instructionsRan < maxInstructions; ++instructionsRan)
+                runOne(vm);
+            var tStop = Date.now();
+            vm.insRan += instructionsRan;
+            vm.runTime += (tStop - tStart) / 1000;
+        }
+        VmCompiler.runSome = runSome;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function vmOpToString(op) {
+            return !op ? "??" : VmCompiler.VmOpType[op.type] +
+                (op.value ? (" (" + op.value + ")") : "") +
+                (op.dataOffset ? ("@ " + op.dataOffset) : "");
+        }
+        VmCompiler.vmOpToString = vmOpToString;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        (function (VmOpType) {
+            VmOpType[VmOpType["AddDataPtr"] = 0] = "AddDataPtr";
+            VmOpType[VmOpType["AddData"] = 1] = "AddData";
+            VmOpType[VmOpType["SetData"] = 2] = "SetData";
+            VmOpType[VmOpType["SystemCall"] = 3] = "SystemCall";
+            VmOpType[VmOpType["JumpIf"] = 4] = "JumpIf";
+            VmOpType[VmOpType["JumpIfNot"] = 5] = "JumpIfNot";
+        })(VmCompiler.VmOpType || (VmCompiler.VmOpType = {}));
+        var VmOpType = VmCompiler.VmOpType;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var UI;
+(function (UI) {
+    var Breakpoints;
+    (function (Breakpoints) {
+        //const log = (m,...a) => console.log(m,...a);
+        var log = function (m) {
+            var a = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                a[_i - 1] = arguments[_i];
+            }
+        };
+        var lastDebugger = undefined;
+        var lastVersion = -1;
+        function update(d) {
+            if (d === lastDebugger && lastVersion === breakpointsVersion)
+                return;
+            log("Updating breakpoints...", lastVersion);
+            lastDebugger = d;
+            lastVersion = breakpointsVersion;
+            d.breakpoints.setBreakpoints(breakpoints.map(function (b) {
+                return {
+                    enabled: b.enabled,
+                    location: b.location,
+                    condition: b.condition,
+                    onHit: b.onHit
+                };
+            }));
+        }
+        Breakpoints.update = update;
+        function isBreakpointActive(breakpoint) {
+            return breakpoint.enabled && !!breakpoint.location;
+        }
+        function isBreakpointBlank(breakpoint) {
+            return !breakpoint.location && !breakpoint.condition && !breakpoint.onHit;
+        }
+        function isBreakpointCullable(breakpoint, ignoreFocus) {
+            return isBreakpointBlank(breakpoint) && (ignoreFocus || !isBreakpointFocused(breakpoint));
+        }
+        function isBreakpointFocused(breakpoint) {
+            if (!breakpoint.elements)
+                return false;
+            var active = document.activeElement;
+            return active === breakpoint.elements.enabled ||
+                active === breakpoint.elements.condition ||
+                active === breakpoint.elements.location ||
+                active === breakpoint.elements.onHit;
+        }
+        function newBreakpointRow(tableElement, breakpoint) {
+            if (!breakpoint)
+                breakpoint = { enabled: true, location: "", condition: "", onHit: "" };
+            var d3body = d3.select(tableElement).select("tbody");
+            if (d3body.empty())
+                d3body = d3.select(tableElement).append("tbody");
+            var newRow = d3body.append("tr");
+            newRow.classed("breakpoint-row", true);
+            var d3cols = d3.select(tableElement).select("thead").selectAll("[data-breakpoint-column]");
+            d3cols.each(function () {
+                var header = this;
+                var colType = header.dataset["breakpointColumn"];
+                var newCell = newRow.append("td");
+                switch (colType) {
+                    case "location":
+                        var e = newCell.append("input").classed("breakpoint-enabled", true).attr({ type: "checkbox", title: "Enabled", alt: "Enabled" });
+                        if (breakpoint.enabled)
+                            e.attr("checked", "");
+                        newCell.append("span").text(" ");
+                        newCell.append("input").classed("breakpoint-location", true).attr({ type: "text", value: breakpoint.location || "", placeholder: "(no location)" });
+                        break;
+                    case "condition":
+                        newCell.append("input").classed("breakpoint-condition", true).attr({ type: "text", value: breakpoint.condition || "", placeholder: "(no condition)" });
+                        break;
+                    case "on-hit":
+                        newCell.append("input").classed("breakpoint-on-hit", true).attr({ type: "text", value: breakpoint.onHit || "", placeholder: "(no action on hit)" });
+                        break;
+                    default:
+                        console.error("Unexpected data-breakpoint-column:", colType);
+                        break;
+                }
+            });
+            var rowElement = newRow[0][0];
+            return rowElement;
+        }
+        function getRowBreakpointElements(row) {
+            var eEnabled = row.getElementsByClassName("breakpoint-enabled").item(0);
+            var eLocation = row.getElementsByClassName("breakpoint-location").item(0);
+            var eCondition = row.getElementsByClassName("breakpoint-condition").item(0);
+            var eOnHit = row.getElementsByClassName("breakpoint-on-hit").item(0);
+            var breakpointElements = {
+                row: row,
+                enabled: eEnabled,
+                location: eLocation,
+                condition: eCondition,
+                onHit: eOnHit,
+            };
+            return breakpointElements;
+        }
+        function getTableBreakpointElements(tableElement) {
+            var breakpointElements = [];
+            d3.select(tableElement).select("tbody").selectAll(".breakpoint-row").each(function () {
+                var row = this;
+                breakpointElements.push(getRowBreakpointElements(row));
+            });
+            return breakpointElements;
+        }
+        function getTableBreakpoints(tableElement) {
+            return getTableBreakpointElements(tableElement).map(function (elements) {
+                return {
+                    elements: elements,
+                    enabled: elements.enabled.checked,
+                    location: elements.location.value,
+                    condition: elements.condition.value,
+                    onHit: elements.onHit.value,
+                };
+            });
+        }
+        function isBreakpointEqual(lhs, rhs) {
+            return lhs.enabled === rhs.enabled &&
+                lhs.location === rhs.location &&
+                lhs.condition === rhs.condition &&
+                lhs.onHit === rhs.onHit;
+        }
+        function breakpointListsAreEqual(lhs, rhs) {
+            if (!!lhs !== !!rhs)
+                return false;
+            if (lhs.length !== rhs.length)
+                return false;
+            for (var i = 0, n = lhs.length; i < n; ++i)
+                if (!isBreakpointEqual(lhs[i], rhs[i]))
+                    return false;
+            return true;
+        }
+        function manageSingleBlankBreakpoint(tableElement) {
+            var breakpoints = getTableBreakpoints(tableElement);
+            if (breakpoints.length == 0) {
+                newBreakpointRow(tableElement, undefined);
+            }
+            else {
+                var lastBreakpoint = breakpoints[breakpoints.length - 1];
+                breakpoints.filter(function (bp) { return isBreakpointBlank(bp) && !isBreakpointFocused(bp) && bp != lastBreakpoint; }).forEach(function (e) { return e.elements.row.remove(); });
+                if (!isBreakpointBlank(lastBreakpoint))
+                    newBreakpointRow(tableElement, undefined);
+            }
+        }
+        var breakpointsVersion = 0;
+        var breakpoints = [];
+        addEventListener("load", function () {
+            var table = d3.select(".breakpoints").select("table")[0][0];
+            if (!table)
+                return;
+            newBreakpointRow(table, { enabled: true, location: "memory.bf(13)", condition: "", onHit: "" });
+            newBreakpointRow(table, { enabled: true, location: "memory.bf:15", condition: "", onHit: "" });
+            setInterval(function () {
+                manageSingleBlankBreakpoint(table);
+                var newBreakpoints = getTableBreakpoints(table);
+                if (breakpointListsAreEqual(breakpoints, newBreakpoints))
+                    return;
+                log("Breakpoint lists not equal");
+                // Breakpoints updating!
+                breakpoints = newBreakpoints;
+                ++breakpointsVersion;
+                var editorFileName = "memory.bf"; // XXX
+                var list = [];
+                var byLine = [];
+                newBreakpoints.forEach(function (b) {
+                    var loc = Debugger.parseSourceLocation(b.location);
+                    if (!loc)
+                        return;
+                    if (loc.file != editorFileName)
+                        return;
+                    var bp = byLine[loc.line];
+                    if (!bp) {
+                        bp = byLine[loc.line] = { line: loc.line, enabled: false };
+                        list.push(bp);
+                    }
+                    if (b.enabled)
+                        bp.enabled = true;
+                });
+                UI.Editor.setLineBreakpoints(list); // XXX: How OK am I with this kind of direct cross UI module communication?  Should I have a messaging system or something instead?  KISS for now...
+            }, 10);
+        });
+    })(Breakpoints = UI.Breakpoints || (UI.Breakpoints = {}));
+})(UI || (UI = {}));
 var UI;
 (function (UI) {
     var Debug;
@@ -1258,37 +1116,41 @@ var UI;
             s.setAnnotations(errors.map(errorToAnnotation).filter(function (a) { return !!a; }));
         }
         Editor.setErrors = setErrors;
-        var currentMarker = undefined;
-        var currentLine = -1;
-        var currentCol = -1;
+        var oldMarker = undefined;
+        var oldLineIndex = -1;
+        var oldColIndex = -1;
         //let Range = ace.require("ace/Range").Range;
-        function setCurrentPosition(line, col) {
-            if (col === void 0) { col = -1; }
+        function setCurrentPosition(lineNo, colNo) {
+            if (colNo === void 0) { colNo = 0; }
+            var newLineIndex = lineNo - 1;
+            var newColIndex = colNo - 1;
+            var lineIndexChanged = oldLineIndex !== newLineIndex;
+            var colIndexChanged = oldColIndex !== newColIndex || lineIndexChanged;
             var e = editor();
             if (!e)
                 return;
             var s = e.getSession();
-            if (currentLine != line) {
-                s.removeGutterDecoration(currentLine, "current-line");
-                currentLine = line - 1;
-                s.addGutterDecoration(currentLine, "current-line");
+            if (lineIndexChanged) {
+                s.removeGutterDecoration(oldLineIndex, "current-line");
+                s.addGutterDecoration(newLineIndex, "current-line");
             }
-            if (currentCol != col) {
-                currentCol = col;
-                if (currentMarker !== undefined)
-                    s.removeMarker(currentMarker);
-                if (col != -1) {
+            if (colIndexChanged) {
+                if (oldMarker !== undefined)
+                    s.removeMarker(oldMarker);
+                if (newColIndex != -1) {
                     //let range = <ace.Range>new (<any>Range)(line-1, col-1, line-1, col-0);
                     //let range = new ace.Range(line-1, col-1, line-1, col-0);
-                    var range = s.getAWordRange(line - 1, col - 1);
-                    range.start.column = col - 1;
-                    range.end.column = col - 0;
-                    currentMarker = s.addMarker(range, "current-column", "text", false);
+                    var range = s.getAWordRange(newLineIndex, newColIndex);
+                    range.start.column = newColIndex + 0;
+                    range.end.column = newColIndex + 1;
+                    oldMarker = s.addMarker(range, "current-column", "text", false);
                 }
                 else {
-                    currentMarker = undefined;
+                    oldMarker = undefined;
                 }
             }
+            oldLineIndex = newLineIndex;
+            oldColIndex = newColIndex;
         }
         Editor.setCurrentPosition = setCurrentPosition;
         function setLineBreakpoints(breakpoints) {
@@ -1785,6 +1647,162 @@ var UI;
         }); });
     })(Registers = UI.Registers || (UI.Registers = {}));
 })(UI || (UI = {}));
+function debounce(callback, waitMS) {
+    var _this = this;
+    var callNext = undefined;
+    var wrapped = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i - 0] = arguments[_i];
+        }
+        if (callNext === undefined) {
+            setTimeout(function () {
+                callNext.call.apply(callNext, [_this].concat(args));
+                callNext = undefined;
+            }, waitMS);
+        }
+        callNext = callback;
+    };
+    return wrapped;
+}
+// Intra-tab communications
+var _itc_root = this;
+var ITC;
+(function (ITC) {
+    //const log = (m, ...a) => {};
+    var log = function (m) {
+        var a = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            a[_i - 1] = arguments[_i];
+        }
+        return console.log.apply(console, [m].concat(a));
+    };
+    var htmlRefresh = 100;
+    var noShortcut = true;
+    function genSessionId() { return Math.random().toString(36).substr(2, 5); }
+    function newSession() { tabSessionId = genSessionId(); console.log("Generating a new tab session:", tabSessionId); localStorage.setItem("current-session", tabSessionId); }
+    ITC.newSession = newSession;
+    if (_itc_root["localStorage"])
+        addEventListener("focus", function (focusEvent) { console.log("Switching to", tabSessionId); localStorage.setItem("current-session", tabSessionId); });
+    var tabSessionId = _itc_root["localStorage"] ? localStorage.getItem("current-session") : undefined;
+    function cullHeaders() {
+        var now = Date.now();
+        for (var i = 0; i < localStorage.length; ++i) {
+            var key = localStorage.key(i);
+            if (key == "current-session")
+                continue;
+            var header = JSON.parse(localStorage.getItem(key));
+            if (Math.abs(header._itc_last_updated - now) > 3000) {
+                localStorage.removeItem(key); // Timeout
+                log(key, "timed out and removed");
+            }
+            else {
+            }
+        }
+    }
+    if (_itc_root["localStorage"]) {
+        cullHeaders();
+        addEventListener("load", function (loadEvent) {
+            setInterval(function () { return cullHeaders(); }, 10000);
+        });
+    }
+    // TODO: Make culling automatic on sendToByClassName and listenToByClassName to reduce the chance of accidental leaks
+    function peekAll(prefix) {
+        prefix = tabSessionId + "-" + prefix;
+        var now = Date.now();
+        var headers = [];
+        for (var i = 0; i < localStorage.length; ++i) {
+            var key = localStorage.key(i);
+            var matchesPrefix = key.substr(0, prefix.length) == prefix;
+            if (matchesPrefix) {
+                var header = JSON.parse(localStorage.getItem(key));
+                headers.push(header);
+            }
+        }
+        return headers;
+    }
+    ITC.peekAll = peekAll;
+    function sendTo(key, header) {
+        header._itc_last_updated = Date.now();
+        var local = localOnHeader[key];
+        if (local)
+            local(header);
+        if (!local || noShortcut)
+            localStorage.setItem(tabSessionId + "-" + key, JSON.stringify(header));
+    }
+    ITC.sendTo = sendTo;
+    function listenTo(key, onHeader) {
+        localOnHeader[key] = onHeader;
+        var existing = localStorage.getItem(tabSessionId + "-" + key);
+        if (existing)
+            onHeader(JSON.parse(existing));
+    }
+    ITC.listenTo = listenTo;
+    function sendToByClassName(className, keyPrefix, eachElement) {
+        var elements = UI.byClassName(className);
+        elements.forEach(function (e) {
+            var itcKey = getItcKey(e);
+            sendTo(keyPrefix + itcKey, eachElement({ itcKey: itcKey, element: e }));
+        });
+    }
+    ITC.sendToByClassName = sendToByClassName;
+    function listenToByClassName(className, keyPrefix, onHeader) {
+        var listening = [];
+        var update = function () {
+            var m = {};
+            var elements = UI.byClassName(className);
+            elements.forEach(function (e) {
+                var itcKey = getItcKey(e);
+                m[itcKey] = true;
+                localOnHeader[keyPrefix + itcKey] = function (h) { return onHeader({ header: h, element: e }); };
+            });
+            listening.forEach(function (e) {
+                var itcKey = getItcKey(e);
+                if (!m[itcKey])
+                    delete localOnHeader[keyPrefix + itcKey];
+            });
+            listening = elements;
+        };
+        update();
+        setInterval(update, htmlRefresh);
+    }
+    ITC.listenToByClassName = listenToByClassName;
+    var localOnHeader = {};
+    function getItcKey(e) {
+        var a = e;
+        var key = a["__itc_key__"];
+        if (key)
+            return key;
+        key = a["__itc_key__"] = Math.random().toString(36).substr(2, 5);
+        return key;
+    }
+    addEventListener("storage", function (ev) {
+        var tabSessionIdPrefix = tabSessionId + "-";
+        if (ev.key.substr(0, tabSessionIdPrefix.length) != tabSessionIdPrefix)
+            return;
+        if (!ev.newValue)
+            return;
+        var key = ev.key.substr(tabSessionIdPrefix.length);
+        var local = localOnHeader[key];
+        if (!local)
+            return;
+        local(JSON.parse(ev.newValue));
+    });
+})(ITC || (ITC = {}));
+function measure(callback, label) {
+    var wrapped = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i - 0] = arguments[_i];
+        }
+        var s = Date.now();
+        var r = callback.call.apply(callback, [this].concat(args));
+        var e = Date.now() - s;
+        console.log(label, "took", e, "ms");
+        return r;
+    };
+    return wrapped;
+}
 var _ui_document = this["document"];
 var UI;
 (function (UI) {
@@ -1806,18 +1824,4 @@ var UI;
     }
     UI.byId = byId;
 })(UI || (UI = {}));
-function measure(callback, label) {
-    var wrapped = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i - 0] = arguments[_i];
-        }
-        var s = Date.now();
-        var r = callback.call.apply(callback, [this].concat(args));
-        var e = Date.now() - s;
-        console.log(label, "took", e, "ms");
-        return r;
-    };
-    return wrapped;
-}
 //# sourceMappingURL=mmide.js.map
