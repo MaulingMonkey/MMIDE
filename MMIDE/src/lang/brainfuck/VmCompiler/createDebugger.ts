@@ -7,17 +7,7 @@
 
 			let program = compileProgram(parseResult.optimizedAst);
 
-			let vm : State = {
-				code:		program,
-				data:		[],
-				codePtr:	0,
-				dataPtr:	0,
-				sysCalls:	[],
-
-				insRan:		0,
-				runTime:	0,
-				wallStart:	Date.now(),
-			};
+			let vm : State = createInitState(program);
 			let runHandle : number = undefined;
 
 			let doPause			= () => { if (runHandle !== undefined) clearInterval(runHandle); runHandle = undefined; };
@@ -27,7 +17,7 @@
 			let getMemory		= (start: number, size: number) => vm.data.slice(start, start+size);
 			let getState		= () =>
 				vm === undefined ?						Debugger.State.Detatched
-				: vm.codePtr >= vm.code.locs.length ?	Debugger.State.Done
+				: vm.codePtr >= vm.program.locs.length ?	Debugger.State.Done
 				: runHandle !== undefined ?				Debugger.State.Running
 				:										Debugger.State.Paused;
 
@@ -36,6 +26,8 @@
 
 			return {
 				symbols:	createSymbolLookup(program),
+				breakpoints:null,
+
 				state:		getState,
 				threads:	() => getThreads(vm, code),
 				memory:		getMemory,

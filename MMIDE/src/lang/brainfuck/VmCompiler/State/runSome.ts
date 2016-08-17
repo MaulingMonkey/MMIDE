@@ -1,12 +1,12 @@
 ﻿module Brainfuck {
 	export module VmCompiler {
 		function badSysCall(vm: State) {
-			console.error("Unexpected VmOpType", VmOpType[vm.code[vm.codePtr].type]);
+			console.error("Unexpected VmOpType", VmOpType[vm.program[vm.codePtr].type]);
 			vm.sysCalls[AST.SystemCall.TapeEnd](vm);
 		}
 
 		export function runOne(vm: State) {
-			let op = vm.code.ops[vm.codePtr];
+			let op = vm.loadedCode[vm.codePtr];
 			if (!op) { vm.sysCalls[AST.SystemCall.TapeEnd](vm); return; }
 			let dp = vm.dataPtr + (op.dataOffset || 0);
 			switch (op.type) {

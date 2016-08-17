@@ -18,17 +18,7 @@ module Brainfuck {
 
 			let program = compileProgram(parseResult.optimizedAst);
 
-			let vm : State = {
-				code:		program,
-				data:		[],
-				codePtr:	0,
-				dataPtr:	0,
-				sysCalls:	[],
-
-				insRan:		0,
-				runTime:	0,
-				wallStart:	Date.now(),
-			};
+			let vm = createInitState(program);
 
 			let state = Debugger.State.Paused;
 
@@ -59,17 +49,21 @@ module Brainfuck {
 			});
 			worker.postMessage({desc: "brainfuck-debugger-init", state: vm});
 
-			return {
-				symbols:	createSymbolLookup(program),
-				state:		() => state,
-				threads:	() => getThreads(vm, code),
-				memory:		(start, size) => vm.data.slice(start, start+size),
+			let debug : Debugger = {
+				symbols:		createSymbolLookup(program),
+				breakpoints:	{ setBreakpoints: (breakpoints) => worker.postMessage({desc: "breakpoints.set", data: breakpoints}) },
 
-				pause:		() => worker.postMessage({desc: "pause"}),
-				continue:	() => worker.postMessage({desc: "continue"}),
-				stop:		() => worker.postMessage({desc: "stop"}),
-				step:		() => worker.postMessage({desc: "step"}),
+				state:			() => state,
+				threads:		() => getThreads(vm, code),
+				memory:			(start, size) => vm.data.slice(start, start+size),
+
+				pause:			() => worker.postMessage({desc: "pause"}),
+				continue:		() => worker.postMessage({desc: "continue"}),
+				stop:			() => worker.postMessage({desc: "stop"}),
+				step:			() => worker.postMessage({desc: "step"}),
 			};
+
+			return debug;
 		}
 
 		if (isWorker) {
@@ -95,12 +89,40 @@ module Brainfuck {
 				addEventListener("message", onMessage);
 				vm = ev.data.state;
 
+				vm.sysCalls[AST.SystemCall.Break]	= (vm: State) => {
+					let isInjectedBreak = vm.program.ops[vm.codePtr] !== vm.loadedCode[vm.codePtr];
+
+					// Pause the VM
+					if (runHandle !== undefined) clearInterval(runHandle);
+					runHandle = undefined;
+					reply({desc: "update-state", value: Debugger.State.Paused});
+
+					--vm.codePtr; // Prevent advancing of codePtr after handling this sysCall
+				};
 				vm.sysCalls[AST.SystemCall.Putch]	= vm => { reply({desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); };
 				vm.sysCalls[AST.SystemCall.TapeEnd]	= vm => { reply({desc: "system-call-tape-end"}); updateVm(); if (runHandle !== undefined) clearInterval(runHandle); runHandle = undefined; };
 			}
 
 			function onMessage(ev: MessageEvent) {
 				switch (ev.data.desc) {
+					case "breakpoints.set":
+						if (!vm) return;
+						let breakpoints : Debugger.Breakpoint[] = ev.data.data;
+						let breakLocs = breakpoints.filter(bp => bp.enabled).map(bp => Debugger.parseSourceLocation(bp.location)).filter(loc => !!loc);
+
+						vm.loadedCode = vm.program.ops.map((op,i)=>{
+							let loc = vm.program.locs[i];
+							let shouldBreak = breakLocs.some(bl => {
+								if (bl.file   && bl.file   !== loc.file  ) return false;
+								if (bl.line   && bl.line   !== loc.line  ) return false;
+								if (bl.column && bl.column !== loc.column) return false;
+								return true;
+							});
+
+							let replacementOp : VmOp = !shouldBreak ? op : { type: VmOpType.SystemCall, value: AST.SystemCall.Break, dataOffset: 0 };
+							return replacementOp;
+						});
+						break;
 					case "pause":
 						if (runHandle !== undefined) clearInterval(runHandle);
 						runHandle = undefined;

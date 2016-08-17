@@ -3,6 +3,21 @@
 		//const log = (m,...a) => console.log(m,...a);
 		const log = (m,...a) => {};
 
+		var lastDebugger : Debugger = undefined;
+		var lastVersion : number = -1;
+		export function update(d: Debugger) {
+			if (d === lastDebugger && lastVersion === breakpointsVersion) return;
+			log("Updating breakpoints...", lastVersion);
+			lastDebugger = d;
+			lastVersion = breakpointsVersion;
+			d.breakpoints.setBreakpoints(breakpoints.map(b => { return {
+				enabled:	b.enabled,
+				location:	b.location,
+				condition:	b.condition,
+				onHit:		b.onHit
+			};}));
+		}
+
 		function isBreakpointActive(breakpoint: Breakpoint): boolean {
 			return breakpoint.enabled && !!breakpoint.location;
 		}
@@ -117,7 +132,7 @@
 			});
 		}
 		function isBreakpointEqual(lhs: Breakpoint, rhs: Breakpoint): boolean {
-			return lhs.elements === rhs.elements &&
+			return lhs.enabled === rhs.enabled &&
 				lhs.location === rhs.location &&
 				lhs.condition === rhs.condition &&
 				lhs.onHit === rhs.onHit;
@@ -143,41 +158,42 @@
 			}
 		}
 
-
-
-		const reFileLine = /^(.+)(?:(?:\((\d+)\))|(?:\:(\d+)))$/;
-		var prevBreakpoints : Breakpoint[] = [];
+		var breakpointsVersion = 0;
+		var breakpoints : Breakpoint[] = [];
 		addEventListener("load", ()=>{
 			let table = <HTMLTableElement> d3.select(".breakpoints").select("table")[0][0];
 			if (!table) return;
-			newBreakpointRow(table, { enabled: true, location: "memory.bf(3)", condition: "", onHit: "" });
-			newBreakpointRow(table, { enabled: true, location: "memory.bf:4", condition: "", onHit: "" });
+			newBreakpointRow(table, { enabled: true, location: "memory.bf(13)", condition: "", onHit: "" });
+			newBreakpointRow(table, { enabled: true, location: "memory.bf:15", condition: "", onHit: "" });
 
 			setInterval(()=>{
 				manageSingleBlankBreakpoint(table);
 				let newBreakpoints = getTableBreakpoints(table);
-				if (breakpointListsAreEqual(prevBreakpoints, newBreakpoints)) return;
-				prevBreakpoints = newBreakpoints;
+				if (breakpointListsAreEqual(breakpoints, newBreakpoints)) return;
+				log("Breakpoint lists not equal");
+
+				// Breakpoints updating!
+				breakpoints = newBreakpoints;
+				++breakpointsVersion;
 
 				let editorFileName = "memory.bf"; // XXX
 				let list : Editor.LineBreakpoint[] = [];
 				let byLine : Editor.LineBreakpoint[] = [];
 
 				newBreakpoints.forEach(b => {
-					let m = reFileLine.exec(b.location||"");
-					if (!m) return;
-					let file = m[1];
-					let line = parseInt(m[2] || m[3]);
-					if (file != editorFileName) return;
-					let bp = byLine[line];
+					let loc = Debugger.parseSourceLocation(b.location);
+					if (!loc) return;
+
+					if (loc.file != editorFileName) return;
+					let bp = byLine[loc.line];
 					if (!bp) {
-						bp = byLine[line] = { line: line, enabled: false };
+						bp = byLine[loc.line] = { line: loc.line, enabled: false };
 						list.push(bp);
 					}
 					if (b.enabled) bp.enabled = true;
 				});
 
-				Editor.setLineBreakpoints(list);
+				Editor.setLineBreakpoints(list); // XXX: How OK am I with this kind of direct cross UI module communication?  Should I have a messaging system or something instead?  KISS for now...
 			}, 10);
 		});
 	}

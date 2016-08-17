@@ -8,8 +8,8 @@
 			return  [
 				["Registers:",""],
 				["     code",	addr(vm.codePtr)														],
-				["    *code",	vmOpToString(vm.code.ops[vm.codePtr])									],
-				["    @code",	sourceLocationToString(vm.code.locs[vm.codePtr])						],
+				["    *code",	vmOpToString(vm.program.ops[vm.codePtr])								],
+				["    @code",	sourceLocationToString(vm.program.locs[vm.codePtr])						],
 				["     data",	addr(vm.dataPtr)														],
 				["    *data",	(vm.data[vm.dataPtr] || "0").toString()									],
 				["------------------------------",""],
@@ -21,8 +21,8 @@
 				[" Wall   s",	((Date.now()-vm.wallStart)/1000|0).toString()							],
 				["------------------------------",""],
 				["Code size:",""],
-				["Brainfuck",	src.length.toString()			],
-				[" Bytecode",	vm.code.ops.length.toString()	],
+				["Brainfuck",	src.length.toString()				],
+				[" Bytecode",	vm.program.ops.length.toString()	],
 			];
 		}
 	}

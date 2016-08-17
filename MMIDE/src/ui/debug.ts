@@ -11,6 +11,8 @@
 			theDebugger = Brainfuck.VmCompiler.createAsyncDebugger(script, (stdout) => {
 				UI.Output.stdio().write(stdout);
 			});
+			//theDebugger.breakpoints.setBreakpoints([{condition: "", enabled: true, location: "memory.bf:13", onHit: ""}]);
+			UI.Breakpoints.update(theDebugger);
 			if (!paused) theDebugger.continue();
 			setDebugState(theDebugger.state());
 		}
@@ -54,6 +56,7 @@
 				UI.Editor.setCurrentPosition(
 					sourceLoc === undefined ? -1 : sourceLoc.line,
 					sourceLoc === undefined ? -1 : sourceLoc.column);
+				UI.Breakpoints.update(theDebugger);
 			}, 10);
 		});
 	}

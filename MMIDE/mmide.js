@@ -19,16 +19,7 @@ var Brainfuck;
             if (errors)
                 return undefined;
             var program = VmCompiler.compileProgram(parseResult.optimizedAst);
-            var vm = {
-                code: program,
-                data: [],
-                codePtr: 0,
-                dataPtr: 0,
-                sysCalls: [],
-                insRan: 0,
-                runTime: 0,
-                wallStart: Date.now(),
-            };
+            var vm = VmCompiler.createInitState(program);
             var state = Debugger.State.Paused;
             var worker = new Worker("mmide.js");
             worker.addEventListener("message", function (reply) {
@@ -56,8 +47,9 @@ var Brainfuck;
                 }
             });
             worker.postMessage({ desc: "brainfuck-debugger-init", state: vm });
-            return {
+            var debug = {
                 symbols: VmCompiler.createSymbolLookup(program),
+                breakpoints: { setBreakpoints: function (breakpoints) { return worker.postMessage({ desc: "breakpoints.set", data: breakpoints }); } },
                 state: function () { return state; },
                 threads: function () { return VmCompiler.getThreads(vm, code); },
                 memory: function (start, size) { return vm.data.slice(start, start + size); },
@@ -66,6 +58,7 @@ var Brainfuck;
                 stop: function () { return worker.postMessage({ desc: "stop" }); },
                 step: function () { return worker.postMessage({ desc: "step" }); },
             };
+            return debug;
         }
         VmCompiler.createAsyncDebugger = createAsyncDebugger;
         if (isWorker) {
@@ -87,12 +80,41 @@ var Brainfuck;
                     return;
                 addEventListener("message", onMessage);
                 vm = ev.data.state;
+                vm.sysCalls[Brainfuck.AST.SystemCall.Break] = function (vm) {
+                    var isInjectedBreak = vm.program.ops[vm.codePtr] !== vm.loadedCode[vm.codePtr];
+                    // Pause the VM
+                    if (runHandle !== undefined)
+                        clearInterval(runHandle);
+                    runHandle = undefined;
+                    reply({ desc: "update-state", value: Debugger.State.Paused });
+                    --vm.codePtr; // Prevent advancing of codePtr after handling this sysCall
+                };
                 vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { reply({ desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); };
                 vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { reply({ desc: "system-call-tape-end" }); updateVm(); if (runHandle !== undefined)
                     clearInterval(runHandle); runHandle = undefined; };
             }
             function onMessage(ev) {
                 switch (ev.data.desc) {
+                    case "breakpoints.set":
+                        if (!vm)
+                            return;
+                        var breakpoints = ev.data.data;
+                        var breakLocs = breakpoints.filter(function (bp) { return bp.enabled; }).map(function (bp) { return Debugger.parseSourceLocation(bp.location); }).filter(function (loc) { return !!loc; });
+                        vm.loadedCode = vm.program.ops.map(function (op, i) {
+                            var loc = vm.program.locs[i];
+                            var shouldBreak = breakLocs.some(function (bl) {
+                                if (bl.file && bl.file !== loc.file)
+                                    return false;
+                                if (bl.line && bl.line !== loc.line)
+                                    return false;
+                                if (bl.column && bl.column !== loc.column)
+                                    return false;
+                                return true;
+                            });
+                            var replacementOp = !shouldBreak ? op : { type: VmCompiler.VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0 };
+                            return replacementOp;
+                        });
+                        break;
                     case "pause":
                         if (runHandle !== undefined)
                             clearInterval(runHandle);
@@ -204,8 +226,8 @@ var Brainfuck;
             return [
                 ["Registers:", ""],
                 ["     code", addr(vm.codePtr)],
-                ["    *code", VmCompiler.vmOpToString(vm.code.ops[vm.codePtr])],
-                ["    @code", sourceLocationToString(vm.code.locs[vm.codePtr])],
+                ["    *code", VmCompiler.vmOpToString(vm.program.ops[vm.codePtr])],
+                ["    @code", sourceLocationToString(vm.program.locs[vm.codePtr])],
                 ["     data", addr(vm.dataPtr)],
                 ["    *data", (vm.data[vm.dataPtr] || "0").toString()],
                 ["------------------------------", ""],
@@ -218,7 +240,7 @@ var Brainfuck;
                 ["------------------------------", ""],
                 ["Code size:", ""],
                 ["Brainfuck", src.length.toString()],
-                [" Bytecode", vm.code.ops.length.toString()],
+                [" Bytecode", vm.program.ops.length.toString()],
             ];
         }
         VmCompiler.getRegistersList = getRegistersList;
@@ -242,11 +264,11 @@ var Brainfuck;
     var VmCompiler;
     (function (VmCompiler) {
         function badSysCall(vm) {
-            console.error("Unexpected VmOpType", VmCompiler.VmOpType[vm.code[vm.codePtr].type]);
+            console.error("Unexpected VmOpType", VmCompiler.VmOpType[vm.program[vm.codePtr].type]);
             vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
         }
         function runOne(vm) {
-            var op = vm.code.ops[vm.codePtr];
+            var op = vm.loadedCode[vm.codePtr];
             if (!op) {
                 vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
                 return;
@@ -302,6 +324,26 @@ var Brainfuck;
 (function (Brainfuck) {
     var VmCompiler;
     (function (VmCompiler) {
+        function createInitState(program) {
+            return {
+                program: program,
+                loadedCode: program.ops.map(function (op) { return op; }),
+                data: [],
+                codePtr: 0,
+                dataPtr: 0,
+                sysCalls: [],
+                insRan: 0,
+                runTime: 0,
+                wallStart: Date.now()
+            };
+        }
+        VmCompiler.createInitState = createInitState;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
         function vmOpToString(op) {
             return !op ? "??" : VmCompiler.VmOpType[op.type] +
                 (op.value ? (" (" + op.value + ")") : "") +
@@ -336,6 +378,24 @@ var UI;
                 a[_i - 1] = arguments[_i];
             }
         };
+        var lastDebugger = undefined;
+        var lastVersion = -1;
+        function update(d) {
+            if (d === lastDebugger && lastVersion === breakpointsVersion)
+                return;
+            log("Updating breakpoints...", lastVersion);
+            lastDebugger = d;
+            lastVersion = breakpointsVersion;
+            d.breakpoints.setBreakpoints(breakpoints.map(function (b) {
+                return {
+                    enabled: b.enabled,
+                    location: b.location,
+                    condition: b.condition,
+                    onHit: b.onHit
+                };
+            }));
+        }
+        Breakpoints.update = update;
         function isBreakpointActive(breakpoint) {
             return breakpoint.enabled && !!breakpoint.location;
         }
@@ -423,7 +483,7 @@ var UI;
             });
         }
         function isBreakpointEqual(lhs, rhs) {
-            return lhs.elements === rhs.elements &&
+            return lhs.enabled === rhs.enabled &&
                 lhs.location === rhs.location &&
                 lhs.condition === rhs.condition &&
                 lhs.onHit === rhs.onHit;
@@ -450,40 +510,41 @@ var UI;
                     newBreakpointRow(tableElement, undefined);
             }
         }
-        var reFileLine = /^(.+)(?:(?:\((\d+)\))|(?:\:(\d+)))$/;
-        var prevBreakpoints = [];
+        var breakpointsVersion = 0;
+        var breakpoints = [];
         addEventListener("load", function () {
             var table = d3.select(".breakpoints").select("table")[0][0];
             if (!table)
                 return;
-            newBreakpointRow(table, { enabled: true, location: "memory.bf(3)", condition: "", onHit: "" });
-            newBreakpointRow(table, { enabled: true, location: "memory.bf:4", condition: "", onHit: "" });
+            newBreakpointRow(table, { enabled: true, location: "memory.bf(13)", condition: "", onHit: "" });
+            newBreakpointRow(table, { enabled: true, location: "memory.bf:15", condition: "", onHit: "" });
             setInterval(function () {
                 manageSingleBlankBreakpoint(table);
                 var newBreakpoints = getTableBreakpoints(table);
-                if (breakpointListsAreEqual(prevBreakpoints, newBreakpoints))
+                if (breakpointListsAreEqual(breakpoints, newBreakpoints))
                     return;
-                prevBreakpoints = newBreakpoints;
+                log("Breakpoint lists not equal");
+                // Breakpoints updating!
+                breakpoints = newBreakpoints;
+                ++breakpointsVersion;
                 var editorFileName = "memory.bf"; // XXX
                 var list = [];
                 var byLine = [];
                 newBreakpoints.forEach(function (b) {
-                    var m = reFileLine.exec(b.location || "");
-                    if (!m)
+                    var loc = Debugger.parseSourceLocation(b.location);
+                    if (!loc)
                         return;
-                    var file = m[1];
-                    var line = parseInt(m[2] || m[3]);
-                    if (file != editorFileName)
+                    if (loc.file != editorFileName)
                         return;
-                    var bp = byLine[line];
+                    var bp = byLine[loc.line];
                     if (!bp) {
-                        bp = byLine[line] = { line: line, enabled: false };
+                        bp = byLine[loc.line] = { line: loc.line, enabled: false };
                         list.push(bp);
                     }
                     if (b.enabled)
                         bp.enabled = true;
                 });
-                UI.Editor.setLineBreakpoints(list);
+                UI.Editor.setLineBreakpoints(list); // XXX: How OK am I with this kind of direct cross UI module communication?  Should I have a messaging system or something instead?  KISS for now...
             }, 10);
         });
     })(Breakpoints = UI.Breakpoints || (UI.Breakpoints = {}));
@@ -935,16 +996,7 @@ var Brainfuck;
             if (errors)
                 return undefined;
             var program = VmCompiler.compileProgram(parseResult.optimizedAst);
-            var vm = {
-                code: program,
-                data: [],
-                codePtr: 0,
-                dataPtr: 0,
-                sysCalls: [],
-                insRan: 0,
-                runTime: 0,
-                wallStart: Date.now(),
-            };
+            var vm = VmCompiler.createInitState(program);
             var runHandle = undefined;
             var doPause = function () { if (runHandle !== undefined)
                 clearInterval(runHandle); runHandle = undefined; };
@@ -955,7 +1007,7 @@ var Brainfuck;
             var getMemory = function (start, size) { return vm.data.slice(start, start + size); };
             var getState = function () {
                 return vm === undefined ? Debugger.State.Detatched
-                    : vm.codePtr >= vm.code.locs.length ? Debugger.State.Done
+                    : vm.codePtr >= vm.program.locs.length ? Debugger.State.Done
                         : runHandle !== undefined ? Debugger.State.Running
                             : Debugger.State.Paused;
             };
@@ -963,6 +1015,7 @@ var Brainfuck;
             vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { return doStop(); };
             return {
                 symbols: VmCompiler.createSymbolLookup(program),
+                breakpoints: null,
                 state: getState,
                 threads: function () { return VmCompiler.getThreads(vm, code); },
                 memory: getMemory,
@@ -992,6 +1045,30 @@ var Debugger;
     Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
     function sourceLocationEqualFile(a, b) { return a.file === b.file; }
     Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
+    var reFileLine = /^(.+)(?:(?:\((\d+)\))|(?:\:(\d+)))$/;
+    function parseSourceLocation(text) {
+        var m = reFileLine.exec(text);
+        if (!m)
+            return null;
+        var file = m[1];
+        var line = parseInt(m[2] || m[3]);
+        return { file: m[1], line: parseInt(m[2] || m[3]), column: 0 };
+    }
+    Debugger.parseSourceLocation = parseSourceLocation;
+    function sourceLocationToString(sl) {
+        var s = sl.file;
+        if (sl.line) {
+            s += "(";
+            s += sl.line.toString();
+            if (sl.column) {
+                s += ",";
+                s += sl.column.toString();
+            }
+            s += ")";
+        }
+        return s;
+    }
+    Debugger.sourceLocationToString = sourceLocationToString;
 })(Debugger || (Debugger = {}));
 var UI;
 (function (UI) {
@@ -1048,6 +1125,8 @@ var UI;
             theDebugger = Brainfuck.VmCompiler.createAsyncDebugger(script, function (stdout) {
                 UI.Output.stdio().write(stdout);
             });
+            //theDebugger.breakpoints.setBreakpoints([{condition: "", enabled: true, location: "memory.bf:13", onHit: ""}]);
+            UI.Breakpoints.update(theDebugger);
             if (!paused)
                 theDebugger.continue();
             Debug.setDebugState(theDebugger.state());
@@ -1092,6 +1171,7 @@ var UI;
                 UI.Registers.update(theDebugger);
                 UI.Memory.update(theDebugger);
                 UI.Editor.setCurrentPosition(sourceLoc === undefined ? -1 : sourceLoc.line, sourceLoc === undefined ? -1 : sourceLoc.column);
+                UI.Breakpoints.update(theDebugger);
             }, 10);
         });
     })(Debug = UI.Debug || (UI.Debug = {}));
