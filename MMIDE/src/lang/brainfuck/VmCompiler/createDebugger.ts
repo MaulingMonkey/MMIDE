@@ -21,7 +21,7 @@
 				: runHandle !== undefined ?				Debugger.State.Running
 				:										Debugger.State.Paused;
 
-			vm.sysCalls[AST.SystemCall.Putch] = vm => stdout(String.fromCharCode(vm.data[vm.dataPtr]));
+			vm.sysCalls[AST.SystemCall.Putch] = vm => { stdout(String.fromCharCode(vm.data[vm.dataPtr])); ++vm.codePtr; };
 			vm.sysCalls[AST.SystemCall.TapeEnd] = vm => doStop();
 
 			return {

@@ -96,10 +96,8 @@ module Brainfuck {
 					if (runHandle !== undefined) clearInterval(runHandle);
 					runHandle = undefined;
 					reply({desc: "update-state", value: Debugger.State.Paused});
-
-					--vm.codePtr; // Prevent advancing of codePtr after handling this sysCall
 				};
-				vm.sysCalls[AST.SystemCall.Putch]	= vm => { reply({desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); };
+				vm.sysCalls[AST.SystemCall.Putch]	= vm => { reply({desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); ++vm.codePtr; };
 				vm.sysCalls[AST.SystemCall.TapeEnd]	= vm => { reply({desc: "system-call-tape-end"}); updateVm(); if (runHandle !== undefined) clearInterval(runHandle); runHandle = undefined; };
 			}
 

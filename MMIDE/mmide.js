@@ -423,9 +423,8 @@ var Brainfuck;
                         clearInterval(runHandle);
                     runHandle = undefined;
                     reply({ desc: "update-state", value: Debugger.State.Paused });
-                    --vm.codePtr; // Prevent advancing of codePtr after handling this sysCall
                 };
-                vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { reply({ desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); };
+                vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { reply({ desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); ++vm.codePtr; };
                 vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { reply({ desc: "system-call-tape-end" }); updateVm(); if (runHandle !== undefined)
                     clearInterval(runHandle); runHandle = undefined; };
             }
@@ -505,7 +504,7 @@ var Brainfuck;
                         : runHandle !== undefined ? Debugger.State.Running
                             : Debugger.State.Paused;
             };
-            vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { return stdout(String.fromCharCode(vm.data[vm.dataPtr])); };
+            vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { stdout(String.fromCharCode(vm.data[vm.dataPtr])); ++vm.codePtr; };
             vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { return doStop(); };
             return {
                 symbols: VmCompiler.createSymbolLookup(program),
@@ -699,8 +698,7 @@ var Brainfuck;
                         ++vm.codePtr;
                     break;
                 case VmCompiler.VmOpType.SystemCall:
-                    (vm.sysCalls[op.value] || badSysCall)(vm);
-                    ++vm.codePtr;
+                    (vm.sysCalls[op.value] || badSysCall)(vm); /* syscall is responsible for ++vm.codePtr;! */
                     break;
                 default:
                     badSysCall(vm);

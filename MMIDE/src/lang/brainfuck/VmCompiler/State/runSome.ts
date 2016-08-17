@@ -15,7 +15,7 @@
 				case VmOpType.SetData:		vm.data[dp] = (op.value + 256) % 256;						++vm.codePtr; break;
 				case VmOpType.JumpIf:		if ( vm.data[dp]) vm.codePtr = op.value; else				++vm.codePtr; break;
 				case VmOpType.JumpIfNot:	if (!vm.data[dp]) vm.codePtr = op.value; else				++vm.codePtr; break;
-				case VmOpType.SystemCall:	(vm.sysCalls[op.value] || badSysCall)(vm);					++vm.codePtr; break;
+				case VmOpType.SystemCall:	(vm.sysCalls[op.value] || badSysCall)(vm);					/* syscall is responsible for ++vm.codePtr;! */ break;
 				default:					badSysCall(vm);												break;
 			}
 		}
