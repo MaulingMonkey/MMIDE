@@ -123,7 +123,7 @@
 			//console.log("Set breakpoints:",breakpoints[0],breakpoints[1]);
 		}
 
-		addEventListener("load", function(ev) {
+		addEventListener("lateLoaded", function(ev) {
 			let ed = editor();
 			if (!ed) return;
 

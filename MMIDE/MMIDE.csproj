@@ -50,6 +50,7 @@
     <TypeScriptCompile Include="src\examples.ts" />
     <TypeScriptCompile Include="ext\ace.d.ts" />
     <TypeScriptCompile Include="ext\d3\d3.d.ts" />
+    <TypeScriptCompile Include="src\util\events.ts" />
     <TypeScriptCompile Include="src\util\itc.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_ast.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_ast_optimize.ts" />

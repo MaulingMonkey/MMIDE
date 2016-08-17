@@ -7,7 +7,7 @@
 			data:			number[];
 			codePtr:		number;
 			dataPtr:		number;
-			sysCalls:		((vm)=>void)[];
+			sysCalls:		((vm)=>boolean)[];
 
 			insRan:			number;
 			runTime:		number;

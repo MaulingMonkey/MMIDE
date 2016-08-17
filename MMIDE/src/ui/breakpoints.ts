@@ -163,8 +163,8 @@
 		addEventListener("load", ()=>{
 			let table = <HTMLTableElement> d3.select(".breakpoints").select("table")[0][0];
 			if (!table) return;
-			newBreakpointRow(table, { enabled: true, location: "memory.bf(13)", condition: "", onHit: "" });
-			newBreakpointRow(table, { enabled: true, location: "memory.bf:15", condition: "", onHit: "" });
+			newBreakpointRow(table, { enabled: false, location: "memory.bf:15", condition: "", onHit: "" });
+			newBreakpointRow(table, { enabled: false, location: "memory.bf(146)", condition: "", onHit: "" });
 
 			setInterval(()=>{
 				manageSingleBlankBreakpoint(table);

@@ -96,9 +96,11 @@ module Brainfuck {
 					if (runHandle !== undefined) clearInterval(runHandle);
 					runHandle = undefined;
 					reply({desc: "update-state", value: Debugger.State.Paused});
+
+					return false;
 				};
-				vm.sysCalls[AST.SystemCall.Putch]	= vm => { reply({desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); ++vm.codePtr; };
-				vm.sysCalls[AST.SystemCall.TapeEnd]	= vm => { reply({desc: "system-call-tape-end"}); updateVm(); if (runHandle !== undefined) clearInterval(runHandle); runHandle = undefined; };
+				vm.sysCalls[AST.SystemCall.Putch]	= vm => { reply({desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); ++vm.codePtr; return true; };
+				vm.sysCalls[AST.SystemCall.TapeEnd]	= vm => { reply({desc: "system-call-tape-end"}); updateVm(); if (runHandle !== undefined) clearInterval(runHandle); runHandle = undefined; return false; };
 			}
 
 			function onMessage(ev: MessageEvent) {
