@@ -6,7 +6,7 @@
 	<div><h2>Memory View</h2></div>
 
 	<!-- TODO: Greyout overlay if not running? -->
-	<div class="controls"><table style="border-collapse: collapse;"><tr>
+	<div class="panel panel-16"><table style="border-collapse: collapse;"><tr>
 		<td>
 			<a href="memory.html" target="_blank">New</a>
 		</td><td><img src="icons/separator.png"></td><td>
@@ -31,23 +31,24 @@
 
 		</td><td><img src="icons/separator.png"></td><td>
 			Changes:
-			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['changedDisplay']='None';				return false">None</a>
-			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['changedDisplay']='DelayHighlight';	return false">Delay</a>
-			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['changedDisplay']='DurationHighlight';	return false">Duration</a>
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['forceChangedDisplay']='true'; m1['changedDisplay']='None';				return false">None</a>
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['forceChangedDisplay']='true'; m1['changedDisplay']='DelayHighlight';		return false">Delay</a>
+			<a href="#" onclick="var m1 = document.getElementById('memory1').dataset; m1['forceChangedDisplay']='true'; m1['changedDisplay']='DurationHighlight';	return false">Duration</a>
 		</td>
 	</tr></table></div>
 	<div
-		id="memory1"
-		class="memory"
-		data-address		="0x00000000"
-		data-little-endian	="false"
-		data-col-size		="1"
-		data-cols			="64"
-		data-rows			="6"
-		data-show-address	="true"
-		data-show-hex		="true"
-		data-show-data		="true"
-		data-changed-display="DelayHighlight"
+		id							="memory1"
+		class						="panel panel-block memory"
+		data-address				="0x00000000"
+		data-little-endian			="false"
+		data-col-size				="1"
+		data-cols					="64"
+		data-rows					="6"
+		data-show-address			="true"
+		data-show-hex				="true"
+		data-show-data				="true"
+		data-force-changed-display	="false"
+		data-changed-display		="DelayHighlight"
 	></div>
 	<script src="ext/d3/d3.min.js"></script>
 	<script src="mmide.js"></script>
