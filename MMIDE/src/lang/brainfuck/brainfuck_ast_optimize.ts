@@ -5,6 +5,8 @@
 			onError:	(error: Error) => void;
 		}
 
+		function sign(a: number): number { return a>0 ? +1 : a<0 ? -1 : 0; }
+
 		// Optimize [..., a, ...]
 		function singleOptimizations(args: OptimizeArgs): boolean {
 			let changes = false;
@@ -16,7 +18,8 @@
 				let replace = (...nodes: Node[]) => { ast.splice(i, 1, ...nodes); --i; changes = true; };
 
 				// Single-op loop optimizations
-				if (a.type === NodeType.Loop) {
+				switch (a.type) {
+				case NodeType.Loop:
 					if (a.childScope.length === 0) {
 						replace({ type: NodeType.BreakIf, location: a.location });
 					} else if (a.childScope.length === 1) {
@@ -35,34 +38,41 @@
 							break;
 						}
 					}
+					break;
+				case NodeType.AddData: // data[...] += 0
+					if (a.value === 0) replace();
+					break;
+				case NodeType.AddDataPtr: // data += 0
+					if (a.value === 0) replace();
+					break;
 				}
 			}
 
 			return changes;
 		}
 
-		// Optimize [..., a, b, ...]
+		// Optimize [..., l, r, ...]
 		function pairOptimizations(args: OptimizeArgs): boolean {
 			let changes = false;
 			let ast = args.ast;
 
 			for (var i=0; i<=ast.length-2; ++i) {
-				let a = ast[i+0];
-				let b = ast[i+1];
+				let l = ast[i+0];
+				let r = ast[i+1];
 
 				let replace = (...nodes: Node[]) => { ast.splice(i, 2, ...nodes); --i; changes = true; };
 
 				// Collasing optimizations
-				if (a.type === b.type) {
-					switch (a.type) {
-					case NodeType.AddDataPtr:														a.value = (a.value + b.value);				replace(a); break;
-					case NodeType.AddData:		if ((a.dataOffset||0) !== (b.dataOffset||0)) break;	a.value = (a.value + b.value + 256) % 256;	replace(a); break;
+				if (l.type === r.type) {
+					switch (l.type) {
+					case NodeType.AddDataPtr:														l.value = (l.value + r.value);				replace(l); break;
+					case NodeType.AddData:		if ((l.dataOffset||0) !== (r.dataOffset||0)) break;	l.value = (l.value + r.value + 256) % 256;	replace(l); break;
 					}
 				} else {
 					// Optimize set + add into a plain set
-					if (a.type == NodeType.SetData && b.type == NodeType.AddData && (a.dataOffset||0) === (b.dataOffset||0)) {
-						a.value = (a.value + b.value);
-						replace(a);
+					if (l.type == NodeType.SetData && r.type == NodeType.AddData && (l.dataOffset||0) === (r.dataOffset||0)) {
+						l.value = (l.value + r.value);
+						replace(l);
 					}
 				}
 			}
@@ -70,39 +80,78 @@
 			return changes;
 		}
 
-		// Optimize [..., a, b, c, ...]
+		// Not strictly speaking an optimization in and of itself - but we want to rewrite operations like:
+		//		>>> [data[0] = ...] .... <<<
+		// As:
+		//		[data[3] = ...] >>> .... <<<
+		// Such that additional triOptimizations can take place if e.g. .... is another set operation
+		function shiftMutsLeft(args: OptimizeArgs): boolean {
+			let changes = false;
+			let ast = args.ast;
+
+			for (var i=0; i<=ast.length-2; ++i) {
+				let l = ast[i+0];
+				let r = ast[i+1];
+
+				let replace = (...nodes: Node[]) => { ast.splice(i, 2, ...nodes); --i; changes = true; };
+
+				if (l.type === NodeType.AddDataPtr) {
+					switch (r.type) {
+					case NodeType.AddData: // e.g. >>>>++++
+					case NodeType.SetData: // e.g. >>>>[-]+++
+						replace({ type: r.type, location: r.location, dataOffset: (r.dataOffset||0) + l.value, value: r.value },
+								{ type: l.type, location: l.location, dataOffset: l.dataOffset, value: l.value });
+						break;
+					}
+				}
+			}
+
+			return changes;
+		}
+
+		// Optimize [..., l, meat, r, ...]
 		function triOptimizations(args: OptimizeArgs): boolean {
 			let changes = false;
 			let ast = args.ast;
 
 			for (var i=0; i<=ast.length-3; ++i) {
-				let a = ast[i+0];
-				let b = ast[i+1];
-				let c = ast[i+2];
+				let l    = ast[i+0];
+				let meat = ast[i+1];
+				let r    = ast[i+2];
 
 				let replace = (...nodes: Node[]) => { ast.splice(i, 3, ...nodes); --i; changes = true; };
 
 				// Offset optimizations
-				if (a.type === NodeType.AddDataPtr && c.type === NodeType.AddDataPtr && a.value === -c.value) {
-					switch (b.type) {
-					// e.g. <[-]> or >[+]< or >>>[+]<<< or ...
-					case NodeType.SetData:
-						replace({
-							type:		NodeType.SetData,
-							location:	a.location,
-							dataOffset:	a.value + (b.dataOffset||0),
-							value:		b.value
-						});
-						break;
-					// e.g. <-----> or >++++<
-					case NodeType.AddData:
-						replace({
-							type:		NodeType.AddData,
-							location:	a.location,
-							dataOffset:	a.value + (b.dataOffset || 0),
-							value:		b.value
-						});
-						break;
+
+				// E.g. <[-]> or >[+]< or >>>[+]<<< or <-----> or >++++< or ...
+				if (l.type === NodeType.AddDataPtr && r.type === NodeType.AddDataPtr && sign(l.value) !== sign(r.value)) {
+					let minMag = Math.min(Math.abs(l.value),Math.abs(r.value));
+					let maxMag = Math.max(Math.abs(l.value),Math.abs(r.value));
+					let diffMag= maxMag-minMag;
+
+					if (l.value === -r.value) { // Perfectly balanced (neither Left nor Right retained)
+						switch (meat.type) {
+						case NodeType.SetData: // e.g. <[-]> or >[+]< or >>>[+]<<< or ...
+						case NodeType.AddData: // e.g. <-----> or >++++<
+							replace({ type: meat.type, location: l.location, dataOffset: l.value + (meat.dataOffset||0), value: meat.value });
+							break;
+						}
+					} else if (Math.abs(l.value) > Math.abs(r.value)) { // Imperfectly balanced (Left partially retained)
+						switch (meat.type) {
+						case NodeType.SetData: // e.g. < <[-]> or > >[+]< or >>>>> >>>[+]<<< or ...
+						case NodeType.AddData: // e.g. < <-----> or > >++++<
+							replace({ type: l.type,    location: l.location, dataOffset: l.dataOffset,                                value: sign(l.value)*diffMag },
+									{ type: meat.type, location: l.location, dataOffset: sign(l.value)*minMag + (meat.dataOffset||0), value: meat.value });
+							break;
+						}
+					} else if (Math.abs(l.value) < Math.abs(r.value)) { // Imperfectly balanced (Right partially retained)
+						switch (meat.type) {
+						case NodeType.SetData: // e.g. <[-]> >>> or >[+]< << or >>>[+]<<< <<< or ...
+						case NodeType.AddData: // e.g. <-----> >> or >++++< <<<
+							replace({ type: meat.type, location: l.location, dataOffset: sign(l.value)*minMag + (meat.dataOffset||0), value: meat.value },
+									{ type: r.type,    location: r.location, dataOffset: r.dataOffset,                                value: sign(r.value)*diffMag });
+							break;
+						}
 					}
 				}
 			}
@@ -113,9 +162,8 @@
 		export function optimize(args: OptimizeArgs): Node[] {
 			args.ast.forEach(node => { if (node.childScope) node.childScope = optimize({ ast: node.childScope, onError: args.onError }); });
 
-			//let optimizations = [];
-			//let optimizations = [pairOptimizations, singleOptimizations];
-			let optimizations = [pairOptimizations, singleOptimizations, triOptimizations];
+			//let optimizations = [pairOptimizations, singleOptimizations, triOptimizations];
+			let optimizations = [pairOptimizations, singleOptimizations, triOptimizations, shiftMutsLeft];
 
 			for (var optimizeAttempt=0; optimizeAttempt<100; ++optimizeAttempt) {
 				if(!optimizations.some(o => o(args))) break; // Optimizations done
