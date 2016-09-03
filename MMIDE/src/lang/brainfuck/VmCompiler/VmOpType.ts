@@ -3,6 +3,7 @@
 		export enum VmOpType {
 			AddDataPtr,
 			AddData,
+			AddMulData,
 			SetData,
 			SystemCall,
 			JumpIf,

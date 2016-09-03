@@ -20,7 +20,7 @@ var Brainfuck;
                 return undefined;
             //parseResult.optimizedAst.forEach(node => AST.logAst(node,""));
             var program = VmCompiler.compileProgram(parseResult.optimizedAst);
-            //program.ops.forEach((op,addr) => console.log("0x"+("0000"+addr.toString(16)).substr(-4)+"  "+vmOpToPsuedoCodeString(op)));
+            //program.ops.forEach((op,addr) => console.log("0x"+("0000"+addr.toString(16)).substr(-4)+"  "+vmOpToPsuedoCode(op)));
             var vm = VmCompiler.createInitState(program);
             var state = Debugger.State.Paused;
             var worker = new Worker("mmide.js");
@@ -169,6 +169,9 @@ var Brainfuck;
                     case Brainfuck.AST.NodeType.AddData:
                         push({ type: VmCompiler.VmOpType.AddData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
                         break;
+                    case Brainfuck.AST.NodeType.AddMulData:
+                        push({ type: VmCompiler.VmOpType.AddMulData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
+                        break;
                     case Brainfuck.AST.NodeType.SetData:
                         push({ type: VmCompiler.VmOpType.SetData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
                         break;
@@ -270,34 +273,41 @@ var Brainfuck;
             vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
             return false;
         }
+        function modCeil(n, d) { return ((n % d) + d) % d; }
+        function modCeilSmall(n, d) { return (n + d) % d; }
         function runOne(vm) {
             var op = vm.loadedCode[vm.codePtr];
             if (!op) {
                 vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
                 return;
             }
-            var dp = vm.dataPtr + (op.dataOffset || 0);
+            var dst = vm.dataPtr + (op.dataOffset || 0);
+            var src = vm.dataPtr; // no op.dataOffset equivalent for srcs just yet
             switch (op.type) {
                 case VmCompiler.VmOpType.AddDataPtr:
                     vm.dataPtr += op.value;
                     ++vm.codePtr;
                     return true;
                 case VmCompiler.VmOpType.AddData:
-                    vm.data[dp] = (op.value + 256 + (vm.data[dp] || 0)) % 256;
+                    vm.data[dst] = modCeilSmall(op.value + (vm.data[dst] || 0), 256);
+                    ++vm.codePtr;
+                    return true;
+                case VmCompiler.VmOpType.AddMulData:
+                    vm.data[dst] = modCeil((vm.data[dst] || 0) + op.value * (vm.data[src] || 0), 256);
                     ++vm.codePtr;
                     return true;
                 case VmCompiler.VmOpType.SetData:
-                    vm.data[dp] = (op.value + 256) % 256;
+                    vm.data[dst] = modCeilSmall(op.value, 256);
                     ++vm.codePtr;
                     return true;
                 case VmCompiler.VmOpType.JumpIf:
-                    if (vm.data[dp])
+                    if (vm.data[dst])
                         vm.codePtr = op.value;
                     else
                         ++vm.codePtr;
                     return true;
                 case VmCompiler.VmOpType.JumpIfNot:
-                    if (!vm.data[dp])
+                    if (!vm.data[dst])
                         vm.codePtr = op.value;
                     else
                         ++vm.codePtr;
@@ -353,6 +363,7 @@ var Brainfuck;
             switch (op.type) {
                 case VmCompiler.VmOpType.AddDataPtr: return "data += " + op.value;
                 case VmCompiler.VmOpType.AddData: return "data[" + op.dataOffset + "] += " + op.value;
+                case VmCompiler.VmOpType.AddMulData: return "data[" + op.dataOffset + "] += data[0] * " + op.value;
                 case VmCompiler.VmOpType.SetData: return "data[" + op.dataOffset + "] <- " + op.value;
                 case VmCompiler.VmOpType.JumpIf: return "if data[" + op.dataOffset + "] != 0 jump 0x" + ("0000" + op.value.toString(16)).substr(-4);
                 case VmCompiler.VmOpType.JumpIfNot: return "if data[" + op.dataOffset + "] == 0 jump 0x" + ("0000" + op.value.toString(16)).substr(-4);
@@ -369,10 +380,11 @@ var Brainfuck;
         (function (VmOpType) {
             VmOpType[VmOpType["AddDataPtr"] = 0] = "AddDataPtr";
             VmOpType[VmOpType["AddData"] = 1] = "AddData";
-            VmOpType[VmOpType["SetData"] = 2] = "SetData";
-            VmOpType[VmOpType["SystemCall"] = 3] = "SystemCall";
-            VmOpType[VmOpType["JumpIf"] = 4] = "JumpIf";
-            VmOpType[VmOpType["JumpIfNot"] = 5] = "JumpIfNot";
+            VmOpType[VmOpType["AddMulData"] = 2] = "AddMulData";
+            VmOpType[VmOpType["SetData"] = 3] = "SetData";
+            VmOpType[VmOpType["SystemCall"] = 4] = "SystemCall";
+            VmOpType[VmOpType["JumpIf"] = 5] = "JumpIf";
+            VmOpType[VmOpType["JumpIfNot"] = 6] = "JumpIfNot";
         })(VmCompiler.VmOpType || (VmCompiler.VmOpType = {}));
         var VmOpType = VmCompiler.VmOpType;
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
@@ -738,7 +750,8 @@ var Brainfuck;
             NodeType[NodeType["Loop"] = 3] = "Loop";
             // Psuedo-nodes generated by optimizer
             NodeType[NodeType["SetData"] = 4] = "SetData";
-            NodeType[NodeType["BreakIf"] = 5] = "BreakIf";
+            NodeType[NodeType["AddMulData"] = 5] = "AddMulData";
+            NodeType[NodeType["BreakIf"] = 6] = "BreakIf";
         })(AST.NodeType || (AST.NodeType = {}));
         var NodeType = AST.NodeType;
         (function (SystemCall) {
@@ -763,6 +776,9 @@ var Brainfuck;
                     break;
                 case NodeType.AddData:
                     console.log(indent + "data[" + (node.dataOffset || 0) + "] += " + node.value);
+                    break;
+                case NodeType.AddMulData:
+                    console.log(indent + "data[" + (node.dataOffset || 0) + "] += data[0] * " + node.value);
                     break;
                 case NodeType.SetData:
                     console.log(indent + "data[" + (node.dataOffset || 0) + "] <- " + node.value);
@@ -836,10 +852,10 @@ var Brainfuck;
                         scope().push({ type: NodeType.AddDataPtr, value: +1, location: Debugger.cloneSourceLocation(location) });
                         break;
                     case "+":
-                        scope().push({ type: NodeType.AddData, value: +1, location: Debugger.cloneSourceLocation(location) });
+                        scope().push({ type: NodeType.AddData, value: +1, dataOffset: 0, location: Debugger.cloneSourceLocation(location) });
                         break;
                     case "-":
-                        scope().push({ type: NodeType.AddData, value: -1, location: Debugger.cloneSourceLocation(location) });
+                        scope().push({ type: NodeType.AddData, value: -1, dataOffset: 0, location: Debugger.cloneSourceLocation(location) });
                         break;
                     case ",":
                         scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Getch, location: Debugger.cloneSourceLocation(location) });
@@ -912,16 +928,34 @@ var Brainfuck;
                                         break;
                                     if ((c.value & 1) === 0)
                                         args.onError({ description: "Infinite loop if *data is even, *data = 0 otherwise.  If you just want to set *data = 0, prefer [-] or [+]", location: c.location, severity: AST.ErrorSeverity.Warning });
-                                    replace({ type: AST.NodeType.SetData, value: 0, location: a.location });
+                                    replace({ type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: a.location });
                                     break;
                                 case AST.NodeType.SetData:
                                     if (!!c.dataOffset)
                                         break;
                                     if (c.value !== 0)
                                         args.onError({ description: "Infinite loop if *data != 0 - prefer [] if intentional", location: c.location, severity: AST.ErrorSeverity.Warning });
-                                    replace({ type: AST.NodeType.SetData, value: 0, location: a.location });
+                                    replace({ type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: a.location });
                                     changes = true;
                                     break;
+                            }
+                        }
+                        else if (a.childScope.every(function (c) { return c.type === AST.NodeType.AddData; })) {
+                            // Optimize this common pattern:
+                            // while (data[0] != 0)
+                            //		data[0] += -1
+                            //		data[1] += 2
+                            //		data[4] += 5
+                            //		data[5] += 2
+                            //		data[6] += 1
+                            var data0 = a.childScope.filter(function (c) { return !c.dataOffset; });
+                            var dataNZ = a.childScope.filter(function (c) { return !!c.dataOffset; });
+                            if (data0.length === 1 && data0[0].value === -1) {
+                                var mulNZ = dataNZ.map(function (d) {
+                                    return { type: AST.NodeType.AddMulData, value: d.value, dataOffset: d.dataOffset, location: d.location };
+                                });
+                                var set0 = { type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: data0[0].location };
+                                replace.apply(void 0, mulNZ.concat([set0]));
                             }
                         }
                         break;

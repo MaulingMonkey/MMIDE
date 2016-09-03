@@ -28,14 +28,31 @@
 						case NodeType.AddData: // e.g. [-] [+] [----] etc.
 							if (!!c.dataOffset) break;
 							if ((c.value & 1) === 0) args.onError({ description: "Infinite loop if *data is even, *data = 0 otherwise.  If you just want to set *data = 0, prefer [-] or [+]", location: c.location, severity: ErrorSeverity.Warning });
-							replace({ type: NodeType.SetData, value: 0, location: a.location });
+							replace({ type: NodeType.SetData, value: 0, dataOffset: 0, location: a.location });
 							break;
 						case NodeType.SetData: // e.g. [[-]]
 							if (!!c.dataOffset) break;
 							if (c.value !== 0) args.onError({ description: "Infinite loop if *data != 0 - prefer [] if intentional", location: c.location, severity: ErrorSeverity.Warning });
-							replace({ type: NodeType.SetData, value: 0, location: a.location });
+							replace({ type: NodeType.SetData, value: 0, dataOffset: 0, location: a.location });
 							changes = true;
 							break;
+						}
+					} else if (a.childScope.every(c => c.type === NodeType.AddData)) {
+						// Optimize this common pattern:
+						// while (data[0] != 0)
+						//		data[0] += -1
+						//		data[1] += 2
+						//		data[4] += 5
+						//		data[5] += 2
+						//		data[6] += 1
+						let data0	= a.childScope.filter(c => !c.dataOffset);
+						let dataNZ	= a.childScope.filter(c => !!c.dataOffset);
+						if (data0.length === 1 && data0[0].value === -1) { // [-......] - could optimize [+.......] as well?
+							let mulNZ = dataNZ.map(d =>{
+								return { type: NodeType.AddMulData, value: d.value, dataOffset: d.dataOffset, location: d.location };
+							});
+							let set0 = { type: NodeType.SetData, value: 0, dataOffset: 0, location: data0[0].location };
+							replace(...mulNZ, set0);
 						}
 					}
 					break;

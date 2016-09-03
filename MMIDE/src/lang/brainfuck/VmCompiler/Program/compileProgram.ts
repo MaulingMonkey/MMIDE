@@ -18,6 +18,7 @@
 				switch (node.type) {
 					case AST.NodeType.AddDataPtr:	push({type: VmOpType.AddDataPtr,	value: node.value || 0,			dataOffset: 0}); break;
 					case AST.NodeType.AddData:		push({type: VmOpType.AddData,		value: node.value || 0,			dataOffset: node.dataOffset || 0 }); break;
+					case AST.NodeType.AddMulData:	push({type: VmOpType.AddMulData,	value: node.value || 0,			dataOffset: node.dataOffset || 0 }); break;
 					case AST.NodeType.SetData:		push({type: VmOpType.SetData,		value: node.value || 0,			dataOffset: node.dataOffset || 0 }); break;
 					case AST.NodeType.SystemCall:	push({type: VmOpType.SystemCall,	value: node.systemCall || 0,	dataOffset: 0}); break;
 					case AST.NodeType.BreakIf:

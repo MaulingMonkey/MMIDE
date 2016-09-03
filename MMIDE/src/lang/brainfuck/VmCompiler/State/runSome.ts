@@ -6,18 +6,24 @@
 			return false;
 		}
 
+		function modCeil(n: number, d: number): number { return ((n%d)+d)%d; }
+		function modCeilSmall(n: number, d: number): number { return (n+d)%d; }
+
 		export function runOne(vm: State) {
 			let op = vm.loadedCode[vm.codePtr];
 			if (!op) { vm.sysCalls[AST.SystemCall.TapeEnd](vm); return; }
-			let dp = vm.dataPtr + (op.dataOffset || 0);
+			let dst = vm.dataPtr + (op.dataOffset || 0);
+			let src = vm.dataPtr; // no op.dataOffset equivalent for srcs just yet
+
 			switch (op.type) {
-				case VmOpType.AddDataPtr:	vm.dataPtr += op.value;										++vm.codePtr; return true;
-				case VmOpType.AddData:		vm.data[dp] = (op.value + 256 + (vm.data[dp] || 0)) % 256;	++vm.codePtr; return true;
-				case VmOpType.SetData:		vm.data[dp] = (op.value + 256) % 256;						++vm.codePtr; return true;
-				case VmOpType.JumpIf:		if ( vm.data[dp]) vm.codePtr = op.value; else				++vm.codePtr; return true;
-				case VmOpType.JumpIfNot:	if (!vm.data[dp]) vm.codePtr = op.value; else				++vm.codePtr; return true;
-				case VmOpType.SystemCall:	return (vm.sysCalls[op.value] || badSysCall)(vm);			// NOTE: System call is responsible for codePtr manipulation!
-				default:					return badSysCall(vm);										// NOTE: System call is responsible for codePtr manipulation!
+				case VmOpType.AddDataPtr:	vm.dataPtr += op.value;															++vm.codePtr; return true;
+				case VmOpType.AddData:		vm.data[dst] = modCeilSmall(op.value + (vm.data[dst]||0), 256);					++vm.codePtr; return true;
+				case VmOpType.AddMulData:	vm.data[dst] = modCeil((vm.data[dst]||0) + op.value * (vm.data[src]||0), 256);	++vm.codePtr; return true;
+				case VmOpType.SetData:		vm.data[dst] = modCeilSmall(op.value,256);										++vm.codePtr; return true;
+				case VmOpType.JumpIf:		if ( vm.data[dst]) vm.codePtr = op.value; else									++vm.codePtr; return true;
+				case VmOpType.JumpIfNot:	if (!vm.data[dst]) vm.codePtr = op.value; else									++vm.codePtr; return true;
+				case VmOpType.SystemCall:	return (vm.sysCalls[op.value] || badSysCall)(vm);								// NOTE: System call is responsible for codePtr manipulation!
+				default:					return badSysCall(vm);															// NOTE: System call is responsible for codePtr manipulation!
 			}
 		}
 

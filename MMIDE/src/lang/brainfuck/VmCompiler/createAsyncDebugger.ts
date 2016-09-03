@@ -18,7 +18,7 @@ module Brainfuck {
 
 			//parseResult.optimizedAst.forEach(node => AST.logAst(node,""));
 			let program = compileProgram(parseResult.optimizedAst);
-			//program.ops.forEach((op,addr) => console.log("0x"+("0000"+addr.toString(16)).substr(-4)+"  "+vmOpToPsuedoCodeString(op)));
+			//program.ops.forEach((op,addr) => console.log("0x"+("0000"+addr.toString(16)).substr(-4)+"  "+vmOpToPsuedoCode(op)));
 
 			let vm = createInitState(program);
 
