@@ -36,13 +36,13 @@
 		export function logAst(node: Node, indent: string) {
 			switch (node.type) {
 			case NodeType.AddDataPtr:	console.log(indent+"data += "+node.value); break;
-			case NodeType.AddData:		console.log(indent+"data["+(node.dataOffset||0)+"] += "+node.value); break;
-			case NodeType.AddMulData:	console.log(indent+"data["+(node.dataOffset||0)+"] += data[0] * "+node.value); break;
-			case NodeType.SetData:		console.log(indent+"data["+(node.dataOffset||0)+"] <- "+node.value); break;
+			case NodeType.AddData:		console.log(indent+"data["+(node.dataOffset|0)+"] += "+node.value); break;
+			case NodeType.AddMulData:	console.log(indent+"data["+(node.dataOffset|0)+"] += data[0] * "+node.value); break;
+			case NodeType.SetData:		console.log(indent+"data["+(node.dataOffset|0)+"] <- "+node.value); break;
 			case NodeType.BreakIf:		console.log(indent+"breakIf"); break;
 			case NodeType.SystemCall:	console.log(indent+"syscall "+SystemCall[node.systemCall]); break;
 			case NodeType.Loop:
-					console.log(indent+"while (data["+(node.dataOffset||0)+"] != 0)");
+					console.log(indent+"while (data["+(node.dataOffset|0)+"] != 0)");
 					node.childScope.forEach(child => logAst(child, indent+"    "));
 					break;
 			}

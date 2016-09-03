@@ -82,12 +82,12 @@
 				// Collasing optimizations
 				if (l.type === r.type) {
 					switch (l.type) {
-					case NodeType.AddDataPtr:														l.value = (l.value + r.value);				replace(l); break;
-					case NodeType.AddData:		if ((l.dataOffset||0) !== (r.dataOffset||0)) break;	l.value = (l.value + r.value + 256) % 256;	replace(l); break;
+					case NodeType.AddDataPtr:														l.value = (l.value + r.value);		replace(l); break;
+					case NodeType.AddData:		if ((l.dataOffset|0) !== (r.dataOffset|0)) break;	l.value = (l.value + r.value)&0xFF;	replace(l); break;
 					}
 				} else {
 					// Optimize set + add into a plain set
-					if (l.type == NodeType.SetData && r.type == NodeType.AddData && (l.dataOffset||0) === (r.dataOffset||0)) {
+					if (l.type == NodeType.SetData && r.type == NodeType.AddData && (l.dataOffset|0) === (r.dataOffset|0)) {
 						l.value = (l.value + r.value);
 						replace(l);
 					}
@@ -116,7 +116,7 @@
 					switch (r.type) {
 					case NodeType.AddData: // e.g. >>>>++++
 					case NodeType.SetData: // e.g. >>>>[-]+++
-						replace({ type: r.type, location: r.location, dataOffset: (r.dataOffset||0) + l.value, value: r.value },
+						replace({ type: r.type, location: r.location, dataOffset: (r.dataOffset|0) + l.value, value: r.value },
 								{ type: l.type, location: l.location, dataOffset: l.dataOffset, value: l.value });
 						break;
 					}
@@ -150,23 +150,23 @@
 						switch (meat.type) {
 						case NodeType.SetData: // e.g. <[-]> or >[+]< or >>>[+]<<< or ...
 						case NodeType.AddData: // e.g. <-----> or >++++<
-							replace({ type: meat.type, location: l.location, dataOffset: l.value + (meat.dataOffset||0), value: meat.value });
+							replace({ type: meat.type, location: l.location, dataOffset: l.value + (meat.dataOffset|0), value: meat.value });
 							break;
 						}
 					} else if (Math.abs(l.value) > Math.abs(r.value)) { // Imperfectly balanced (Left partially retained)
 						switch (meat.type) {
 						case NodeType.SetData: // e.g. < <[-]> or > >[+]< or >>>>> >>>[+]<<< or ...
 						case NodeType.AddData: // e.g. < <-----> or > >++++<
-							replace({ type: l.type,    location: l.location, dataOffset: l.dataOffset,                                value: sign(l.value)*diffMag },
-									{ type: meat.type, location: l.location, dataOffset: sign(l.value)*minMag + (meat.dataOffset||0), value: meat.value });
+							replace({ type: l.type,		location: l.location, dataOffset: l.dataOffset,									value: sign(l.value)*diffMag },
+									{ type: meat.type,	location: l.location, dataOffset: sign(l.value)*minMag + (meat.dataOffset|0),	value: meat.value });
 							break;
 						}
 					} else if (Math.abs(l.value) < Math.abs(r.value)) { // Imperfectly balanced (Right partially retained)
 						switch (meat.type) {
 						case NodeType.SetData: // e.g. <[-]> >>> or >[+]< << or >>>[+]<<< <<< or ...
 						case NodeType.AddData: // e.g. <-----> >> or >++++< <<<
-							replace({ type: meat.type, location: l.location, dataOffset: sign(l.value)*minMag + (meat.dataOffset||0), value: meat.value },
-									{ type: r.type,    location: r.location, dataOffset: r.dataOffset,                                value: sign(r.value)*diffMag });
+							replace({ type: meat.type,	location: l.location, dataOffset: sign(l.value)*minMag + (meat.dataOffset|0),	value: meat.value },
+									{ type: r.type,		location: r.location, dataOffset: r.dataOffset,									value: sign(r.value)*diffMag });
 							break;
 						}
 					}

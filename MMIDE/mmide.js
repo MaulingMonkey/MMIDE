@@ -273,8 +273,6 @@ var Brainfuck;
             vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd](vm);
             return false;
         }
-        function modCeil(n, d) { return ((n % d) + d) % d; }
-        function modCeilSmall(n, d) { return (n + d) % d; }
         function runOne(vm) {
             var op = vm.loadedCode[vm.codePtr];
             if (!op) {
@@ -289,15 +287,15 @@ var Brainfuck;
                     ++vm.codePtr;
                     return true;
                 case VmCompiler.VmOpType.AddData:
-                    vm.data[dst] = modCeilSmall(op.value + (vm.data[dst] || 0), 256);
+                    vm.data[dst] = (op.value + (vm.data[dst] | 0)) & 0xFF;
                     ++vm.codePtr;
                     return true;
                 case VmCompiler.VmOpType.AddMulData:
-                    vm.data[dst] = modCeil((vm.data[dst] || 0) + op.value * (vm.data[src] || 0), 256);
+                    vm.data[dst] = (op.value * (vm.data[src] | 0) + (vm.data[dst] | 0)) & 0xFF;
                     ++vm.codePtr;
                     return true;
                 case VmCompiler.VmOpType.SetData:
-                    vm.data[dst] = modCeilSmall(op.value, 256);
+                    vm.data[dst] = (op.value) & 0xFF;
                     ++vm.codePtr;
                     return true;
                 case VmCompiler.VmOpType.JumpIf:
@@ -775,13 +773,13 @@ var Brainfuck;
                     console.log(indent + "data += " + node.value);
                     break;
                 case NodeType.AddData:
-                    console.log(indent + "data[" + (node.dataOffset || 0) + "] += " + node.value);
+                    console.log(indent + "data[" + (node.dataOffset | 0) + "] += " + node.value);
                     break;
                 case NodeType.AddMulData:
-                    console.log(indent + "data[" + (node.dataOffset || 0) + "] += data[0] * " + node.value);
+                    console.log(indent + "data[" + (node.dataOffset | 0) + "] += data[0] * " + node.value);
                     break;
                 case NodeType.SetData:
-                    console.log(indent + "data[" + (node.dataOffset || 0) + "] <- " + node.value);
+                    console.log(indent + "data[" + (node.dataOffset | 0) + "] <- " + node.value);
                     break;
                 case NodeType.BreakIf:
                     console.log(indent + "breakIf");
@@ -790,7 +788,7 @@ var Brainfuck;
                     console.log(indent + "syscall " + SystemCall[node.systemCall]);
                     break;
                 case NodeType.Loop:
-                    console.log(indent + "while (data[" + (node.dataOffset || 0) + "] != 0)");
+                    console.log(indent + "while (data[" + (node.dataOffset | 0) + "] != 0)");
                     node.childScope.forEach(function (child) { return logAst(child, indent + "    "); });
                     break;
             }
@@ -995,16 +993,16 @@ var Brainfuck;
                             replace(l);
                             break;
                         case AST.NodeType.AddData:
-                            if ((l.dataOffset || 0) !== (r.dataOffset || 0))
+                            if ((l.dataOffset | 0) !== (r.dataOffset | 0))
                                 break;
-                            l.value = (l.value + r.value + 256) % 256;
+                            l.value = (l.value + r.value) & 0xFF;
                             replace(l);
                             break;
                     }
                 }
                 else {
                     // Optimize set + add into a plain set
-                    if (l.type == AST.NodeType.SetData && r.type == AST.NodeType.AddData && (l.dataOffset || 0) === (r.dataOffset || 0)) {
+                    if (l.type == AST.NodeType.SetData && r.type == AST.NodeType.AddData && (l.dataOffset | 0) === (r.dataOffset | 0)) {
                         l.value = (l.value + r.value);
                         replace(l);
                     }
@@ -1036,7 +1034,7 @@ var Brainfuck;
                     switch (r.type) {
                         case AST.NodeType.AddData: // e.g. >>>>++++
                         case AST.NodeType.SetData:
-                            replace({ type: r.type, location: r.location, dataOffset: (r.dataOffset || 0) + l.value, value: r.value }, { type: l.type, location: l.location, dataOffset: l.dataOffset, value: l.value });
+                            replace({ type: r.type, location: r.location, dataOffset: (r.dataOffset | 0) + l.value, value: r.value }, { type: l.type, location: l.location, dataOffset: l.dataOffset, value: l.value });
                             break;
                     }
                 }
@@ -1070,7 +1068,7 @@ var Brainfuck;
                         switch (meat.type) {
                             case AST.NodeType.SetData: // e.g. <[-]> or >[+]< or >>>[+]<<< or ...
                             case AST.NodeType.AddData:
-                                replace({ type: meat.type, location: l.location, dataOffset: l.value + (meat.dataOffset || 0), value: meat.value });
+                                replace({ type: meat.type, location: l.location, dataOffset: l.value + (meat.dataOffset | 0), value: meat.value });
                                 break;
                         }
                     }
@@ -1078,7 +1076,7 @@ var Brainfuck;
                         switch (meat.type) {
                             case AST.NodeType.SetData: // e.g. < <[-]> or > >[+]< or >>>>> >>>[+]<<< or ...
                             case AST.NodeType.AddData:
-                                replace({ type: l.type, location: l.location, dataOffset: l.dataOffset, value: sign(l.value) * diffMag }, { type: meat.type, location: l.location, dataOffset: sign(l.value) * minMag + (meat.dataOffset || 0), value: meat.value });
+                                replace({ type: l.type, location: l.location, dataOffset: l.dataOffset, value: sign(l.value) * diffMag }, { type: meat.type, location: l.location, dataOffset: sign(l.value) * minMag + (meat.dataOffset | 0), value: meat.value });
                                 break;
                         }
                     }
@@ -1086,7 +1084,7 @@ var Brainfuck;
                         switch (meat.type) {
                             case AST.NodeType.SetData: // e.g. <[-]> >>> or >[+]< << or >>>[+]<<< <<< or ...
                             case AST.NodeType.AddData:
-                                replace({ type: meat.type, location: l.location, dataOffset: sign(l.value) * minMag + (meat.dataOffset || 0), value: meat.value }, { type: r.type, location: r.location, dataOffset: r.dataOffset, value: sign(r.value) * diffMag });
+                                replace({ type: meat.type, location: l.location, dataOffset: sign(l.value) * minMag + (meat.dataOffset | 0), value: meat.value }, { type: r.type, location: r.location, dataOffset: r.dataOffset, value: sign(r.value) * diffMag });
                                 break;
                         }
                     }
@@ -1624,7 +1622,7 @@ var UI;
             rows.forEach(function (row, rowI) {
                 row.forEach(function (cell, cellI) {
                     var m = context.measureText(cell.display);
-                    colWidths[cellI] = Math.max((colWidths[cellI] || 0), m.width);
+                    colWidths[cellI] = Math.max((colWidths[cellI] | 0), m.width);
                 });
             });
             var totalWidth = 0;

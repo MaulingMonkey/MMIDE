@@ -126,7 +126,7 @@
 			rows.forEach((row, rowI) => {
 				row.forEach((cell, cellI) => {
 					let m = context.measureText(cell.display);
-					colWidths[cellI] = Math.max((colWidths[cellI]||0), m.width);
+					colWidths[cellI] = Math.max((colWidths[cellI]|0), m.width);
 				});
 			});
 
