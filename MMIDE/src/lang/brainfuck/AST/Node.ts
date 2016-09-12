@@ -16,6 +16,7 @@
 			type:			NodeType;
 			value?:			number;			// AddDataPtr, AddData, SetData
 			dataOffset?:	number;			// AddData, SetData
+			srcOffset?:		number;
 			systemCall?:	SystemCall;		// SystemCall
 			childScope?:	Node[];			// Loop
 			location:		Debugger.SourceLocation;
@@ -25,6 +26,7 @@
 			return NodeType[node.type] + "(" +
 				"v=" + ((node.value			=== undefined) ? "0" : node.value.toString()) + "," +
 				"do=" + ((node.dataOffset	=== undefined) ? "0" : node.dataOffset.toString()) + "," +
+				"so=" + ((node.srcOffset	=== undefined) ? "0" : node.srcOffset.toString()) + "," +
 				"sc=" + ((node.systemCall	=== undefined) ? "?" : SystemCall[node.systemCall]) + ")";
 		}
 
@@ -33,6 +35,7 @@
 				type:		node.type,
 				value:		node.value,
 				dataOffset:	node.dataOffset,
+				srcOffset:	node.srcOffset,
 				systemCall:	node.systemCall,
 				childScope:	cloneNodes(node.childScope),
 				location:	node.location
@@ -47,7 +50,7 @@
 			switch (node.type) {
 			case NodeType.AddDataPtr:	console.log(indent+"data += "+node.value); break;
 			case NodeType.AddData:		console.log(indent+"data["+(node.dataOffset|0)+"] += "+node.value); break;
-			case NodeType.AddMulData:	console.log(indent+"data["+(node.dataOffset|0)+"] += data[0] * "+node.value); break;
+			case NodeType.AddMulData:	console.log(indent+"data["+(node.dataOffset|0)+"] += data["+(node.srcOffset|0)+"] * "+node.value); break;
 			case NodeType.SetData:		console.log(indent+"data["+(node.dataOffset|0)+"] <- "+node.value); break;
 			case NodeType.BreakIf:		console.log(indent+"breakIf"); break;
 			case NodeType.SystemCall:	console.log(indent+"syscall "+SystemCall[node.systemCall]); break;

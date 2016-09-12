@@ -29,6 +29,7 @@ var Brainfuck;
             return NodeType[node.type] + "(" +
                 "v=" + ((node.value === undefined) ? "0" : node.value.toString()) + "," +
                 "do=" + ((node.dataOffset === undefined) ? "0" : node.dataOffset.toString()) + "," +
+                "so=" + ((node.srcOffset === undefined) ? "0" : node.srcOffset.toString()) + "," +
                 "sc=" + ((node.systemCall === undefined) ? "?" : AST.SystemCall[node.systemCall]) + ")";
         }
         AST.nodeToString = nodeToString;
@@ -37,6 +38,7 @@ var Brainfuck;
                 type: node.type,
                 value: node.value,
                 dataOffset: node.dataOffset,
+                srcOffset: node.srcOffset,
                 systemCall: node.systemCall,
                 childScope: cloneNodes(node.childScope),
                 location: node.location
@@ -56,7 +58,7 @@ var Brainfuck;
                     console.log(indent + "data[" + (node.dataOffset | 0) + "] += " + node.value);
                     break;
                 case NodeType.AddMulData:
-                    console.log(indent + "data[" + (node.dataOffset | 0) + "] += data[0] * " + node.value);
+                    console.log(indent + "data[" + (node.dataOffset | 0) + "] += data[" + (node.srcOffset | 0) + "] * " + node.value);
                     break;
                 case NodeType.SetData:
                     console.log(indent + "data[" + (node.dataOffset | 0) + "] <- " + node.value);
@@ -199,7 +201,7 @@ var Brainfuck;
                                     return false;
                                 return true;
                             });
-                            var replacementOp = !shouldBreak ? op : { type: VmCompiler.VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0 };
+                            var replacementOp = !shouldBreak ? op : { type: VmCompiler.VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0, srcOffset: 0 };
                             return replacementOp;
                         });
                         break;
@@ -249,31 +251,31 @@ var Brainfuck;
                 };
                 switch (node.type) {
                     case Brainfuck.AST.NodeType.AddDataPtr:
-                        push({ type: VmCompiler.VmOpType.AddDataPtr, value: node.value || 0, dataOffset: 0 });
+                        push({ type: VmCompiler.VmOpType.AddDataPtr, value: node.value || 0, dataOffset: 0, srcOffset: 0 });
                         break;
                     case Brainfuck.AST.NodeType.AddData:
-                        push({ type: VmCompiler.VmOpType.AddData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
+                        push({ type: VmCompiler.VmOpType.AddData, value: node.value || 0, dataOffset: node.dataOffset || 0, srcOffset: 0 });
                         break;
                     case Brainfuck.AST.NodeType.AddMulData:
-                        push({ type: VmCompiler.VmOpType.AddMulData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
+                        push({ type: VmCompiler.VmOpType.AddMulData, value: node.value || 0, dataOffset: node.dataOffset || 0, srcOffset: 0 });
                         break;
                     case Brainfuck.AST.NodeType.SetData:
-                        push({ type: VmCompiler.VmOpType.SetData, value: node.value || 0, dataOffset: node.dataOffset || 0 });
+                        push({ type: VmCompiler.VmOpType.SetData, value: node.value || 0, dataOffset: node.dataOffset || 0, srcOffset: 0 });
                         break;
                     case Brainfuck.AST.NodeType.SystemCall:
-                        push({ type: VmCompiler.VmOpType.SystemCall, value: node.systemCall || 0, dataOffset: 0 });
+                        push({ type: VmCompiler.VmOpType.SystemCall, value: node.systemCall || 0, dataOffset: 0, srcOffset: 0 });
                         break;
                     case Brainfuck.AST.NodeType.BreakIf:
                         var afterSystemCall = program.ops.length + 2;
-                        push({ type: VmCompiler.VmOpType.JumpIfNot, value: afterSystemCall, dataOffset: 0 });
-                        push({ type: VmCompiler.VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0 });
+                        push({ type: VmCompiler.VmOpType.JumpIfNot, value: afterSystemCall, dataOffset: 0, srcOffset: 0 });
+                        push({ type: VmCompiler.VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0, srcOffset: 0 });
                         break;
                     case Brainfuck.AST.NodeType.Loop:
-                        var firstJump = { type: VmCompiler.VmOpType.JumpIfNot, value: undefined, dataOffset: 0 };
+                        var firstJump = { type: VmCompiler.VmOpType.JumpIfNot, value: undefined, dataOffset: 0, srcOffset: 0 };
                         push(firstJump);
                         var afterFirstJump = program.ops.length;
                         compile(program, node.childScope);
-                        var lastJump = { type: VmCompiler.VmOpType.JumpIf, value: afterFirstJump, dataOffset: 0 };
+                        var lastJump = { type: VmCompiler.VmOpType.JumpIf, value: afterFirstJump, dataOffset: 0, srcOffset: 0 };
                         push(lastJump);
                         var afterLastJump = program.ops.length;
                         firstJump.value = afterLastJump;
@@ -365,7 +367,7 @@ var Brainfuck;
                 return;
             }
             var dst = vm.dataPtr + (op.dataOffset || 0);
-            var src = vm.dataPtr;
+            var src = vm.dataPtr + (op.srcOffset || 0);
             switch (op.type) {
                 case VmCompiler.VmOpType.AddDataPtr:
                     vm.dataPtr += op.value;
@@ -457,7 +459,7 @@ var Brainfuck;
             switch (op.type) {
                 case VmOpType.AddDataPtr: return "data += " + op.value;
                 case VmOpType.AddData: return "data[" + op.dataOffset + "] += " + op.value;
-                case VmOpType.AddMulData: return "data[" + op.dataOffset + "] += data[0] * " + op.value;
+                case VmOpType.AddMulData: return "data[" + op.dataOffset + "] += data[" + op.srcOffset + "] * " + op.value;
                 case VmOpType.SetData: return "data[" + op.dataOffset + "] <- " + op.value;
                 case VmOpType.JumpIf: return "if data[" + op.dataOffset + "] != 0 jump 0x" + ("0000" + op.value.toString(16)).substr(-4);
                 case VmOpType.JumpIfNot: return "if data[" + op.dataOffset + "] == 0 jump 0x" + ("0000" + op.value.toString(16)).substr(-4);

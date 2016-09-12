@@ -10,7 +10,7 @@
 			let op = vm.loadedCode[vm.codePtr];
 			if (!op) { vm.sysCalls[AST.SystemCall.TapeEnd](vm); return; }
 			let dst = vm.dataPtr + (op.dataOffset || 0);
-			let src = vm.dataPtr; // no op.dataOffset equivalent for srcs just yet
+			let src = vm.dataPtr + (op.srcOffset || 0);
 
 			switch (op.type) {
 				case VmOpType.AddDataPtr:	vm.dataPtr += op.value;															++vm.codePtr; return true;

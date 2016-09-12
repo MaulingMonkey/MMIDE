@@ -121,7 +121,7 @@ module Brainfuck {
 								return true;
 							});
 
-							let replacementOp : VmOp = !shouldBreak ? op : { type: VmOpType.SystemCall, value: AST.SystemCall.Break, dataOffset: 0 };
+							let replacementOp : VmOp = !shouldBreak ? op : { type: VmOpType.SystemCall, value: AST.SystemCall.Break, dataOffset: 0, srcOffset: 0 };
 							return replacementOp;
 						});
 						break;
