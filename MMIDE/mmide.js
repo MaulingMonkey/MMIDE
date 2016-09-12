@@ -1,3 +1,429 @@
+var Examples;
+(function (Examples) {
+    function LoadExample(example) {
+        UI.Editor.setScript(example);
+    }
+    addEventListener("load", function (e) {
+        if (UI.Editor.isAvailable()) {
+            LoadBrainfuckMandelbrot();
+            UI.Debug.Start(false);
+        }
+    });
+    function LoadBrainfuckMandelbrot() {
+        LoadExample("Mandelbrot Set Brainfuck Example:\n\n+++++++++++++[->++>>>+++++>++>+<<<<<<]>>>>>++++++>--->>>>>>>>>>+++++++++++++++[[\n>>>>>>>>>]+[<<<<<<<<<]>>>>>>>>>-]+[>>>>>>>>[-]>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>[-]+\n<<<<<<<+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>>+>>>>>>>>>>>>>>>>>>>>>>>>>>\n>+<<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+[>>>>>>[>>>>>>>[-]>>]<<<<<<<<<[<<<<<<<<<]>>\n>>>>>[-]+<<<<<<++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>+<<<<<<+++++++[-[->>>\n>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>+<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[[-]>>>>>>[>>>>>\n>>[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>\n[>>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<\n<<]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]>>>>>>>>>+++++++++++++++[[\n>>>>>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[\n>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>[\n-<<+>>]<<[->>+>>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<\n<<[>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<\n[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>\n>>>>[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+\n<<<<<<[->>>[-<<<+>>>]<<<[->>>+>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>\n>>>>>>>]<<<<<<<<<[>>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<<]>>[->>>>>>>>>+<<<<<<<<<]<<\n+>>>>>>>>]<<<<<<<<<[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<\n<]<+<<<<<<<<<]>>>>>>>>>[>>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>\n>>>>>>>>>>>>>>>>>>>>>>>]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>\n>>>>>]<<<<<<<<<-<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+>>>>>>>>>>>>>>>>>>>>>+<<<[<<<<<<\n<<<]>>>>>>>>>[>>>[-<<<->>>]+<<<[->>>->[-<<<<+>>>>]<<<<[->>>>+<<<<<<<<<<<<<[<<<<<\n<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>[-<<<<->>>>]+<<<<[->>>>-<[-<<<+>>>]<<<[->\n>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<\n<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]<<<<<<<[->+>>>-<<<<]>>>>>>>>>+++++++++++++++++++\n+++++++>>[-<<<<+>>>>]<<<<[->>>>+<<[-]<<]>>[<<<<<<<+<[-<+>>>>+<<[-]]>[-<<[->+>>>-\n<<<<]>>>]>>>>>>>>>>>>>[>>[-]>[-]>[-]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-]>>>>>>[>>>>>\n[-<<<<+>>>>]<<<<[->>>>+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>[-<<<<<<<<\n<+>>>>>>>>>]>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>>>>>>]+>[-\n]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>+>>>>>>>>]<<<\n<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<[->>[-<<+>>]<\n<[->>+>+<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>[->>>>\n>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-]<->>>\n[-<<<+>[<->-<<<<<<<+>>>>>>>]<[->+<]>>>]<<[->>+<<]<+<<<<<<<<<]>>>>>>>>>[>>>>>>[-<\n<<<<+>>>>>]<<<<<[->>>>>+<<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>+>>>>>>>>\n]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<[->>[-<<+\n>>]<<[->>+>>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>\n[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-\n]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>>>>>\n[>>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>]>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>++++++++\n+++++++[[>>>>>>>>>]<<<<<<<<<-<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>>>>>>>>[-<<<<<<<+\n>>>>>>>]<<<<<<<[->>>>>>>+<<<<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[\n-]>>>]<<<<<<<<<[<<<<<<<<<]>>>>+>[-<-<<<<+>>>>>]>[-<<<<<<[->>>>>+<++<<<<]>>>>>[-<\n<<<<+>>>>>]<->+>]<[->+<]<<<<<[->>>>>+<<<<<]>>>>>>[-]<<<<<<+>>>>[-<<<<->>>>]+<<<<\n[->>>>->>>>>[>>[-<<->>]+<<[->>->[-<<<+>>>]<<<[->>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]\n+>>>>>>[>>>>>>>>>]>+<]]+>>>[-<<<->>>]+<<<[->>>-<[-<<+>>]<<[->>+<<<<<<<<<<<[<<<<<\n<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<\n[<<<<<<<<<]>>>>[-<<<<+>>>>]<<<<[->>>>+>>>>>[>+>>[-<<->>]<<[->>+<<]>>>>>>>>]<<<<<\n<<<+<[>[->>>>>+<<<<[->>>>-<<<<<<<<<<<<<<+>>>>>>>>>>>[->>>+<<<]<]>[->>>-<<<<<<<<<\n<<<<<+>>>>>>>>>>>]<<]>[->>>>+<<<[->>>-<<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>>+<<<]<<\n<<<<<<<<<<]>>>>[-]<<<<]>>>[-<<<+>>>]<<<[->>>+>>>>>>[>+>[-<->]<[->+<]>>>>>>>>]<<<\n<<<<<+<[>[->>>>>+<<<[->>>-<<<<<<<<<<<<<<+>>>>>>>>>>[->>>>+<<<<]>]<[->>>>-<<<<<<<\n<<<<<<<+>>>>>>>>>>]<]>>[->>>+<<<<[->>>>-<<<<<<<<<<<<<<+>>>>>>>>>>]>]<[->>>>+<<<<\n]<<<<<<<<<<<]>>>>>>+<<<<<<]]>>>>[-<<<<+>>>>]<<<<[->>>>+>>>>>[>>>>>>>>>]<<<<<<<<<\n[>[->>>>>+<<<<[->>>>-<<<<<<<<<<<<<<+>>>>>>>>>>>[->>>+<<<]<]>[->>>-<<<<<<<<<<<<<<\n+>>>>>>>>>>>]<<]>[->>>>+<<<[->>>-<<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>>+<<<]<<<<<<<\n<<<<<]]>[-]>>[-]>[-]>>>>>[>>[-]>[-]>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-<\n<<<+>>>>]<<<<[->>>>+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[\n[>>>>>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+\n[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>\n[-<<+>>]<<[->>+>+<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<\n<[>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[\n>[-]<->>>[-<<<+>[<->-<<<<<<<+>>>>>>>]<[->+<]>>>]<<[->>+<<]<+<<<<<<<<<]>>>>>>>>>[\n>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>]>\n>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>[-]>>>>+++++++++++++++[[>>>>>>>>>]<<<<<<<<<-<<<<<\n<<<<[<<<<<<<<<]>>>>>>>>>-]+[>>>[-<<<->>>]+<<<[->>>->[-<<<<+>>>>]<<<<[->>>>+<<<<<\n<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>[-<<<<->>>>]+<<<<[->>>>-<[-\n<<<+>>>]<<<[->>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>\n>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-<<<+>>>]<<<[->>>+>>>>>>[>+>>>\n[-<<<->>>]<<<[->>>+<<<]>>>>>>>>]<<<<<<<<+<[>[->+>[-<-<<<<<<<<<<+>>>>>>>>>>>>[-<<\n+>>]<]>[-<<-<<<<<<<<<<+>>>>>>>>>>>>]<<<]>>[-<+>>[-<<-<<<<<<<<<<+>>>>>>>>>>>>]<]>\n[-<<+>>]<<<<<<<<<<<<<]]>>>>[-<<<<+>>>>]<<<<[->>>>+>>>>>[>+>>[-<<->>]<<[->>+<<]>>\n>>>>>>]<<<<<<<<+<[>[->+>>[-<<-<<<<<<<<<<+>>>>>>>>>>>[-<+>]>]<[-<-<<<<<<<<<<+>>>>\n>>>>>>>]<<]>>>[-<<+>[-<-<<<<<<<<<<+>>>>>>>>>>>]>]<[-<+>]<<<<<<<<<<<<]>>>>>+<<<<<\n]>>>>>>>>>[>>>[-]>[-]>[-]>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-]>[-]>>>>>[>>>>>>>[-<<<<<\n<+>>>>>>]<<<<<<[->>>>>>+<<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>+>[-<-<<<<+>>>>\n>]>>[-<<<<<<<[->>>>>+<++<<<<]>>>>>[-<<<<<+>>>>>]<->+>>]<<[->>+<<]<<<<<[->>>>>+<<\n<<<]+>>>>[-<<<<->>>>]+<<<<[->>>>->>>>>[>>>[-<<<->>>]+<<<[->>>-<[-<<+>>]<<[->>+<<\n<<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>[-<<->>]+<<[->>->[-<<<+>>>]<\n<<[->>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<\n<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-<<<+>>>]<<<[->>>+>>>>>>[>+>[-<->]<[->+\n<]>>>>>>>>]<<<<<<<<+<[>[->>>>+<<[->>-<<<<<<<<<<<<<+>>>>>>>>>>[->>>+<<<]>]<[->>>-\n<<<<<<<<<<<<<+>>>>>>>>>>]<]>>[->>+<<<[->>>-<<<<<<<<<<<<<+>>>>>>>>>>]>]<[->>>+<<<\n]<<<<<<<<<<<]>>>>>[-]>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]]>>>>[-<<<<+>\n>>>]<<<<[->>>>+>>>>>[>+>>[-<<->>]<<[->>+<<]>>>>>>>>]<<<<<<<<+<[>[->>>>+<<<[->>>-\n<<<<<<<<<<<<<+>>>>>>>>>>>[->>+<<]<]>[->>-<<<<<<<<<<<<<+>>>>>>>>>>>]<<]>[->>>+<<[\n->>-<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>+<<]<<<<<<<<<<<<]]>>>>[-]<<<<]>>>>[-<<<<+>>\n>>]<<<<[->>>>+>[-]>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]>>>>>>>>>[>>>>>>\n>>>]<<<<<<<<<[>[->>>>+<<<[->>>-<<<<<<<<<<<<<+>>>>>>>>>>>[->>+<<]<]>[->>-<<<<<<<<\n<<<<<+>>>>>>>>>>>]<<]>[->>>+<<[->>-<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>+<<]<<<<<<<<\n<<<<]]>>>>>>>>>[>>[-]>[-]>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-]>[-]>>>>>[>>>>>[-<<<<+\n>>>>]<<<<[->>>>+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[-<<<<<+>>>>>\n]<<<<<[->>>>>+<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>\n>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>+>>\n>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>[-<<+\n>>]<<[->>+>>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>\n[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-\n]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>>>>>\n[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<\n<<[->>>[-<<<+>>>]<<<[->>>+>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>\n>>>]<<<<<<<<<[>>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<<]>>[->>>>>>>>>+<<<<<<<<<]<<+>>>\n>>>>>]<<<<<<<<<[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+\n<<<<<<<<<]>>>>>>>>>[>>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>>\n>>>>>>>>>>>>>>>>>>>]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>>>>>\n>]<<<<<<<<<-<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+>>>>>>>>>>>>>>>>>>>>>+<<<[<<<<<<<<<]\n>>>>>>>>>[>>>[-<<<->>>]+<<<[->>>->[-<<<<+>>>>]<<<<[->>>>+<<<<<<<<<<<<<[<<<<<<<<<\n]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>[-<<<<->>>>]+<<<<[->>>>-<[-<<<+>>>]<<<[->>>+<\n<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>\n>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>->>[-<<<<+>>>>]<<<<[->>>>+<<[-]<<]>>]<<+>>>>[-<<<<\n->>>>]+<<<<[->>>>-<<<<<<.>>]>>>>[-<<<<<<<.>>>>>>>]<<<[-]>[-]>[-]>[-]>[-]>[-]>>>[\n>[-]>[-]>[-]>[-]>[-]>[-]>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-]>>>>]<<<<<<<<<\n[<<<<<<<<<]>+++++++++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>+>>>>>>>>>+<<<<<<<<\n<<<<<<[<<<<<<<<<]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+[-]>>[>>>>>>>>>]<<<<<\n<<<<[>>>>>>>[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<<<<<<[<<<<<<<<<]>>>>>>>[-]+>>>]<<<<\n<<<<<<]]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+>>[>+>>>>[-<<<<->>>>]<<<<[->>>\n>+<<<<]>>>>>>>>]<<+<<<<<<<[>>>>>[->>+<<]<<<<<<<<<<<<<<]>>>>>>>>>[>>>>>>>>>]<<<<<\n<<<<[>[-]<->>>>>>>[-<<<<<<<+>[<->-<<<+>>>]<[->+<]>>>>>>>]<<<<<<[->>>>>>+<<<<<<]<\n+<<<<<<<<<]>>>>>>>-<<<<[-]+<<<]+>>>>>>>[-<<<<<<<->>>>>>>]+<<<<<<<[->>>>>>>->>[>>\n>>>[->>+<<]>>>>]<<<<<<<<<[>[-]<->>>>>>>[-<<<<<<<+>[<->-<<<+>>>]<[->+<]>>>>>>>]<<\n<<<<[->>>>>>+<<<<<<]<+<<<<<<<<<]>+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>+<<<\n<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-<<<<<->>>>>]+<<<<<[->>>>>->>[-<<<<<<<+>>>>>>>]<<<<\n<<<[->>>>>>>+<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>>>>[-<\n<<<<<<->>>>>>>]+<<<<<<<[->>>>>>>-<<[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<<<<<<<<<[<<<\n<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<\n<<[<<<<<<<<<]>>>>[-]<<<+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>-<<<<<[<<<<<<<\n<<]]>>>]<<<<.>>>>>>>>>>[>>>>>>[-]>>>]<<<<<<<<<[<<<<<<<<<]>++++++++++[-[->>>>>>>>\n>+<<<<<<<<<]>>>>>>>>>]>>>>>+>>>>>>>>>+<<<<<<<<<<<<<<<[<<<<<<<<<]>>>>>>>>[-<<<<<<\n<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+[-]>[>>>>>>>>>]<<<<<<<<<[>>>>>>>>[-<<<<<<<+>>>>>>\n>]<<<<<<<[->>>>>>>+<<<<<<<<[<<<<<<<<<]>>>>>>>>[-]+>>]<<<<<<<<<<]]>>>>>>>>[-<<<<<\n<<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+>[>+>>>>>[-<<<<<->>>>>]<<<<<[->>>>>+<<<<<]>>>>>>\n>>]<+<<<<<<<<[>>>>>>[->>+<<]<<<<<<<<<<<<<<<]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>[-]<-\n>>>>>>>>[-<<<<<<<<+>[<->-<<+>>]<[->+<]>>>>>>>>]<<<<<<<[->>>>>>>+<<<<<<<]<+<<<<<<\n<<<]>>>>>>>>-<<<<<[-]+<<<]+>>>>>>>>[-<<<<<<<<->>>>>>>>]+<<<<<<<<[->>>>>>>>->[>>>\n>>>[->>+<<]>>>]<<<<<<<<<[>[-]<->>>>>>>>[-<<<<<<<<+>[<->-<<+>>]<[->+<]>>>>>>>>]<<\n<<<<<[->>>>>>>+<<<<<<<]<+<<<<<<<<<]>+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>\n+>>>>>>>>>>>>>>>>>>>>>>>>>>>+<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[-<<<<<<->>>>>>]+<\n<<<<<[->>>>>>->>[-<<<<<<<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+<<<<<<<<<<<<<<<<<[<<<<<<<\n<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>>>>>[-<<<<<<<<->>>>>>>>]+<<<<<<<<[->>>>>>>>\n-<<[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>\n>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>[-]<<<++++\n+[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>->>>>>>>>>>>>>>>>>>>>>>>>>>>-<<<<<<[<<<<\n<<<<<]]>>>]");
+    }
+    Examples.LoadBrainfuckMandelbrot = LoadBrainfuckMandelbrot;
+    function LoadBrainfuckHelloWorld() {
+        LoadExample("Hello World Brainfuck Example:\n\n++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.");
+    }
+    Examples.LoadBrainfuckHelloWorld = LoadBrainfuckHelloWorld;
+})(Examples || (Examples = {}));
+var Debugger;
+(function (Debugger) {
+    (function (State) {
+        State[State["Detatched"] = 0] = "Detatched";
+        State[State["Paused"] = 1] = "Paused";
+        State[State["Running"] = 2] = "Running";
+        State[State["Done"] = 3] = "Done";
+    })(Debugger.State || (Debugger.State = {}));
+    var State = Debugger.State;
+    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
+    Debugger.cloneSourceLocation = cloneSourceLocation;
+    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
+    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
+    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
+    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
+    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
+    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
+    var reFileLine = /^(.+)(?:(?:\((\d+)\))|(?:\:(\d+)))$/;
+    function parseSourceLocation(text) {
+        var m = reFileLine.exec(text);
+        if (!m)
+            return null;
+        var file = m[1];
+        var line = parseInt(m[2] || m[3]);
+        return { file: m[1], line: parseInt(m[2] || m[3]), column: 0 };
+    }
+    Debugger.parseSourceLocation = parseSourceLocation;
+    function sourceLocationToString(sl) {
+        var s = sl.file;
+        if (sl.line) {
+            s += "(";
+            s += sl.line.toString();
+            if (sl.column) {
+                s += ",";
+                s += sl.column.toString();
+            }
+            s += ")";
+        }
+        return s;
+    }
+    Debugger.sourceLocationToString = sourceLocationToString;
+})(Debugger || (Debugger = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var AST;
+    (function (AST) {
+        (function (ErrorSeverity) {
+            ErrorSeverity[ErrorSeverity["Verbose"] = 0] = "Verbose";
+            ErrorSeverity[ErrorSeverity["Info"] = 1] = "Info";
+            ErrorSeverity[ErrorSeverity["Warning"] = 2] = "Warning";
+            ErrorSeverity[ErrorSeverity["Error"] = 3] = "Error";
+        })(AST.ErrorSeverity || (AST.ErrorSeverity = {}));
+        var ErrorSeverity = AST.ErrorSeverity;
+    })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var AST;
+    (function (AST) {
+        (function (NodeType) {
+            NodeType[NodeType["AddDataPtr"] = 0] = "AddDataPtr";
+            NodeType[NodeType["AddData"] = 1] = "AddData";
+            NodeType[NodeType["SystemCall"] = 2] = "SystemCall";
+            NodeType[NodeType["Loop"] = 3] = "Loop";
+            NodeType[NodeType["SetData"] = 4] = "SetData";
+            NodeType[NodeType["AddMulData"] = 5] = "AddMulData";
+            NodeType[NodeType["BreakIf"] = 6] = "BreakIf";
+        })(AST.NodeType || (AST.NodeType = {}));
+        var NodeType = AST.NodeType;
+        function nodeToString(node) {
+            return NodeType[node.type] + "(" +
+                "v=" + ((node.value === undefined) ? "0" : node.value.toString()) + "," +
+                "do=" + ((node.dataOffset === undefined) ? "0" : node.dataOffset.toString()) + "," +
+                "sc=" + ((node.systemCall === undefined) ? "?" : AST.SystemCall[node.systemCall]) + ")";
+        }
+        AST.nodeToString = nodeToString;
+        function cloneNode(node) {
+            return {
+                type: node.type,
+                value: node.value,
+                dataOffset: node.dataOffset,
+                systemCall: node.systemCall,
+                childScope: cloneNodes(node.childScope),
+                location: node.location
+            };
+        }
+        AST.cloneNode = cloneNode;
+        function cloneNodes(nodes) {
+            return nodes === undefined ? undefined : nodes.map(function (node) { return cloneNode(node); });
+        }
+        AST.cloneNodes = cloneNodes;
+        function logAst(node, indent) {
+            switch (node.type) {
+                case NodeType.AddDataPtr:
+                    console.log(indent + "data += " + node.value);
+                    break;
+                case NodeType.AddData:
+                    console.log(indent + "data[" + (node.dataOffset | 0) + "] += " + node.value);
+                    break;
+                case NodeType.AddMulData:
+                    console.log(indent + "data[" + (node.dataOffset | 0) + "] += data[0] * " + node.value);
+                    break;
+                case NodeType.SetData:
+                    console.log(indent + "data[" + (node.dataOffset | 0) + "] <- " + node.value);
+                    break;
+                case NodeType.BreakIf:
+                    console.log(indent + "breakIf");
+                    break;
+                case NodeType.SystemCall:
+                    console.log(indent + "syscall " + AST.SystemCall[node.systemCall]);
+                    break;
+                case NodeType.Loop:
+                    console.log(indent + "while (data[" + (node.dataOffset | 0) + "] != 0)");
+                    node.childScope.forEach(function (child) { return logAst(child, indent + "    "); });
+                    break;
+            }
+        }
+        AST.logAst = logAst;
+    })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var AST;
+    (function (AST) {
+        (function (SystemCall) {
+            SystemCall[SystemCall["Break"] = 0] = "Break";
+            SystemCall[SystemCall["Putch"] = 1] = "Putch";
+            SystemCall[SystemCall["Getch"] = 2] = "Getch";
+            SystemCall[SystemCall["TapeEnd"] = 3] = "TapeEnd";
+        })(AST.SystemCall || (AST.SystemCall = {}));
+        var SystemCall = AST.SystemCall;
+    })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var AST;
+    (function (AST) {
+        function defaultOnError(error) {
+            if (!!error.location)
+                console.error("Error:", error.description, "@", error.location.file + "(" + error.location.line + ")");
+            else
+                console.error("Error:", error.description);
+        }
+        function parse(args) {
+            console.assert(!!args, "parse: args is not optional");
+            console.assert(args.code !== undefined, "parse: args.code is not optional");
+            console.assert(args.code !== null, "parse: args.code is not optional");
+            var location = { file: "memory.bf", line: 1, column: 1 };
+            var code = args.code;
+            var _onError = args.onError || defaultOnError;
+            var _root = [];
+            var _scopeStack = [_root];
+            var atLocation = function (tempLocation, action) { var origLocation = location; location = tempLocation; action(); location = origLocation; };
+            var info = function (desc) { return _onError({ severity: AST.ErrorSeverity.Info, description: desc, location: Debugger.cloneSourceLocation(location) }); };
+            var warning = function (desc) { return _onError({ severity: AST.ErrorSeverity.Warning, description: desc, location: Debugger.cloneSourceLocation(location) }); };
+            var error = function (desc) { return _onError({ severity: AST.ErrorSeverity.Error, description: desc, location: Debugger.cloneSourceLocation(location) }); };
+            var scope = function () { return _scopeStack[_scopeStack.length - 1]; };
+            var pushScope = function () { var scope = []; _scopeStack.push(scope); return scope; };
+            var popScope = function () { if (_scopeStack.length == 1)
+                error("Reached end of scope ']', but was already at the root scope!");
+            else
+                _scopeStack.pop(); };
+            for (var codeI = 0; codeI < code.length; ++codeI) {
+                var ch = code[codeI];
+                switch (ch) {
+                    case "<":
+                        scope().push({ type: AST.NodeType.AddDataPtr, value: -1, location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case ">":
+                        scope().push({ type: AST.NodeType.AddDataPtr, value: +1, location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case "+":
+                        scope().push({ type: AST.NodeType.AddData, value: +1, dataOffset: 0, location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case "-":
+                        scope().push({ type: AST.NodeType.AddData, value: -1, dataOffset: 0, location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case ",":
+                        scope().push({ type: AST.NodeType.SystemCall, systemCall: AST.SystemCall.Getch, location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case ".":
+                        scope().push({ type: AST.NodeType.SystemCall, systemCall: AST.SystemCall.Putch, location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case "[":
+                        scope().push({ type: AST.NodeType.Loop, childScope: pushScope(), location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case "]":
+                        popScope();
+                        break;
+                    default: break;
+                }
+                if (ch == "\n") {
+                    ++location.line;
+                    location.column = 1;
+                }
+                else {
+                    ++location.column;
+                }
+            }
+            scope().push({ type: AST.NodeType.SystemCall, systemCall: AST.SystemCall.TapeEnd, location: Debugger.cloneSourceLocation(location) });
+            if (_scopeStack.length > 1) {
+                for (var i = _scopeStack.length - 2; i >= 0; --i) {
+                    var badScopeNode = _scopeStack[i][_scopeStack[i].length - 1];
+                    atLocation(badScopeNode.location, function () { return error("Start of scope '[' not terminated before end of file!"); });
+                }
+                error("Unexpected end of file!");
+                return undefined;
+            }
+            return { ast: _root, optimizedAst: AST.optimize({ ast: AST.cloneNodes(_root), onError: args.onError }) };
+        }
+        AST.parse = parse;
+    })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var AST;
+    (function (AST) {
+        function sign(a) { return a > 0 ? +1 : a < 0 ? -1 : 0; }
+        function singleOptimizations(args) {
+            var changes = false;
+            var ast = args.ast;
+            for (var i = 0; i <= ast.length - 1; ++i) {
+                var a = ast[i + 0];
+                var replace = function () {
+                    var nodes = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        nodes[_i - 0] = arguments[_i];
+                    }
+                    ast.splice.apply(ast, [i, 1].concat(nodes));
+                    --i;
+                    changes = true;
+                };
+                switch (a.type) {
+                    case AST.NodeType.Loop:
+                        if (a.childScope.length === 0) {
+                            replace({ type: AST.NodeType.BreakIf, location: a.location });
+                        }
+                        else if (a.childScope.length === 1) {
+                            var c = a.childScope[0];
+                            switch (c.type) {
+                                case AST.NodeType.AddData:
+                                    if (!!c.dataOffset)
+                                        break;
+                                    if ((c.value & 1) === 0)
+                                        args.onError({ description: "Infinite loop if *data is even, *data = 0 otherwise.  If you just want to set *data = 0, prefer [-] or [+]", location: c.location, severity: AST.ErrorSeverity.Warning });
+                                    replace({ type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: a.location });
+                                    break;
+                                case AST.NodeType.SetData:
+                                    if (!!c.dataOffset)
+                                        break;
+                                    if (c.value !== 0)
+                                        args.onError({ description: "Infinite loop if *data != 0 - prefer [] if intentional", location: c.location, severity: AST.ErrorSeverity.Warning });
+                                    replace({ type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: a.location });
+                                    changes = true;
+                                    break;
+                            }
+                        }
+                        else if (a.childScope.every(function (c) { return c.type === AST.NodeType.AddData; })) {
+                            var data0 = a.childScope.filter(function (c) { return !c.dataOffset; });
+                            var dataNZ = a.childScope.filter(function (c) { return !!c.dataOffset; });
+                            if (data0.length === 1 && data0[0].value === -1) {
+                                var mulNZ = dataNZ.map(function (d) {
+                                    return { type: AST.NodeType.AddMulData, value: d.value, dataOffset: d.dataOffset, location: d.location };
+                                });
+                                var set0 = { type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: data0[0].location };
+                                replace.apply(void 0, mulNZ.concat([set0]));
+                            }
+                        }
+                        break;
+                    case AST.NodeType.AddData:
+                        if (a.value === 0)
+                            replace();
+                        break;
+                    case AST.NodeType.AddDataPtr:
+                        if (a.value === 0)
+                            replace();
+                        break;
+                }
+            }
+            return changes;
+        }
+        function pairOptimizations(args) {
+            var changes = false;
+            var ast = args.ast;
+            for (var i = 0; i <= ast.length - 2; ++i) {
+                var l = ast[i + 0];
+                var r = ast[i + 1];
+                var replace = function () {
+                    var nodes = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        nodes[_i - 0] = arguments[_i];
+                    }
+                    ast.splice.apply(ast, [i, 2].concat(nodes));
+                    --i;
+                    changes = true;
+                };
+                if (l.type === r.type) {
+                    switch (l.type) {
+                        case AST.NodeType.AddDataPtr:
+                            l.value = (l.value + r.value);
+                            replace(l);
+                            break;
+                        case AST.NodeType.AddData:
+                            if ((l.dataOffset | 0) !== (r.dataOffset | 0))
+                                break;
+                            l.value = (l.value + r.value) & 0xFF;
+                            replace(l);
+                            break;
+                    }
+                }
+                else {
+                    if (l.type == AST.NodeType.SetData && r.type == AST.NodeType.AddData && (l.dataOffset | 0) === (r.dataOffset | 0)) {
+                        l.value = (l.value + r.value);
+                        replace(l);
+                    }
+                }
+            }
+            return changes;
+        }
+        function shiftMutsLeft(args) {
+            var changes = false;
+            var ast = args.ast;
+            for (var i = 0; i <= ast.length - 2; ++i) {
+                var l = ast[i + 0];
+                var r = ast[i + 1];
+                var replace = function () {
+                    var nodes = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        nodes[_i - 0] = arguments[_i];
+                    }
+                    ast.splice.apply(ast, [i, 2].concat(nodes));
+                    --i;
+                    changes = true;
+                };
+                if (l.type === AST.NodeType.AddDataPtr) {
+                    switch (r.type) {
+                        case AST.NodeType.AddData:
+                        case AST.NodeType.SetData:
+                            replace({ type: r.type, location: r.location, dataOffset: (r.dataOffset | 0) + l.value, value: r.value }, { type: l.type, location: l.location, dataOffset: l.dataOffset, value: l.value });
+                            break;
+                    }
+                }
+            }
+            return changes;
+        }
+        function triOptimizations(args) {
+            var changes = false;
+            var ast = args.ast;
+            for (var i = 0; i <= ast.length - 3; ++i) {
+                var l = ast[i + 0];
+                var meat = ast[i + 1];
+                var r = ast[i + 2];
+                var replace = function () {
+                    var nodes = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        nodes[_i - 0] = arguments[_i];
+                    }
+                    ast.splice.apply(ast, [i, 3].concat(nodes));
+                    --i;
+                    changes = true;
+                };
+                if (l.type === AST.NodeType.AddDataPtr && r.type === AST.NodeType.AddDataPtr && sign(l.value) !== sign(r.value)) {
+                    var minMag = Math.min(Math.abs(l.value), Math.abs(r.value));
+                    var maxMag = Math.max(Math.abs(l.value), Math.abs(r.value));
+                    var diffMag = maxMag - minMag;
+                    if (l.value === -r.value) {
+                        switch (meat.type) {
+                            case AST.NodeType.SetData:
+                            case AST.NodeType.AddData:
+                                replace({ type: meat.type, location: l.location, dataOffset: l.value + (meat.dataOffset | 0), value: meat.value });
+                                break;
+                        }
+                    }
+                    else if (Math.abs(l.value) > Math.abs(r.value)) {
+                        switch (meat.type) {
+                            case AST.NodeType.SetData:
+                            case AST.NodeType.AddData:
+                                replace({ type: l.type, location: l.location, dataOffset: l.dataOffset, value: sign(l.value) * diffMag }, { type: meat.type, location: l.location, dataOffset: sign(l.value) * minMag + (meat.dataOffset | 0), value: meat.value });
+                                break;
+                        }
+                    }
+                    else if (Math.abs(l.value) < Math.abs(r.value)) {
+                        switch (meat.type) {
+                            case AST.NodeType.SetData:
+                            case AST.NodeType.AddData:
+                                replace({ type: meat.type, location: l.location, dataOffset: sign(l.value) * minMag + (meat.dataOffset | 0), value: meat.value }, { type: r.type, location: r.location, dataOffset: r.dataOffset, value: sign(r.value) * diffMag });
+                                break;
+                        }
+                    }
+                }
+            }
+            return changes;
+        }
+        function optimize(args) {
+            args.ast.forEach(function (node) { if (node.childScope)
+                node.childScope = optimize({ ast: node.childScope, onError: args.onError }); });
+            var optimizations = [pairOptimizations, singleOptimizations, triOptimizations, shiftMutsLeft];
+            for (var optimizeAttempt = 0; optimizeAttempt < 100; ++optimizeAttempt) {
+                if (!optimizations.some(function (o) { return o(args); }))
+                    break;
+            }
+            return args.ast;
+        }
+        AST.optimize = optimize;
+    })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
+})(Brainfuck || (Brainfuck = {}));
 var _brainfuck_vm_global = this;
 var _brainfuck_vm_document = this["document"];
 var Brainfuck;
@@ -18,9 +444,7 @@ var Brainfuck;
                     errors = true; } });
             if (errors)
                 return undefined;
-            //parseResult.optimizedAst.forEach(node => AST.logAst(node,""));
             var program = VmCompiler.compileProgram(parseResult.optimizedAst);
-            //program.ops.forEach((op,addr) => console.log("0x"+("0000"+addr.toString(16)).substr(-4)+"  "+vmOpToPsuedoCode(op)));
             var vm = VmCompiler.createInitState(program);
             var state = Debugger.State.Paused;
             var worker = new Worker("mmide.js");
@@ -71,9 +495,7 @@ var Brainfuck;
                 reply({ desc: "update-vm-data", value: { data: vm.data, codePtr: vm.codePtr, dataPtr: vm.dataPtr, insRan: vm.insRan, runTime: vm.runTime } });
             }
             function tick() {
-                //runSome(vm, 100000); // ? - ~10ms - ~24M/s instructions executed
-                VmCompiler.runSome(vm, 300000); // 5 - ~30ms? - ~68M/s instructions executed - significantly diminishing returns beyond this point
-                //runSome(vm, 500000); // ? - ~50ms? - ~68M/s instructions executed - still seems perfectly responsive FWIW
+                VmCompiler.runSome(vm, 300000);
                 updateVm();
             }
             function onInitMessage(ev) {
@@ -84,7 +506,6 @@ var Brainfuck;
                 vm = ev.data.state;
                 vm.sysCalls[Brainfuck.AST.SystemCall.Break] = function (vm) {
                     var isInjectedBreak = vm.program.ops[vm.codePtr] !== vm.loadedCode[vm.codePtr];
-                    // Pause the VM
                     if (runHandle !== undefined)
                         clearInterval(runHandle);
                     runHandle = undefined;
@@ -137,12 +558,54 @@ var Brainfuck;
                     case "step":
                         VmCompiler.runOne(vm);
                         updateVm();
-                        // no update-state
                         break;
                 }
             }
             addEventListener("message", onInitMessage);
         }
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function createDebugger(code, stdout) {
+            var errors = false;
+            var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
+                    errors = true; } });
+            if (errors)
+                return undefined;
+            var program = VmCompiler.compileProgram(parseResult.optimizedAst);
+            var vm = VmCompiler.createInitState(program);
+            var runHandle = undefined;
+            var doPause = function () { if (runHandle !== undefined)
+                clearInterval(runHandle); runHandle = undefined; };
+            var doContinue = function () { if (runHandle === undefined)
+                runHandle = setInterval(function () { return VmCompiler.runSome(vm, 100000); }, 0); };
+            var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
+            var doStep = function () { return VmCompiler.runOne(vm); };
+            var getMemory = function (start, size) { return vm.data.slice(start, start + size); };
+            var getState = function () {
+                return vm === undefined ? Debugger.State.Detatched
+                    : vm.codePtr >= vm.program.locs.length ? Debugger.State.Done
+                        : runHandle !== undefined ? Debugger.State.Running
+                            : Debugger.State.Paused;
+            };
+            vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { stdout(String.fromCharCode(vm.data[vm.dataPtr])); ++vm.codePtr; return true; };
+            vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { doStop(); return false; };
+            return {
+                symbols: VmCompiler.createSymbolLookup(program),
+                breakpoints: null,
+                state: getState,
+                threads: function () { return VmCompiler.getThreads(vm, code); },
+                memory: getMemory,
+                pause: doPause,
+                continue: doContinue,
+                stop: doStop,
+                step: doStep,
+            };
+        }
+        VmCompiler.createDebugger = createDebugger;
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
 var Brainfuck;
@@ -224,6 +687,27 @@ var Brainfuck;
 (function (Brainfuck) {
     var VmCompiler;
     (function (VmCompiler) {
+        function createInitState(program) {
+            var s = {
+                program: program,
+                loadedCode: program.ops.map(function (op) { return op; }),
+                data: [],
+                codePtr: 0,
+                dataPtr: 0,
+                sysCalls: [],
+                insRan: 0,
+                runTime: 0,
+                wallStart: Date.now()
+            };
+            return s;
+        }
+        VmCompiler.createInitState = createInitState;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
         function lpad(s, padding) { return padding.substr(0, padding.length - s.length) + s; }
         function addr(n) { return lpad(n.toString(16), "0x0000"); }
         function sourceLocationToString(sl) { return !sl ? "unknown" : (sl.file + "(" + lpad(sl.line.toString(), "   ") + ")"); }
@@ -280,7 +764,7 @@ var Brainfuck;
                 return;
             }
             var dst = vm.dataPtr + (op.dataOffset || 0);
-            var src = vm.dataPtr; // no op.dataOffset equivalent for srcs just yet
+            var src = vm.dataPtr;
             switch (op.type) {
                 case VmCompiler.VmOpType.AddDataPtr:
                     vm.dataPtr += op.value;
@@ -310,8 +794,8 @@ var Brainfuck;
                     else
                         ++vm.codePtr;
                     return true;
-                case VmCompiler.VmOpType.SystemCall: return (vm.sysCalls[op.value] || badSysCall)(vm); // NOTE: System call is responsible for codePtr manipulation!
-                default: return badSysCall(vm); // NOTE: System call is responsible for codePtr manipulation!
+                case VmCompiler.VmOpType.SystemCall: return (vm.sysCalls[op.value] || badSysCall)(vm);
+                default: return badSysCall(vm);
             }
         }
         VmCompiler.runOne = runOne;
@@ -325,26 +809,6 @@ var Brainfuck;
             vm.runTime += (tStop - tStart) / 1000;
         }
         VmCompiler.runSome = runSome;
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        function createInitState(program) {
-            return {
-                program: program,
-                loadedCode: program.ops.map(function (op) { return op; }),
-                data: [],
-                codePtr: 0,
-                dataPtr: 0,
-                sysCalls: [],
-                insRan: 0,
-                runTime: 0,
-                wallStart: Date.now()
-            };
-        }
-        VmCompiler.createInitState = createInitState;
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
 var Brainfuck;
@@ -391,7 +855,6 @@ var UI;
 (function (UI) {
     var Breakpoints;
     (function (Breakpoints) {
-        //const log = (m,...a) => console.log(m,...a);
         var log = function (m) {
             var a = [];
             for (var _i = 1; _i < arguments.length; _i++) {
@@ -544,10 +1007,9 @@ var UI;
                 if (breakpointListsAreEqual(breakpoints, newBreakpoints))
                     return;
                 log("Breakpoint lists not equal");
-                // Breakpoints updating!
                 breakpoints = newBreakpoints;
                 ++breakpointsVersion;
-                var editorFileName = "memory.bf"; // XXX
+                var editorFileName = "memory.bf";
                 var list = [];
                 var byLine = [];
                 newBreakpoints.forEach(function (b) {
@@ -564,10 +1026,691 @@ var UI;
                     if (b.enabled)
                         bp.enabled = true;
                 });
-                UI.Editor.setLineBreakpoints(list); // XXX: How OK am I with this kind of direct cross UI module communication?  Should I have a messaging system or something instead?  KISS for now...
+                UI.Editor.setLineBreakpoints(list);
             }, 10);
         });
     })(Breakpoints = UI.Breakpoints || (UI.Breakpoints = {}));
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Debug;
+    (function (Debug) {
+        Debug.prevState = undefined;
+        function setDebugState(state) {
+            if (Debug.prevState == state)
+                return;
+            ITC.sendTo("mmide-debug-state", { newState: state });
+            Debug.prevState = state;
+        }
+        Debug.setDebugState = setDebugState;
+        function toggleClassVisibility(class_, visible) {
+            UI.byClassName(class_).forEach(function (e) { return e.style.display = visible ? "" : "none"; });
+        }
+        addEventListener("load", function (loadEvent) {
+            ITC.listenTo("mmide-debug-state", function (dsc) {
+                var styles = "debug-state-detatched debug-state-done debug-state-running debug-state-paused".split(' ');
+                var visibleStyle = "";
+                switch (dsc.newState) {
+                    case Debugger.State.Detatched:
+                        visibleStyle = "debug-state-detatched";
+                        break;
+                    case Debugger.State.Done:
+                        visibleStyle = "debug-state-done";
+                        break;
+                    case Debugger.State.Running:
+                        visibleStyle = "debug-state-running";
+                        break;
+                    case Debugger.State.Paused:
+                        visibleStyle = "debug-state-paused";
+                        break;
+                }
+                styles.forEach(function (style) { if (style !== visibleStyle)
+                    toggleClassVisibility(style, false); });
+                toggleClassVisibility(visibleStyle, true);
+            });
+        });
+    })(Debug = UI.Debug || (UI.Debug = {}));
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Debug;
+    (function (Debug) {
+        var theDebugger = undefined;
+        function Start(paused) {
+            UI.Output.stdio().clear();
+            var script = UI.Editor.getScript();
+            theDebugger = Brainfuck.VmCompiler.createAsyncDebugger(script, function (stdout) {
+                UI.Output.stdio().write(stdout);
+            });
+            UI.Breakpoints.update(theDebugger);
+            if (!paused)
+                theDebugger.continue();
+            Debug.setDebugState(theDebugger.state());
+        }
+        Debug.Start = Start;
+        function Stop() {
+            theDebugger.stop();
+            theDebugger = undefined;
+            Debug.setDebugState(Debugger.State.Detatched);
+        }
+        Debug.Stop = Stop;
+        function Continue() {
+            theDebugger.continue();
+            Debug.setDebugState(theDebugger.state());
+        }
+        Debug.Continue = Continue;
+        function Step() {
+            theDebugger.step();
+        }
+        Debug.Step = Step;
+        function Pause() {
+            theDebugger.pause();
+            Debug.setDebugState(theDebugger.state());
+        }
+        Debug.Pause = Pause;
+        function Restart(paused) {
+            if (theDebugger !== undefined)
+                Stop();
+            Start(paused);
+        }
+        Debug.Restart = Restart;
+        addEventListener("load", function (e) {
+            if (!UI.Editor.isAvailable())
+                return;
+            if (Debug.prevState === undefined)
+                Debug.setDebugState(Debugger.State.Detatched);
+            setInterval(function () {
+                var thread = theDebugger === undefined ? undefined : theDebugger.threads()[0];
+                var address = thread === undefined ? undefined : thread.currentPos();
+                var sourceLoc = theDebugger === undefined || theDebugger.symbols === undefined ? undefined : theDebugger.symbols.addrToSourceLocation(address);
+                Debug.setDebugState(theDebugger === undefined ? Debugger.State.Detatched : theDebugger.state());
+                UI.Registers.update(theDebugger);
+                UI.Memory.update(theDebugger);
+                UI.Editor.setCurrentPosition(sourceLoc === undefined ? -1 : sourceLoc.line, sourceLoc === undefined ? -1 : sourceLoc.column);
+                UI.Breakpoints.update(theDebugger);
+            }, 10);
+        });
+    })(Debug = UI.Debug || (UI.Debug = {}));
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Editor;
+    (function (Editor) {
+        var _editor = undefined;
+        function editor() {
+            if (_editor === undefined) {
+                if (!UI.byId("editor") || !window["ace"]) {
+                    _editor = null;
+                    return;
+                }
+                _editor = ace.edit("editor");
+                _editor.setTheme("ace/theme/monokai");
+                var session = _editor.getSession();
+                session.setTabSize(4);
+                session.setUseSoftTabs(false);
+            }
+            return _editor;
+        }
+        function isAvailable() {
+            return !!editor();
+        }
+        Editor.isAvailable = isAvailable;
+        function getScript() {
+            var e = editor();
+            return e ? e.getValue() : "";
+        }
+        Editor.getScript = getScript;
+        function setScript(script) {
+            var e = editor();
+            if (e)
+                e.setValue(script);
+        }
+        Editor.setScript = setScript;
+        function setTheme(theme) {
+            var e = editor();
+            if (e)
+                e.setTheme("ace/theme/" + theme.toLowerCase().replace(' ', '_'));
+        }
+        Editor.setTheme = setTheme;
+        function errorToAnnotation(error) {
+            var errorType = "error";
+            switch (error.severity) {
+                case Brainfuck.AST.ErrorSeverity.Verbose:
+                    errorType = "info";
+                    break;
+                case Brainfuck.AST.ErrorSeverity.Info:
+                    errorType = "info";
+                    break;
+                case Brainfuck.AST.ErrorSeverity.Warning:
+                    errorType = "warning";
+                    break;
+                case Brainfuck.AST.ErrorSeverity.Error:
+                    errorType = "error";
+                    break;
+            }
+            var a = {
+                row: error.location.line - 1,
+                column: error.location.column - 1,
+                text: error.description,
+                type: errorType,
+            };
+            return a;
+        }
+        function setErrors(errors) {
+            var e = editor();
+            if (!e)
+                return;
+            var s = e.getSession();
+            var lineErrors = [];
+            errors.forEach(function (error) {
+                if (!error.location || !error.location.line)
+                    return;
+                var le = lineErrors[error.location.line];
+                if (le === undefined)
+                    le = lineErrors[error.location.line] = [];
+                le.push(error);
+            });
+            s.setAnnotations(errors.map(errorToAnnotation).filter(function (a) { return !!a; }));
+        }
+        Editor.setErrors = setErrors;
+        var oldMarker = undefined;
+        var oldLineIndex = -1;
+        var oldColIndex = -1;
+        function setCurrentPosition(lineNo, colNo) {
+            if (colNo === void 0) { colNo = 0; }
+            var newLineIndex = lineNo - 1;
+            var newColIndex = colNo - 1;
+            var lineIndexChanged = oldLineIndex !== newLineIndex;
+            var colIndexChanged = oldColIndex !== newColIndex || lineIndexChanged;
+            var e = editor();
+            if (!e)
+                return;
+            var s = e.getSession();
+            if (lineIndexChanged) {
+                s.removeGutterDecoration(oldLineIndex, "current-line");
+                s.addGutterDecoration(newLineIndex, "current-line");
+            }
+            if (colIndexChanged) {
+                if (oldMarker !== undefined)
+                    s.removeMarker(oldMarker);
+                if (newColIndex != -1) {
+                    var range = s.getAWordRange(newLineIndex, newColIndex);
+                    range.start.column = newColIndex + 0;
+                    range.end.column = newColIndex + 1;
+                    oldMarker = s.addMarker(range, "current-column", "text", false);
+                }
+                else {
+                    oldMarker = undefined;
+                }
+            }
+            oldLineIndex = newLineIndex;
+            oldColIndex = newColIndex;
+        }
+        Editor.setCurrentPosition = setCurrentPosition;
+        function setLineBreakpoints(breakpoints) {
+            var e = editor();
+            if (!e)
+                return;
+            var session = e.getSession();
+            session.clearBreakpoints();
+            breakpoints.forEach(function (bp) { return session.setBreakpoint(bp.line - 1, bp.enabled ? "breakpoint-enabled-line" : "breakpoint-disabled-line"); });
+        }
+        Editor.setLineBreakpoints = setLineBreakpoints;
+        addEventListener("lateLoaded", function (ev) {
+            var ed = editor();
+            if (!ed)
+                return;
+            setInterval(function () { ed.resize(false); }, 100);
+            var errors = [];
+            var lastScript = "";
+            setInterval(function () {
+                var newScript = getScript();
+                if (newScript == lastScript)
+                    return;
+                lastScript = newScript;
+                errors = [];
+                Brainfuck.AST.parse({
+                    code: newScript,
+                    onError: function (e) { return errors.push(e); },
+                });
+                setErrors(errors);
+            }, 100);
+        });
+    })(Editor = UI.Editor || (UI.Editor = {}));
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Memory;
+    (function (Memory) {
+        function collectTableCells(config, memoryBaseAddress, memory) {
+            var table = [];
+            for (var rowI = 0; rowI < config.rows; ++rowI) {
+                var row = [];
+                if (config.showAddress)
+                    appendAddressCell(row, config, rowI, memoryBaseAddress);
+                if (config.showHex)
+                    appendHexCells(row, config, rowI, memory);
+                if (config.showData)
+                    appendDataCells(row, config, rowI, memory);
+                table.push(row);
+            }
+            return table;
+        }
+        Memory.collectTableCells = collectTableCells;
+        function appendAddressCell(rowCells, config, rowI, memoryBaseAddress) {
+            if (config.showAddress) {
+                var a = (memoryBaseAddress + config.colSize * config.cols * rowI).toString(16);
+                var pad = "0x00000000";
+                rowCells.push({ type: "memory-cell-address", display: pad.substr(0, pad.length - a.length) + a, data: a });
+            }
+        }
+        function appendHexCells(rowCells, config, rowI, memory) {
+            for (var colI = 0; colI < config.cols; ++colI) {
+                var cellText = "";
+                for (var byteI = 0; byteI < config.colSize; ++byteI) {
+                    var v = getByte(memory, config, rowI, colI, byteI, config.showLittleEndian);
+                    var sv = v.toString(16);
+                    if (sv.length == 1)
+                        sv = "0" + sv;
+                    cellText += sv;
+                }
+                if (rowCells.length)
+                    rowCells.push({ type: "memory-cell-padding", display: " ", data: " " });
+                rowCells.push({ type: "memory-cell-hex", display: cellText, data: cellText });
+            }
+        }
+        function appendDataCells(rowCells, config, rowI, memory) {
+            if (rowCells.length)
+                rowCells.push({ type: "memory-cell-padding", display: " ", data: " " });
+            for (var colI = 0; colI < config.cols; ++colI) {
+                var offset = config.colSize * (colI + (config.cols * rowI));
+                for (var byteI = 0; byteI < config.colSize; ++byteI) {
+                    var v = getByte(memory, config, rowI, colI, byteI, false);
+                    var cellText = (32 <= v && v < 127) ? String.fromCharCode(v) : ".";
+                    var cellData = String.fromCharCode(v);
+                    rowCells.push({ type: "memory-cell-data", display: cellText, data: cellData });
+                }
+            }
+        }
+        function getByte(memory, config, rowI, colI, byteI, littleEndian) {
+            return memory[(littleEndian ? config.colSize - byteI - 1 : byteI) + config.colSize * (colI + config.cols * rowI)] || 0;
+        }
+    })(Memory = UI.Memory || (UI.Memory = {}));
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Memory;
+    (function (Memory) {
+        function doUpdateTableD3(memoryElement, config, rows) {
+            var d3table = d3.select(memoryElement).select("table");
+            if (d3table.empty()) {
+                memoryElement.innerText = "";
+                d3table = d3.select(memoryElement).append("table").style("border-collapse", "collapse");
+            }
+            var d3rows = d3table.selectAll("tr").data(rows);
+            d3rows.enter().append("tr");
+            d3rows.exit().remove();
+            d3rows.each(function (row) {
+                var rowElement = this;
+                var d3cells = d3.select(rowElement).selectAll("td").data(row);
+                d3cells.exit().remove();
+                var d3NewCells = d3cells.enter().append("td");
+                d3cells.text(function (cellData) { return cellData.display; });
+                if (config.dataChangedDisplay) {
+                    var prevStyle = undefined;
+                    d3cells.each(function (cellData) {
+                        var d3cell = d3.select(this);
+                        var prevMemoryValue = d3cell.attr("data-memory-value");
+                        d3cell.attr("data-memory-value", cellData.data);
+                        var dataChanged = prevMemoryValue !== undefined && prevMemoryValue !== null && prevMemoryValue !== cellData.data;
+                        if (dataChanged)
+                            applyDataChangedTransition(config, d3cell);
+                    });
+                    d3cells.attr("data-memory-value", function (cd) { return cd.data; });
+                }
+            });
+            d3rows.order();
+        }
+        function doUpdateTableD3Hybrid(memoryElement, config, rows) {
+            var d3table = d3.select(memoryElement).select("table");
+            if (d3table.empty()) {
+                memoryElement.innerText = "";
+                d3table = d3.select(memoryElement).append("table").style("border-collapse", "collapse");
+            }
+            var d3rows = d3table.selectAll("tr").data(rows);
+            d3rows.enter().append("tr");
+            d3rows.exit().remove();
+            d3rows.each(function (row) {
+                var rowElement = this;
+                var d3cells = d3.select(rowElement).selectAll("td").data(row);
+                d3cells.exit().remove();
+                d3cells.enter().append("td");
+                d3cells.each(function (cell) {
+                    var cellElement = this;
+                    cellElement.textContent = cell.display;
+                });
+            });
+            d3rows.order();
+        }
+        var htmlEntityMap = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+            '/': '&#x2F;',
+            '`': '&#x60;',
+            '=': '&#x3D;'
+        };
+        function escapeHtml(text) { return String(text).replace(/[&<>"'`=\/]/g, function (fragment) { return htmlEntityMap[fragment]; }); }
+        function doUpdateTableHtml(memoryElement, config, rows) {
+            var html = "";
+            html += "<table style=\"border-collapse: collapse\">\n";
+            rows.forEach(function (row) {
+                html += "\t<tr>";
+                row.forEach(function (cell) {
+                    html += "<td>";
+                    html += escapeHtml(cell.display);
+                    html += "</td>";
+                });
+                html += "</tr>\n";
+            });
+            memoryElement.innerHTML = html;
+        }
+        var prevRows = [];
+        function updateCellChanged(col, row, value) {
+            var prevRow = prevRows[row] = prevRows[row] || [];
+            var changed = prevRow[col] !== value;
+            prevRow[col] = value;
+            return changed;
+        }
+        function doUpdateTableCanvas(memoryElement, config, rows) {
+            var d3canvas = d3.select(memoryElement).select("canvas");
+            if (d3canvas.empty()) {
+                memoryElement.innerText = "";
+                d3canvas = d3.select(memoryElement).append("canvas");
+            }
+            var font = "8pt Consolas, Courier New, Courier, monospace";
+            var canvas = d3canvas[0][0];
+            var context = canvas.getContext("2d");
+            context.font = font;
+            var colWidths = [];
+            rows.forEach(function (row, rowI) {
+                row.forEach(function (cell, cellI) {
+                    var m = context.measureText(cell.display);
+                    colWidths[cellI] = Math.max((colWidths[cellI] | 0), m.width);
+                });
+            });
+            var totalWidth = 0;
+            colWidths.forEach(function (w) { return totalWidth += w; });
+            var rowHeight = 13;
+            var totalHeight = rows.length * rowHeight - 3;
+            canvas.width = canvas.clientWidth = totalWidth;
+            canvas.height = canvas.clientHeight = totalHeight;
+            context = canvas.getContext("2d");
+            context.font = font;
+            context.fillStyle = 'rgba(0,0,0,0.0)';
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            var y = 0;
+            rows.forEach(function (row, rowI) {
+                var x = 0;
+                row.forEach(function (cell, cellI) {
+                    var colWidth = colWidths[cellI];
+                    if (updateCellChanged(cellI, rowI, cell.data)) {
+                        context.fillStyle = '#F66';
+                        context.fillRect(x, y - 1, colWidth, rowHeight);
+                    }
+                    context.fillStyle = '#000';
+                    context.fillText(cell.display, x, y + rowHeight - 3, colWidth);
+                    x += colWidth;
+                });
+                y += rowHeight;
+            });
+        }
+        function doUpdateTableText(memoryElement, config, rows) {
+            var text = "";
+            rows.forEach(function (row) {
+                row.forEach(function (cell) {
+                    text += cell.display;
+                });
+                text += "\n";
+            });
+            memoryElement.innerText = text;
+        }
+        var updateD3TooSlowThreshhold = 30;
+        var updateD3TooSlow = false;
+        function doUpdateTableSmart(memoryElement, config, rows) {
+            if (!updateD3TooSlow) {
+                var s = Date.now();
+                doUpdateTableD3(memoryElement, config, rows);
+                var e = Date.now() - s;
+                if (e >= updateD3TooSlowThreshhold && !updateD3TooSlow) {
+                    console.warn("doUpdateTableD3 took too long (" + e + "ms >= " + updateD3TooSlowThreshhold + "ms) to execute, falling back on doUpdateTableText & doUpdateTableCanvas");
+                    updateD3TooSlow = true;
+                }
+            }
+            else if (config.dataChangedDisplay) {
+                doUpdateTableCanvas(memoryElement, config, rows);
+            }
+            else {
+                doUpdateTableText(memoryElement, config, rows);
+            }
+        }
+        Memory.updateTable = debounce(doUpdateTableSmart, 10);
+        function applyDataChangedTransition(config, d3cell) {
+            var transitionId = "highlight-changed";
+            d3cell.interrupt(transitionId);
+            d3cell.style("background-color", "#F44");
+            switch (config.dataChangedDisplay) {
+                case Memory.DataChangedDisplay.DelayHighlight:
+                    d3cell
+                        .transition(transitionId).delay(30).duration(0).style("background-color", "#FAA")
+                        .transition().delay(30).duration(0).style("background-color", "#ECC")
+                        .transition().delay(30).duration(0).style("background-color", undefined);
+                    break;
+                case Memory.DataChangedDisplay.DurationHighlight:
+                    d3cell
+                        .transition(transitionId).duration(100).style("background-color", "#FAA")
+                        .transition().duration(100).style("background-color", "#DDD")
+                        .transition().style("background-color", undefined);
+                    break;
+            }
+        }
+    })(Memory = UI.Memory || (UI.Memory = {}));
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Memory;
+    (function (Memory) {
+        (function (DataChangedDisplay) {
+            DataChangedDisplay[DataChangedDisplay["None"] = 0] = "None";
+            DataChangedDisplay[DataChangedDisplay["DelayHighlight"] = 1] = "DelayHighlight";
+            DataChangedDisplay[DataChangedDisplay["DurationHighlight"] = 2] = "DurationHighlight";
+        })(Memory.DataChangedDisplay || (Memory.DataChangedDisplay = {}));
+        var DataChangedDisplay = Memory.DataChangedDisplay;
+        function isDataChangedDisplayOK() {
+            return true;
+        }
+        Memory.isDataChangedDisplayOK = isDataChangedDisplayOK;
+        function getMemoryViewConfig(el) {
+            var bool = function (k) { var value = el.dataset[k]; console.assert(value !== undefined && value !== null); return value === "1" || value === "true"; };
+            var string = function (k) { var value = el.dataset[k]; console.assert(value !== undefined && value !== null); return value; };
+            var int = function (k) { var value = parseInt(el.dataset[k]); console.assert(value !== undefined && value !== null && !isNaN(value) && isFinite(value)); return value; };
+            return {
+                baseAddress: int("address"),
+                colSize: int("colSize"),
+                cols: int("cols"),
+                rows: int("rows"),
+                showLittleEndian: bool("littleEndian"),
+                showAddress: bool("showAddress"),
+                showHex: bool("showHex"),
+                showData: bool("showData"),
+                forceChangedDisplay: bool("forceChangedDisplay"),
+                dataChangedDisplay: DataChangedDisplay[string("changedDisplay")],
+            };
+        }
+        Memory.getMemoryViewConfig = getMemoryViewConfig;
+    })(Memory = UI.Memory || (UI.Memory = {}));
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Memory;
+    (function (Memory) {
+        var updatePrefix = "mmide-memory-update-";
+        var listenerPrefix = "mmide-memory-listener-";
+        function getListeners() { return ITC.peekAll(listenerPrefix); }
+        function getUpdates() { return ITC.peekAll(updatePrefix); }
+        function update(localDebugger) {
+            if (!localDebugger)
+                return;
+            getUpdates();
+            getListeners().forEach(function (req) {
+                var response = {
+                    baseAddress: req.baseAddress,
+                    data: localDebugger.memory(req.baseAddress, req.size),
+                };
+                ITC.sendTo(req.responseKey, response);
+            });
+        }
+        Memory.update = update;
+        function sendUpdateRequest() {
+            ITC.sendToByClassName("memory", listenerPrefix, function (args) {
+                var config = Memory.getMemoryViewConfig(args.element);
+                var listenNotice = {
+                    baseAddress: config.baseAddress,
+                    size: config.cols * config.rows * config.colSize,
+                    responseKey: updatePrefix + args.itcKey,
+                };
+                return listenNotice;
+            });
+        }
+        addEventListener("load", function (ev) {
+            ITC.listenToByClassName("memory", updatePrefix, function (ev) {
+                var config = Memory.getMemoryViewConfig(ev.element);
+                var table = Memory.collectTableCells(config, ev.header.baseAddress, ev.header.data);
+                Memory.updateTable(ev.element, config, table);
+            });
+            sendUpdateRequest();
+            setInterval(sendUpdateRequest, 1000);
+        });
+    })(Memory = UI.Memory || (UI.Memory = {}));
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Output;
+    (function (Output) {
+        var maxCol = 180;
+        var NamedOutput = (function () {
+            function NamedOutput(postfix) {
+                var className = this.className = "output-" + postfix;
+                var itcKey = this.itcKey = "mmide-output-" + postfix;
+                this.col = 0;
+                this.buffer = "";
+                this.lineBuffer = "";
+                this.dirty = false;
+                this.animated = false;
+                ITC.listenTo(itcKey, function (ev) { return UI.byClassName(className).forEach(function (el) {
+                    el.textContent = ev.buffer;
+                }); });
+            }
+            NamedOutput.prototype.doSend = function () {
+                var nextEol = this.lineBuffer.indexOf("\n");
+                while (nextEol != -1) {
+                    while (nextEol > maxCol) {
+                        this.buffer += this.lineBuffer.substr(0, maxCol) + "\n";
+                        this.lineBuffer = this.lineBuffer.substr(maxCol);
+                        nextEol -= maxCol;
+                    }
+                    this.buffer += this.lineBuffer.substr(0, nextEol) + "\n";
+                    this.lineBuffer = this.lineBuffer.substr(nextEol + 1);
+                    nextEol = this.lineBuffer.indexOf("\n");
+                }
+                while (this.lineBuffer.length > maxCol) {
+                    this.buffer += this.lineBuffer.substr(0, maxCol) + "\n";
+                    this.lineBuffer = this.lineBuffer.substr(maxCol);
+                }
+                ITC.sendTo(this.itcKey, { buffer: this.buffer + this.lineBuffer });
+            };
+            NamedOutput.prototype.perFrame = function () {
+                var _this = this;
+                requestAnimationFrame(function () { return _this.perFrame(); });
+                if (this.dirty)
+                    this.doSend();
+                this.dirty = false;
+            };
+            NamedOutput.prototype.kickoffSend = function () {
+                var _this = this;
+                this.dirty = true;
+                if (this.animated)
+                    return;
+                this.animated = true;
+                requestAnimationFrame(function () { return _this.perFrame(); });
+                setInterval(function () { return _this.kickoffSend(); }, 1000);
+            };
+            NamedOutput.prototype.clear = function () {
+                this.buffer = this.lineBuffer = "";
+                this.kickoffSend();
+            };
+            NamedOutput.prototype.write = function (data) {
+                if (this.buffer.length + this.lineBuffer.length >= 1000000)
+                    return;
+                this.lineBuffer += data;
+                this.kickoffSend();
+            };
+            return NamedOutput;
+        })();
+        Output.NamedOutput = NamedOutput;
+        function lazyishNamedOutput(id) {
+            var no = undefined;
+            var callback = function () { if (!no)
+                no = new NamedOutput(id); return no; };
+            addEventListener("load", callback);
+            return callback;
+        }
+        Output.stdio = lazyishNamedOutput("stdio");
+    })(Output = UI.Output || (UI.Output = {}));
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Registers;
+    (function (Registers) {
+        var log = function (m) {
+            var a = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                a[_i - 1] = arguments[_i];
+            }
+        };
+        function update(localDebugger) {
+            if (!localDebugger)
+                return;
+            var registers = localDebugger.threads()[0].registers();
+            if (!registers)
+                return;
+            var msg = { registers: registers };
+            log("Sending registers...");
+            ITC.sendTo("mmide-registers", msg);
+        }
+        Registers.update = update;
+        addEventListener("load", function (loadEvent) { return ITC.listenTo("mmide-registers", function (update) {
+            log("Recieving registers...");
+            var els = UI.byClassName("registers");
+            if (!els)
+                return;
+            log("Elements to update...");
+            var registers = update.registers;
+            var flat = "";
+            var lpad = "";
+            var rpad = "                 ";
+            registers.forEach(function (reg) {
+                if (!reg[1])
+                    flat += reg[0] + "\n";
+                else
+                    flat += reg[0] + lpad.substring(reg[0].length) + " := " + rpad.substring(reg[1].length) + reg[1] + "\n";
+            });
+            flat = flat.substr(0, flat.length - 1);
+            els.forEach(function (el) { return el.textContent = flat; });
+        }); });
+    })(Registers = UI.Registers || (UI.Registers = {}));
 })(UI || (UI = {}));
 function debounce(callback, waitMS) {
     var _this = this;
@@ -587,37 +1730,14 @@ function debounce(callback, waitMS) {
     };
     return wrapped;
 }
-var Examples;
-(function (Examples) {
-    function LoadExample(example) {
-        UI.Editor.setScript(example);
-    }
-    addEventListener("load", function (e) {
-        if (UI.Editor.isAvailable()) {
-            LoadBrainfuckMandelbrot();
-            UI.Debug.Start(false);
-        }
-    });
-    function LoadBrainfuckMandelbrot() {
-        LoadExample("Mandelbrot Set Brainfuck Example:\n\n+++++++++++++[->++>>>+++++>++>+<<<<<<]>>>>>++++++>--->>>>>>>>>>+++++++++++++++[[\n>>>>>>>>>]+[<<<<<<<<<]>>>>>>>>>-]+[>>>>>>>>[-]>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>[-]+\n<<<<<<<+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>>+>>>>>>>>>>>>>>>>>>>>>>>>>>\n>+<<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+[>>>>>>[>>>>>>>[-]>>]<<<<<<<<<[<<<<<<<<<]>>\n>>>>>[-]+<<<<<<++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>+<<<<<<+++++++[-[->>>\n>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>+<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[[-]>>>>>>[>>>>>\n>>[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>\n[>>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<\n<<]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]>>>>>>>>>+++++++++++++++[[\n>>>>>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[\n>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>[\n-<<+>>]<<[->>+>>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<\n<<[>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<\n[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>\n>>>>[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+\n<<<<<<[->>>[-<<<+>>>]<<<[->>>+>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>\n>>>>>>>]<<<<<<<<<[>>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<<]>>[->>>>>>>>>+<<<<<<<<<]<<\n+>>>>>>>>]<<<<<<<<<[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<\n<]<+<<<<<<<<<]>>>>>>>>>[>>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>\n>>>>>>>>>>>>>>>>>>>>>>>]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>\n>>>>>]<<<<<<<<<-<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+>>>>>>>>>>>>>>>>>>>>>+<<<[<<<<<<\n<<<]>>>>>>>>>[>>>[-<<<->>>]+<<<[->>>->[-<<<<+>>>>]<<<<[->>>>+<<<<<<<<<<<<<[<<<<<\n<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>[-<<<<->>>>]+<<<<[->>>>-<[-<<<+>>>]<<<[->\n>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<\n<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]<<<<<<<[->+>>>-<<<<]>>>>>>>>>+++++++++++++++++++\n+++++++>>[-<<<<+>>>>]<<<<[->>>>+<<[-]<<]>>[<<<<<<<+<[-<+>>>>+<<[-]]>[-<<[->+>>>-\n<<<<]>>>]>>>>>>>>>>>>>[>>[-]>[-]>[-]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-]>>>>>>[>>>>>\n[-<<<<+>>>>]<<<<[->>>>+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>[-<<<<<<<<\n<+>>>>>>>>>]>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>>>>>>]+>[-\n]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>+>>>>>>>>]<<<\n<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<[->>[-<<+>>]<\n<[->>+>+<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>[->>>>\n>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-]<->>>\n[-<<<+>[<->-<<<<<<<+>>>>>>>]<[->+<]>>>]<<[->>+<<]<+<<<<<<<<<]>>>>>>>>>[>>>>>>[-<\n<<<<+>>>>>]<<<<<[->>>>>+<<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>+>>>>>>>>\n]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<[->>[-<<+\n>>]<<[->>+>>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>\n[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-\n]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>>>>>\n[>>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>]>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>++++++++\n+++++++[[>>>>>>>>>]<<<<<<<<<-<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>>>>>>>>[-<<<<<<<+\n>>>>>>>]<<<<<<<[->>>>>>>+<<<<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[\n-]>>>]<<<<<<<<<[<<<<<<<<<]>>>>+>[-<-<<<<+>>>>>]>[-<<<<<<[->>>>>+<++<<<<]>>>>>[-<\n<<<<+>>>>>]<->+>]<[->+<]<<<<<[->>>>>+<<<<<]>>>>>>[-]<<<<<<+>>>>[-<<<<->>>>]+<<<<\n[->>>>->>>>>[>>[-<<->>]+<<[->>->[-<<<+>>>]<<<[->>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]\n+>>>>>>[>>>>>>>>>]>+<]]+>>>[-<<<->>>]+<<<[->>>-<[-<<+>>]<<[->>+<<<<<<<<<<<[<<<<<\n<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<\n[<<<<<<<<<]>>>>[-<<<<+>>>>]<<<<[->>>>+>>>>>[>+>>[-<<->>]<<[->>+<<]>>>>>>>>]<<<<<\n<<<+<[>[->>>>>+<<<<[->>>>-<<<<<<<<<<<<<<+>>>>>>>>>>>[->>>+<<<]<]>[->>>-<<<<<<<<<\n<<<<<+>>>>>>>>>>>]<<]>[->>>>+<<<[->>>-<<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>>+<<<]<<\n<<<<<<<<<<]>>>>[-]<<<<]>>>[-<<<+>>>]<<<[->>>+>>>>>>[>+>[-<->]<[->+<]>>>>>>>>]<<<\n<<<<<+<[>[->>>>>+<<<[->>>-<<<<<<<<<<<<<<+>>>>>>>>>>[->>>>+<<<<]>]<[->>>>-<<<<<<<\n<<<<<<<+>>>>>>>>>>]<]>>[->>>+<<<<[->>>>-<<<<<<<<<<<<<<+>>>>>>>>>>]>]<[->>>>+<<<<\n]<<<<<<<<<<<]>>>>>>+<<<<<<]]>>>>[-<<<<+>>>>]<<<<[->>>>+>>>>>[>>>>>>>>>]<<<<<<<<<\n[>[->>>>>+<<<<[->>>>-<<<<<<<<<<<<<<+>>>>>>>>>>>[->>>+<<<]<]>[->>>-<<<<<<<<<<<<<<\n+>>>>>>>>>>>]<<]>[->>>>+<<<[->>>-<<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>>+<<<]<<<<<<<\n<<<<<]]>[-]>>[-]>[-]>>>>>[>>[-]>[-]>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-<\n<<<+>>>>]<<<<[->>>>+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[\n[>>>>>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+\n[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>\n[-<<+>>]<<[->>+>+<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<\n<[>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[\n>[-]<->>>[-<<<+>[<->-<<<<<<<+>>>>>>>]<[->+<]>>>]<<[->>+<<]<+<<<<<<<<<]>>>>>>>>>[\n>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>]>\n>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>[-]>>>>+++++++++++++++[[>>>>>>>>>]<<<<<<<<<-<<<<<\n<<<<[<<<<<<<<<]>>>>>>>>>-]+[>>>[-<<<->>>]+<<<[->>>->[-<<<<+>>>>]<<<<[->>>>+<<<<<\n<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>[-<<<<->>>>]+<<<<[->>>>-<[-\n<<<+>>>]<<<[->>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>\n>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-<<<+>>>]<<<[->>>+>>>>>>[>+>>>\n[-<<<->>>]<<<[->>>+<<<]>>>>>>>>]<<<<<<<<+<[>[->+>[-<-<<<<<<<<<<+>>>>>>>>>>>>[-<<\n+>>]<]>[-<<-<<<<<<<<<<+>>>>>>>>>>>>]<<<]>>[-<+>>[-<<-<<<<<<<<<<+>>>>>>>>>>>>]<]>\n[-<<+>>]<<<<<<<<<<<<<]]>>>>[-<<<<+>>>>]<<<<[->>>>+>>>>>[>+>>[-<<->>]<<[->>+<<]>>\n>>>>>>]<<<<<<<<+<[>[->+>>[-<<-<<<<<<<<<<+>>>>>>>>>>>[-<+>]>]<[-<-<<<<<<<<<<+>>>>\n>>>>>>>]<<]>>>[-<<+>[-<-<<<<<<<<<<+>>>>>>>>>>>]>]<[-<+>]<<<<<<<<<<<<]>>>>>+<<<<<\n]>>>>>>>>>[>>>[-]>[-]>[-]>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-]>[-]>>>>>[>>>>>>>[-<<<<<\n<+>>>>>>]<<<<<<[->>>>>>+<<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>+>[-<-<<<<+>>>>\n>]>>[-<<<<<<<[->>>>>+<++<<<<]>>>>>[-<<<<<+>>>>>]<->+>>]<<[->>+<<]<<<<<[->>>>>+<<\n<<<]+>>>>[-<<<<->>>>]+<<<<[->>>>->>>>>[>>>[-<<<->>>]+<<<[->>>-<[-<<+>>]<<[->>+<<\n<<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>[-<<->>]+<<[->>->[-<<<+>>>]<\n<<[->>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<\n<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-<<<+>>>]<<<[->>>+>>>>>>[>+>[-<->]<[->+\n<]>>>>>>>>]<<<<<<<<+<[>[->>>>+<<[->>-<<<<<<<<<<<<<+>>>>>>>>>>[->>>+<<<]>]<[->>>-\n<<<<<<<<<<<<<+>>>>>>>>>>]<]>>[->>+<<<[->>>-<<<<<<<<<<<<<+>>>>>>>>>>]>]<[->>>+<<<\n]<<<<<<<<<<<]>>>>>[-]>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]]>>>>[-<<<<+>\n>>>]<<<<[->>>>+>>>>>[>+>>[-<<->>]<<[->>+<<]>>>>>>>>]<<<<<<<<+<[>[->>>>+<<<[->>>-\n<<<<<<<<<<<<<+>>>>>>>>>>>[->>+<<]<]>[->>-<<<<<<<<<<<<<+>>>>>>>>>>>]<<]>[->>>+<<[\n->>-<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>+<<]<<<<<<<<<<<<]]>>>>[-]<<<<]>>>>[-<<<<+>>\n>>]<<<<[->>>>+>[-]>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]>>>>>>>>>[>>>>>>\n>>>]<<<<<<<<<[>[->>>>+<<<[->>>-<<<<<<<<<<<<<+>>>>>>>>>>>[->>+<<]<]>[->>-<<<<<<<<\n<<<<<+>>>>>>>>>>>]<<]>[->>>+<<[->>-<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>+<<]<<<<<<<<\n<<<<]]>>>>>>>>>[>>[-]>[-]>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-]>[-]>>>>>[>>>>>[-<<<<+\n>>>>]<<<<[->>>>+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[-<<<<<+>>>>>\n]<<<<<[->>>>>+<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>\n>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>+>>\n>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>[-<<+\n>>]<<[->>+>>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>\n[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-\n]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>>>>>\n[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<\n<<[->>>[-<<<+>>>]<<<[->>>+>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>\n>>>]<<<<<<<<<[>>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<<]>>[->>>>>>>>>+<<<<<<<<<]<<+>>>\n>>>>>]<<<<<<<<<[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+\n<<<<<<<<<]>>>>>>>>>[>>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>>\n>>>>>>>>>>>>>>>>>>>]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>>>>>\n>]<<<<<<<<<-<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+>>>>>>>>>>>>>>>>>>>>>+<<<[<<<<<<<<<]\n>>>>>>>>>[>>>[-<<<->>>]+<<<[->>>->[-<<<<+>>>>]<<<<[->>>>+<<<<<<<<<<<<<[<<<<<<<<<\n]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>[-<<<<->>>>]+<<<<[->>>>-<[-<<<+>>>]<<<[->>>+<\n<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>\n>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>->>[-<<<<+>>>>]<<<<[->>>>+<<[-]<<]>>]<<+>>>>[-<<<<\n->>>>]+<<<<[->>>>-<<<<<<.>>]>>>>[-<<<<<<<.>>>>>>>]<<<[-]>[-]>[-]>[-]>[-]>[-]>>>[\n>[-]>[-]>[-]>[-]>[-]>[-]>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-]>>>>]<<<<<<<<<\n[<<<<<<<<<]>+++++++++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>+>>>>>>>>>+<<<<<<<<\n<<<<<<[<<<<<<<<<]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+[-]>>[>>>>>>>>>]<<<<<\n<<<<[>>>>>>>[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<<<<<<[<<<<<<<<<]>>>>>>>[-]+>>>]<<<<\n<<<<<<]]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+>>[>+>>>>[-<<<<->>>>]<<<<[->>>\n>+<<<<]>>>>>>>>]<<+<<<<<<<[>>>>>[->>+<<]<<<<<<<<<<<<<<]>>>>>>>>>[>>>>>>>>>]<<<<<\n<<<<[>[-]<->>>>>>>[-<<<<<<<+>[<->-<<<+>>>]<[->+<]>>>>>>>]<<<<<<[->>>>>>+<<<<<<]<\n+<<<<<<<<<]>>>>>>>-<<<<[-]+<<<]+>>>>>>>[-<<<<<<<->>>>>>>]+<<<<<<<[->>>>>>>->>[>>\n>>>[->>+<<]>>>>]<<<<<<<<<[>[-]<->>>>>>>[-<<<<<<<+>[<->-<<<+>>>]<[->+<]>>>>>>>]<<\n<<<<[->>>>>>+<<<<<<]<+<<<<<<<<<]>+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>+<<<\n<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-<<<<<->>>>>]+<<<<<[->>>>>->>[-<<<<<<<+>>>>>>>]<<<<\n<<<[->>>>>>>+<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>>>>[-<\n<<<<<<->>>>>>>]+<<<<<<<[->>>>>>>-<<[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<<<<<<<<<[<<<\n<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<\n<<[<<<<<<<<<]>>>>[-]<<<+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>-<<<<<[<<<<<<<\n<<]]>>>]<<<<.>>>>>>>>>>[>>>>>>[-]>>>]<<<<<<<<<[<<<<<<<<<]>++++++++++[-[->>>>>>>>\n>+<<<<<<<<<]>>>>>>>>>]>>>>>+>>>>>>>>>+<<<<<<<<<<<<<<<[<<<<<<<<<]>>>>>>>>[-<<<<<<\n<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+[-]>[>>>>>>>>>]<<<<<<<<<[>>>>>>>>[-<<<<<<<+>>>>>>\n>]<<<<<<<[->>>>>>>+<<<<<<<<[<<<<<<<<<]>>>>>>>>[-]+>>]<<<<<<<<<<]]>>>>>>>>[-<<<<<\n<<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+>[>+>>>>>[-<<<<<->>>>>]<<<<<[->>>>>+<<<<<]>>>>>>\n>>]<+<<<<<<<<[>>>>>>[->>+<<]<<<<<<<<<<<<<<<]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>[-]<-\n>>>>>>>>[-<<<<<<<<+>[<->-<<+>>]<[->+<]>>>>>>>>]<<<<<<<[->>>>>>>+<<<<<<<]<+<<<<<<\n<<<]>>>>>>>>-<<<<<[-]+<<<]+>>>>>>>>[-<<<<<<<<->>>>>>>>]+<<<<<<<<[->>>>>>>>->[>>>\n>>>[->>+<<]>>>]<<<<<<<<<[>[-]<->>>>>>>>[-<<<<<<<<+>[<->-<<+>>]<[->+<]>>>>>>>>]<<\n<<<<<[->>>>>>>+<<<<<<<]<+<<<<<<<<<]>+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>\n+>>>>>>>>>>>>>>>>>>>>>>>>>>>+<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[-<<<<<<->>>>>>]+<\n<<<<<[->>>>>>->>[-<<<<<<<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+<<<<<<<<<<<<<<<<<[<<<<<<<\n<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>>>>>[-<<<<<<<<->>>>>>>>]+<<<<<<<<[->>>>>>>>\n-<<[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>\n>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>[-]<<<++++\n+[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>->>>>>>>>>>>>>>>>>>>>>>>>>>>-<<<<<<[<<<<\n<<<<<]]>>>]");
-    }
-    Examples.LoadBrainfuckMandelbrot = LoadBrainfuckMandelbrot;
-    function LoadBrainfuckHelloWorld() {
-        LoadExample("Hello World Brainfuck Example:\n\n++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.");
-    }
-    Examples.LoadBrainfuckHelloWorld = LoadBrainfuckHelloWorld;
-})(Examples || (Examples = {}));
 addEventListener("load", function () {
-    // 5 seconds after load, trigger "lateLoaded"
     setTimeout(function () {
         dispatchEvent(new CustomEvent("lateLoaded"));
     }, 2000);
 });
-// Intra-tab communications
 var _itc_root = this;
 var ITC;
 (function (ITC) {
-    //const log = (m, ...a) => {};
     var log = function (m) {
         var a = [];
         for (var _i = 1; _i < arguments.length; _i++) {
@@ -641,7 +1761,7 @@ var ITC;
                 continue;
             var header = JSON.parse(localStorage.getItem(key));
             if (Math.abs(header._itc_last_updated - now) > 3000) {
-                localStorage.removeItem(key); // Timeout
+                localStorage.removeItem(key);
                 log(key, "timed out and removed");
             }
             else {
@@ -654,7 +1774,6 @@ var ITC;
             setInterval(function () { return cullHeaders(); }, 10000);
         });
     }
-    // TODO: Make culling automatic on sendToByClassName and listenToByClassName to reduce the chance of accidental leaks
     function peekAll(prefix) {
         prefix = tabSessionId + "-" + prefix;
         var now = Date.now();
@@ -737,1200 +1856,6 @@ var ITC;
         local(JSON.parse(ev.newValue));
     });
 })(ITC || (ITC = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var AST;
-    (function (AST) {
-        (function (NodeType) {
-            NodeType[NodeType["AddDataPtr"] = 0] = "AddDataPtr";
-            NodeType[NodeType["AddData"] = 1] = "AddData";
-            NodeType[NodeType["SystemCall"] = 2] = "SystemCall";
-            NodeType[NodeType["Loop"] = 3] = "Loop";
-            // Psuedo-nodes generated by optimizer
-            NodeType[NodeType["SetData"] = 4] = "SetData";
-            NodeType[NodeType["AddMulData"] = 5] = "AddMulData";
-            NodeType[NodeType["BreakIf"] = 6] = "BreakIf";
-        })(AST.NodeType || (AST.NodeType = {}));
-        var NodeType = AST.NodeType;
-        (function (SystemCall) {
-            SystemCall[SystemCall["Break"] = 0] = "Break";
-            SystemCall[SystemCall["Putch"] = 1] = "Putch";
-            SystemCall[SystemCall["Getch"] = 2] = "Getch";
-            SystemCall[SystemCall["TapeEnd"] = 3] = "TapeEnd";
-        })(AST.SystemCall || (AST.SystemCall = {}));
-        var SystemCall = AST.SystemCall;
-        function nodeToString(node) {
-            return NodeType[node.type] + "(" +
-                "v=" + ((node.value === undefined) ? "0" : node.value.toString()) + "," +
-                "do=" + ((node.dataOffset === undefined) ? "0" : node.dataOffset.toString()) + "," +
-                "sc=" + ((node.systemCall === undefined) ? "?" : SystemCall[node.systemCall]) + ")";
-        }
-        AST.nodeToString = nodeToString;
-        ;
-        function logAst(node, indent) {
-            switch (node.type) {
-                case NodeType.AddDataPtr:
-                    console.log(indent + "data += " + node.value);
-                    break;
-                case NodeType.AddData:
-                    console.log(indent + "data[" + (node.dataOffset | 0) + "] += " + node.value);
-                    break;
-                case NodeType.AddMulData:
-                    console.log(indent + "data[" + (node.dataOffset | 0) + "] += data[0] * " + node.value);
-                    break;
-                case NodeType.SetData:
-                    console.log(indent + "data[" + (node.dataOffset | 0) + "] <- " + node.value);
-                    break;
-                case NodeType.BreakIf:
-                    console.log(indent + "breakIf");
-                    break;
-                case NodeType.SystemCall:
-                    console.log(indent + "syscall " + SystemCall[node.systemCall]);
-                    break;
-                case NodeType.Loop:
-                    console.log(indent + "while (data[" + (node.dataOffset | 0) + "] != 0)");
-                    node.childScope.forEach(function (child) { return logAst(child, indent + "    "); });
-                    break;
-            }
-        }
-        AST.logAst = logAst;
-        function cloneNode(node) {
-            return {
-                type: node.type,
-                value: node.value,
-                dataOffset: node.dataOffset,
-                systemCall: node.systemCall,
-                childScope: cloneNodes(node.childScope),
-                location: node.location
-            };
-        }
-        function cloneNodes(nodes) { return nodes === undefined ? undefined : nodes.map(function (node) { return cloneNode(node); }); }
-        (function (ErrorSeverity) {
-            ErrorSeverity[ErrorSeverity["Verbose"] = 0] = "Verbose";
-            ErrorSeverity[ErrorSeverity["Info"] = 1] = "Info";
-            ErrorSeverity[ErrorSeverity["Warning"] = 2] = "Warning";
-            ErrorSeverity[ErrorSeverity["Error"] = 3] = "Error";
-        })(AST.ErrorSeverity || (AST.ErrorSeverity = {}));
-        var ErrorSeverity = AST.ErrorSeverity;
-        function defaultOnError(error) {
-            if (!!error.location)
-                console.error("Error:", error.description, "@", error.location.file + "(" + error.location.line + ")");
-            else
-                console.error("Error:", error.description);
-        }
-        function parse(args) {
-            // Preconditions
-            console.assert(!!args, "parse: args is not optional");
-            console.assert(args.code !== undefined, "parse: args.code is not optional");
-            console.assert(args.code !== null, "parse: args.code is not optional");
-            // Context
-            var location = { file: "memory.bf", line: 1, column: 1 };
-            var code = args.code;
-            var _onError = args.onError || defaultOnError; // Prefer softError/fatalError
-            var _root = []; // You probably want scope
-            var _scopeStack = [_root]; // Prefer scope/pushScope/popScope
-            var atLocation = function (tempLocation, action) { var origLocation = location; location = tempLocation; action(); location = origLocation; };
-            // Utils
-            var info = function (desc) { return _onError({ severity: ErrorSeverity.Info, description: desc, location: Debugger.cloneSourceLocation(location) }); };
-            var warning = function (desc) { return _onError({ severity: ErrorSeverity.Warning, description: desc, location: Debugger.cloneSourceLocation(location) }); };
-            var error = function (desc) { return _onError({ severity: ErrorSeverity.Error, description: desc, location: Debugger.cloneSourceLocation(location) }); };
-            var scope = function () { return _scopeStack[_scopeStack.length - 1]; };
-            var pushScope = function () { var scope = []; _scopeStack.push(scope); return scope; };
-            var popScope = function () { if (_scopeStack.length == 1)
-                error("Reached end of scope ']', but was already at the root scope!");
-            else
-                _scopeStack.pop(); };
-            for (var codeI = 0; codeI < code.length; ++codeI) {
-                var ch = code[codeI];
-                switch (ch) {
-                    case "<":
-                        scope().push({ type: NodeType.AddDataPtr, value: -1, location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case ">":
-                        scope().push({ type: NodeType.AddDataPtr, value: +1, location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case "+":
-                        scope().push({ type: NodeType.AddData, value: +1, dataOffset: 0, location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case "-":
-                        scope().push({ type: NodeType.AddData, value: -1, dataOffset: 0, location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case ",":
-                        scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Getch, location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case ".":
-                        scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.Putch, location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case "[":
-                        scope().push({ type: NodeType.Loop, childScope: pushScope(), location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case "]":
-                        popScope();
-                        break;
-                    default: break;
-                }
-                //++location.byte;
-                if (ch == "\n") {
-                    ++location.line;
-                    location.column = 1;
-                }
-                else {
-                    ++location.column;
-                }
-            }
-            scope().push({ type: NodeType.SystemCall, systemCall: SystemCall.TapeEnd, location: Debugger.cloneSourceLocation(location) });
-            if (_scopeStack.length > 1) {
-                for (var i = _scopeStack.length - 2; i >= 0; --i) {
-                    var badScopeNode = _scopeStack[i][_scopeStack[i].length - 1];
-                    atLocation(badScopeNode.location, function () { return error("Start of scope '[' not terminated before end of file!"); });
-                }
-                error("Unexpected end of file!");
-                return undefined;
-            }
-            return { ast: _root, optimizedAst: AST.optimize({ ast: cloneNodes(_root), onError: args.onError }) };
-        }
-        AST.parse = parse;
-    })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var AST;
-    (function (AST) {
-        function sign(a) { return a > 0 ? +1 : a < 0 ? -1 : 0; }
-        // Optimize [..., a, ...]
-        function singleOptimizations(args) {
-            var changes = false;
-            var ast = args.ast;
-            for (var i = 0; i <= ast.length - 1; ++i) {
-                var a = ast[i + 0];
-                var replace = function () {
-                    var nodes = [];
-                    for (var _i = 0; _i < arguments.length; _i++) {
-                        nodes[_i - 0] = arguments[_i];
-                    }
-                    ast.splice.apply(ast, [i, 1].concat(nodes));
-                    --i;
-                    changes = true;
-                };
-                // Single-op loop optimizations
-                switch (a.type) {
-                    case AST.NodeType.Loop:
-                        if (a.childScope.length === 0) {
-                            replace({ type: AST.NodeType.BreakIf, location: a.location });
-                        }
-                        else if (a.childScope.length === 1) {
-                            var c = a.childScope[0];
-                            switch (c.type) {
-                                case AST.NodeType.AddData:
-                                    if (!!c.dataOffset)
-                                        break;
-                                    if ((c.value & 1) === 0)
-                                        args.onError({ description: "Infinite loop if *data is even, *data = 0 otherwise.  If you just want to set *data = 0, prefer [-] or [+]", location: c.location, severity: AST.ErrorSeverity.Warning });
-                                    replace({ type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: a.location });
-                                    break;
-                                case AST.NodeType.SetData:
-                                    if (!!c.dataOffset)
-                                        break;
-                                    if (c.value !== 0)
-                                        args.onError({ description: "Infinite loop if *data != 0 - prefer [] if intentional", location: c.location, severity: AST.ErrorSeverity.Warning });
-                                    replace({ type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: a.location });
-                                    changes = true;
-                                    break;
-                            }
-                        }
-                        else if (a.childScope.every(function (c) { return c.type === AST.NodeType.AddData; })) {
-                            // Optimize this common pattern:
-                            // while (data[0] != 0)
-                            //		data[0] += -1
-                            //		data[1] += 2
-                            //		data[4] += 5
-                            //		data[5] += 2
-                            //		data[6] += 1
-                            var data0 = a.childScope.filter(function (c) { return !c.dataOffset; });
-                            var dataNZ = a.childScope.filter(function (c) { return !!c.dataOffset; });
-                            if (data0.length === 1 && data0[0].value === -1) {
-                                var mulNZ = dataNZ.map(function (d) {
-                                    return { type: AST.NodeType.AddMulData, value: d.value, dataOffset: d.dataOffset, location: d.location };
-                                });
-                                var set0 = { type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: data0[0].location };
-                                replace.apply(void 0, mulNZ.concat([set0]));
-                            }
-                        }
-                        break;
-                    case AST.NodeType.AddData:
-                        if (a.value === 0)
-                            replace();
-                        break;
-                    case AST.NodeType.AddDataPtr:
-                        if (a.value === 0)
-                            replace();
-                        break;
-                }
-            }
-            return changes;
-        }
-        // Optimize [..., l, r, ...]
-        function pairOptimizations(args) {
-            var changes = false;
-            var ast = args.ast;
-            for (var i = 0; i <= ast.length - 2; ++i) {
-                var l = ast[i + 0];
-                var r = ast[i + 1];
-                var replace = function () {
-                    var nodes = [];
-                    for (var _i = 0; _i < arguments.length; _i++) {
-                        nodes[_i - 0] = arguments[_i];
-                    }
-                    ast.splice.apply(ast, [i, 2].concat(nodes));
-                    --i;
-                    changes = true;
-                };
-                // Collasing optimizations
-                if (l.type === r.type) {
-                    switch (l.type) {
-                        case AST.NodeType.AddDataPtr:
-                            l.value = (l.value + r.value);
-                            replace(l);
-                            break;
-                        case AST.NodeType.AddData:
-                            if ((l.dataOffset | 0) !== (r.dataOffset | 0))
-                                break;
-                            l.value = (l.value + r.value) & 0xFF;
-                            replace(l);
-                            break;
-                    }
-                }
-                else {
-                    // Optimize set + add into a plain set
-                    if (l.type == AST.NodeType.SetData && r.type == AST.NodeType.AddData && (l.dataOffset | 0) === (r.dataOffset | 0)) {
-                        l.value = (l.value + r.value);
-                        replace(l);
-                    }
-                }
-            }
-            return changes;
-        }
-        // Not strictly speaking an optimization in and of itself - but we want to rewrite operations like:
-        //		>>> [data[0] = ...] .... <<<
-        // As:
-        //		[data[3] = ...] >>> .... <<<
-        // Such that additional triOptimizations can take place if e.g. .... is another set operation
-        function shiftMutsLeft(args) {
-            var changes = false;
-            var ast = args.ast;
-            for (var i = 0; i <= ast.length - 2; ++i) {
-                var l = ast[i + 0];
-                var r = ast[i + 1];
-                var replace = function () {
-                    var nodes = [];
-                    for (var _i = 0; _i < arguments.length; _i++) {
-                        nodes[_i - 0] = arguments[_i];
-                    }
-                    ast.splice.apply(ast, [i, 2].concat(nodes));
-                    --i;
-                    changes = true;
-                };
-                if (l.type === AST.NodeType.AddDataPtr) {
-                    switch (r.type) {
-                        case AST.NodeType.AddData: // e.g. >>>>++++
-                        case AST.NodeType.SetData:
-                            replace({ type: r.type, location: r.location, dataOffset: (r.dataOffset | 0) + l.value, value: r.value }, { type: l.type, location: l.location, dataOffset: l.dataOffset, value: l.value });
-                            break;
-                    }
-                }
-            }
-            return changes;
-        }
-        // Optimize [..., l, meat, r, ...]
-        function triOptimizations(args) {
-            var changes = false;
-            var ast = args.ast;
-            for (var i = 0; i <= ast.length - 3; ++i) {
-                var l = ast[i + 0];
-                var meat = ast[i + 1];
-                var r = ast[i + 2];
-                var replace = function () {
-                    var nodes = [];
-                    for (var _i = 0; _i < arguments.length; _i++) {
-                        nodes[_i - 0] = arguments[_i];
-                    }
-                    ast.splice.apply(ast, [i, 3].concat(nodes));
-                    --i;
-                    changes = true;
-                };
-                // Offset optimizations
-                // E.g. <[-]> or >[+]< or >>>[+]<<< or <-----> or >++++< or ...
-                if (l.type === AST.NodeType.AddDataPtr && r.type === AST.NodeType.AddDataPtr && sign(l.value) !== sign(r.value)) {
-                    var minMag = Math.min(Math.abs(l.value), Math.abs(r.value));
-                    var maxMag = Math.max(Math.abs(l.value), Math.abs(r.value));
-                    var diffMag = maxMag - minMag;
-                    if (l.value === -r.value) {
-                        switch (meat.type) {
-                            case AST.NodeType.SetData: // e.g. <[-]> or >[+]< or >>>[+]<<< or ...
-                            case AST.NodeType.AddData:
-                                replace({ type: meat.type, location: l.location, dataOffset: l.value + (meat.dataOffset | 0), value: meat.value });
-                                break;
-                        }
-                    }
-                    else if (Math.abs(l.value) > Math.abs(r.value)) {
-                        switch (meat.type) {
-                            case AST.NodeType.SetData: // e.g. < <[-]> or > >[+]< or >>>>> >>>[+]<<< or ...
-                            case AST.NodeType.AddData:
-                                replace({ type: l.type, location: l.location, dataOffset: l.dataOffset, value: sign(l.value) * diffMag }, { type: meat.type, location: l.location, dataOffset: sign(l.value) * minMag + (meat.dataOffset | 0), value: meat.value });
-                                break;
-                        }
-                    }
-                    else if (Math.abs(l.value) < Math.abs(r.value)) {
-                        switch (meat.type) {
-                            case AST.NodeType.SetData: // e.g. <[-]> >>> or >[+]< << or >>>[+]<<< <<< or ...
-                            case AST.NodeType.AddData:
-                                replace({ type: meat.type, location: l.location, dataOffset: sign(l.value) * minMag + (meat.dataOffset | 0), value: meat.value }, { type: r.type, location: r.location, dataOffset: r.dataOffset, value: sign(r.value) * diffMag });
-                                break;
-                        }
-                    }
-                }
-            }
-            return changes;
-        }
-        function optimize(args) {
-            args.ast.forEach(function (node) { if (node.childScope)
-                node.childScope = optimize({ ast: node.childScope, onError: args.onError }); });
-            //let optimizations = [pairOptimizations, singleOptimizations, triOptimizations];
-            var optimizations = [pairOptimizations, singleOptimizations, triOptimizations, shiftMutsLeft];
-            for (var optimizeAttempt = 0; optimizeAttempt < 100; ++optimizeAttempt) {
-                if (!optimizations.some(function (o) { return o(args); }))
-                    break; // Optimizations done
-            }
-            return args.ast;
-        }
-        AST.optimize = optimize;
-    })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        function createDebugger(code, stdout) {
-            var errors = false;
-            var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
-                    errors = true; } });
-            if (errors)
-                return undefined;
-            var program = VmCompiler.compileProgram(parseResult.optimizedAst);
-            var vm = VmCompiler.createInitState(program);
-            var runHandle = undefined;
-            var doPause = function () { if (runHandle !== undefined)
-                clearInterval(runHandle); runHandle = undefined; };
-            var doContinue = function () { if (runHandle === undefined)
-                runHandle = setInterval(function () { return VmCompiler.runSome(vm, 100000); }, 0); }; // Increase instruction limit after fixing loop perf?
-            var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
-            var doStep = function () { return VmCompiler.runOne(vm); };
-            var getMemory = function (start, size) { return vm.data.slice(start, start + size); };
-            var getState = function () {
-                return vm === undefined ? Debugger.State.Detatched
-                    : vm.codePtr >= vm.program.locs.length ? Debugger.State.Done
-                        : runHandle !== undefined ? Debugger.State.Running
-                            : Debugger.State.Paused;
-            };
-            vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { stdout(String.fromCharCode(vm.data[vm.dataPtr])); ++vm.codePtr; return true; };
-            vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { doStop(); return false; };
-            return {
-                symbols: VmCompiler.createSymbolLookup(program),
-                breakpoints: null,
-                state: getState,
-                threads: function () { return VmCompiler.getThreads(vm, code); },
-                memory: getMemory,
-                pause: doPause,
-                continue: doContinue,
-                stop: doStop,
-                step: doStep,
-            };
-        }
-        VmCompiler.createDebugger = createDebugger;
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Debugger;
-(function (Debugger) {
-    (function (State) {
-        State[State["Detatched"] = 0] = "Detatched";
-        State[State["Paused"] = 1] = "Paused";
-        State[State["Running"] = 2] = "Running";
-        State[State["Done"] = 3] = "Done";
-    })(Debugger.State || (Debugger.State = {}));
-    var State = Debugger.State;
-    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
-    Debugger.cloneSourceLocation = cloneSourceLocation;
-    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
-    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
-    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
-    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
-    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
-    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
-    var reFileLine = /^(.+)(?:(?:\((\d+)\))|(?:\:(\d+)))$/;
-    function parseSourceLocation(text) {
-        var m = reFileLine.exec(text);
-        if (!m)
-            return null;
-        var file = m[1];
-        var line = parseInt(m[2] || m[3]);
-        return { file: m[1], line: parseInt(m[2] || m[3]), column: 0 };
-    }
-    Debugger.parseSourceLocation = parseSourceLocation;
-    function sourceLocationToString(sl) {
-        var s = sl.file;
-        if (sl.line) {
-            s += "(";
-            s += sl.line.toString();
-            if (sl.column) {
-                s += ",";
-                s += sl.column.toString();
-            }
-            s += ")";
-        }
-        return s;
-    }
-    Debugger.sourceLocationToString = sourceLocationToString;
-})(Debugger || (Debugger = {}));
-var UI;
-(function (UI) {
-    var Debug;
-    (function (Debug) {
-        Debug.prevState = undefined;
-        function setDebugState(state) {
-            if (Debug.prevState == state)
-                return;
-            ITC.sendTo("mmide-debug-state", { newState: state });
-            Debug.prevState = state;
-        }
-        Debug.setDebugState = setDebugState;
-        function toggleClassVisibility(class_, visible) {
-            UI.byClassName(class_).forEach(function (e) { return e.style.display = visible ? "" : "none"; });
-        }
-        addEventListener("load", function (loadEvent) {
-            ITC.listenTo("mmide-debug-state", function (dsc) {
-                var styles = "debug-state-detatched debug-state-done debug-state-running debug-state-paused".split(' ');
-                var visibleStyle = "";
-                switch (dsc.newState) {
-                    case Debugger.State.Detatched:
-                        visibleStyle = "debug-state-detatched";
-                        break;
-                    case Debugger.State.Done:
-                        visibleStyle = "debug-state-done";
-                        break;
-                    case Debugger.State.Running:
-                        visibleStyle = "debug-state-running";
-                        break;
-                    case Debugger.State.Paused:
-                        visibleStyle = "debug-state-paused";
-                        break;
-                }
-                //console.log("state :=",visibleStyle);
-                //console.assert(styles.indexOf(visibleStyle) !== -1);
-                styles.forEach(function (style) { if (style !== visibleStyle)
-                    toggleClassVisibility(style, false); });
-                toggleClassVisibility(visibleStyle, true);
-            });
-        });
-    })(Debug = UI.Debug || (UI.Debug = {}));
-})(UI || (UI = {}));
-var UI;
-(function (UI) {
-    var Debug;
-    (function (Debug) {
-        var theDebugger = undefined;
-        function Start(paused) {
-            UI.Output.stdio().clear();
-            var script = UI.Editor.getScript();
-            //theDebugger = Brainfuck.Eval.createDebugger(script, (stdout) => {
-            //theDebugger = Brainfuck.VmCompiler.createDebugger(script, (stdout) => {
-            theDebugger = Brainfuck.VmCompiler.createAsyncDebugger(script, function (stdout) {
-                UI.Output.stdio().write(stdout);
-            });
-            //theDebugger.breakpoints.setBreakpoints([{condition: "", enabled: true, location: "memory.bf:13", onHit: ""}]);
-            UI.Breakpoints.update(theDebugger);
-            if (!paused)
-                theDebugger.continue();
-            Debug.setDebugState(theDebugger.state());
-        }
-        Debug.Start = Start;
-        function Stop() {
-            theDebugger.stop();
-            theDebugger = undefined;
-            Debug.setDebugState(Debugger.State.Detatched);
-        }
-        Debug.Stop = Stop;
-        function Continue() {
-            theDebugger.continue();
-            Debug.setDebugState(theDebugger.state());
-        }
-        Debug.Continue = Continue;
-        function Step() {
-            theDebugger.step();
-        }
-        Debug.Step = Step;
-        function Pause() {
-            theDebugger.pause();
-            Debug.setDebugState(theDebugger.state());
-        }
-        Debug.Pause = Pause;
-        function Restart(paused) {
-            if (theDebugger !== undefined)
-                Stop();
-            Start(paused);
-        }
-        Debug.Restart = Restart;
-        addEventListener("load", function (e) {
-            if (!UI.Editor.isAvailable())
-                return; // We're not the "Main" tab, don't drive debug state
-            if (Debug.prevState === undefined)
-                Debug.setDebugState(Debugger.State.Detatched);
-            setInterval(function () {
-                var thread = theDebugger === undefined ? undefined : theDebugger.threads()[0];
-                var address = thread === undefined ? undefined : thread.currentPos();
-                var sourceLoc = theDebugger === undefined || theDebugger.symbols === undefined ? undefined : theDebugger.symbols.addrToSourceLocation(address);
-                Debug.setDebugState(theDebugger === undefined ? Debugger.State.Detatched : theDebugger.state());
-                UI.Registers.update(theDebugger);
-                UI.Memory.update(theDebugger);
-                UI.Editor.setCurrentPosition(sourceLoc === undefined ? -1 : sourceLoc.line, sourceLoc === undefined ? -1 : sourceLoc.column);
-                UI.Breakpoints.update(theDebugger);
-            }, 10);
-        });
-    })(Debug = UI.Debug || (UI.Debug = {}));
-})(UI || (UI = {}));
-var UI;
-(function (UI) {
-    var Editor;
-    (function (Editor) {
-        var _editor = undefined;
-        function editor() {
-            if (_editor === undefined) {
-                if (!UI.byId("editor") || !window["ace"]) {
-                    _editor = null;
-                    return;
-                }
-                _editor = ace.edit("editor");
-                _editor.setTheme("ace/theme/monokai");
-                var session = _editor.getSession();
-                //session.setMode("ace/mode/javascript");
-                session.setTabSize(4);
-                session.setUseSoftTabs(false);
-            }
-            return _editor;
-        }
-        function isAvailable() {
-            return !!editor();
-        }
-        Editor.isAvailable = isAvailable;
-        function getScript() {
-            var e = editor();
-            return e ? e.getValue() : "";
-        }
-        Editor.getScript = getScript;
-        function setScript(script) {
-            var e = editor();
-            if (e)
-                e.setValue(script);
-        }
-        Editor.setScript = setScript;
-        function setTheme(theme) {
-            var e = editor();
-            if (e)
-                e.setTheme("ace/theme/" + theme.toLowerCase().replace(' ', '_'));
-        }
-        Editor.setTheme = setTheme;
-        function errorToAnnotation(error) {
-            var errorType = "error";
-            switch (error.severity) {
-                case Brainfuck.AST.ErrorSeverity.Verbose:
-                    errorType = "info";
-                    break;
-                case Brainfuck.AST.ErrorSeverity.Info:
-                    errorType = "info";
-                    break;
-                case Brainfuck.AST.ErrorSeverity.Warning:
-                    errorType = "warning";
-                    break;
-                case Brainfuck.AST.ErrorSeverity.Error:
-                    errorType = "error";
-                    break;
-            }
-            var a = {
-                row: error.location.line - 1,
-                column: error.location.column - 1,
-                text: error.description,
-                type: errorType,
-            };
-            return a;
-        }
-        function setErrors(errors) {
-            var e = editor();
-            if (!e)
-                return;
-            var s = e.getSession();
-            var lineErrors = [];
-            errors.forEach(function (error) {
-                if (!error.location || !error.location.line)
-                    return;
-                var le = lineErrors[error.location.line];
-                if (le === undefined)
-                    le = lineErrors[error.location.line] = [];
-                le.push(error);
-            });
-            s.setAnnotations(errors.map(errorToAnnotation).filter(function (a) { return !!a; }));
-        }
-        Editor.setErrors = setErrors;
-        var oldMarker = undefined;
-        var oldLineIndex = -1;
-        var oldColIndex = -1;
-        //let Range = ace.require("ace/Range").Range;
-        function setCurrentPosition(lineNo, colNo) {
-            if (colNo === void 0) { colNo = 0; }
-            var newLineIndex = lineNo - 1;
-            var newColIndex = colNo - 1;
-            var lineIndexChanged = oldLineIndex !== newLineIndex;
-            var colIndexChanged = oldColIndex !== newColIndex || lineIndexChanged;
-            var e = editor();
-            if (!e)
-                return;
-            var s = e.getSession();
-            if (lineIndexChanged) {
-                s.removeGutterDecoration(oldLineIndex, "current-line");
-                s.addGutterDecoration(newLineIndex, "current-line");
-            }
-            if (colIndexChanged) {
-                if (oldMarker !== undefined)
-                    s.removeMarker(oldMarker);
-                if (newColIndex != -1) {
-                    //let range = <ace.Range>new (<any>Range)(line-1, col-1, line-1, col-0);
-                    //let range = new ace.Range(line-1, col-1, line-1, col-0);
-                    var range = s.getAWordRange(newLineIndex, newColIndex);
-                    range.start.column = newColIndex + 0;
-                    range.end.column = newColIndex + 1;
-                    oldMarker = s.addMarker(range, "current-column", "text", false);
-                }
-                else {
-                    oldMarker = undefined;
-                }
-            }
-            oldLineIndex = newLineIndex;
-            oldColIndex = newColIndex;
-        }
-        Editor.setCurrentPosition = setCurrentPosition;
-        function setLineBreakpoints(breakpoints) {
-            var e = editor();
-            if (!e)
-                return;
-            var session = e.getSession();
-            session.clearBreakpoints();
-            breakpoints.forEach(function (bp) { return session.setBreakpoint(bp.line - 1, bp.enabled ? "breakpoint-enabled-line" : "breakpoint-disabled-line"); });
-            //console.log("Set breakpoints:",breakpoints[0],breakpoints[1]);
-        }
-        Editor.setLineBreakpoints = setLineBreakpoints;
-        addEventListener("lateLoaded", function (ev) {
-            var ed = editor();
-            if (!ed)
-                return;
-            // "Ace only resizes itself on window events. If you resize the editor div in another manner, and need Ace to resize, use the following"
-            // Currently, console output, memory dump resizes, etc. may alter the editor div size.
-            // Takes maybe ~5ms/check from an initial look at Chrome timeline results?  Not nearly my biggest perf issue atm.
-            setInterval(function () { ed.resize(false); }, 100);
-            var errors = [];
-            var lastScript = "";
-            setInterval(function () {
-                var newScript = getScript();
-                if (newScript == lastScript)
-                    return;
-                lastScript = newScript;
-                errors = [];
-                Brainfuck.AST.parse({
-                    code: newScript,
-                    onError: function (e) { return errors.push(e); },
-                });
-                setErrors(errors);
-            }, 100);
-        });
-    })(Editor = UI.Editor || (UI.Editor = {}));
-})(UI || (UI = {}));
-var UI;
-(function (UI) {
-    var Memory;
-    (function (Memory) {
-        function collectTableCells(config, memoryBaseAddress, memory) {
-            var table = [];
-            for (var rowI = 0; rowI < config.rows; ++rowI) {
-                var row = [];
-                if (config.showAddress)
-                    appendAddressCell(row, config, rowI, memoryBaseAddress);
-                if (config.showHex)
-                    appendHexCells(row, config, rowI, memory);
-                if (config.showData)
-                    appendDataCells(row, config, rowI, memory);
-                table.push(row);
-            }
-            return table;
-        }
-        Memory.collectTableCells = collectTableCells;
-        function appendAddressCell(rowCells, config, rowI, memoryBaseAddress) {
-            if (config.showAddress) {
-                var a = (memoryBaseAddress + config.colSize * config.cols * rowI).toString(16);
-                var pad = "0x00000000";
-                rowCells.push({ type: "memory-cell-address", display: pad.substr(0, pad.length - a.length) + a, data: a });
-            }
-        }
-        function appendHexCells(rowCells, config, rowI, memory) {
-            for (var colI = 0; colI < config.cols; ++colI) {
-                var cellText = "";
-                for (var byteI = 0; byteI < config.colSize; ++byteI) {
-                    var v = getByte(memory, config, rowI, colI, byteI, config.showLittleEndian);
-                    var sv = v.toString(16);
-                    if (sv.length == 1)
-                        sv = "0" + sv;
-                    cellText += sv;
-                }
-                if (rowCells.length)
-                    rowCells.push({ type: "memory-cell-padding", display: " ", data: " " });
-                rowCells.push({ type: "memory-cell-hex", display: cellText, data: cellText });
-            }
-        }
-        function appendDataCells(rowCells, config, rowI, memory) {
-            if (rowCells.length)
-                rowCells.push({ type: "memory-cell-padding", display: " ", data: " " });
-            for (var colI = 0; colI < config.cols; ++colI) {
-                var offset = config.colSize * (colI + (config.cols * rowI));
-                for (var byteI = 0; byteI < config.colSize; ++byteI) {
-                    var v = getByte(memory, config, rowI, colI, byteI, false);
-                    var cellText = (32 <= v && v < 127) ? String.fromCharCode(v) : "."; // XXX: Abuse unicode? 127 = DEL, probably bad.
-                    var cellData = String.fromCharCode(v);
-                    rowCells.push({ type: "memory-cell-data", display: cellText, data: cellData });
-                }
-            }
-        }
-        function getByte(memory, config, rowI, colI, byteI, littleEndian) {
-            // NOTE WELL: We now assume "memory" comes to us pre-sliced such that memory[0] ~ config.baseAddress (or more accurately, memoryBaseAddress and we lag behind maybe)
-            // We could try starting at config.baseAddress - lastUpdateMemoryBaseAddress or some shit but how about no.
-            return memory[(littleEndian ? config.colSize - byteI - 1 : byteI) + config.colSize * (colI + config.cols * rowI)] || 0;
-        }
-    })(Memory = UI.Memory || (UI.Memory = {}));
-})(UI || (UI = {}));
-var UI;
-(function (UI) {
-    var Memory;
-    (function (Memory) {
-        // Slow on IE (~130-220ms without animation, 190-250ms with full duration animation)
-        function doUpdateTableD3(memoryElement, config, rows) {
-            var d3table = d3.select(memoryElement).select("table");
-            if (d3table.empty()) {
-                memoryElement.innerText = ""; // Clear possible previous text nodes
-                d3table = d3.select(memoryElement).append("table").style("border-collapse", "collapse");
-            }
-            var d3rows = d3table.selectAll("tr").data(rows);
-            d3rows.enter().append("tr");
-            d3rows.exit().remove();
-            d3rows.each(function (row) {
-                var rowElement = this;
-                var d3cells = d3.select(rowElement).selectAll("td").data(row);
-                d3cells.exit().remove();
-                var d3NewCells = d3cells.enter().append("td");
-                //d3NewCells.style("position","absolute").style("left","0").style("top","0").style("width","2em").style("height","2em"); // Test to see if this helps perf - it doesn't
-                //d3cells.attr("class",	cellData => cellData.type);
-                d3cells.text(function (cellData) { return cellData.display; });
-                if (config.dataChangedDisplay) {
-                    var prevStyle = undefined;
-                    d3cells.each(function (cellData) {
-                        var d3cell = d3.select(this);
-                        var prevMemoryValue = d3cell.attr("data-memory-value");
-                        d3cell.attr("data-memory-value", cellData.data);
-                        var dataChanged = prevMemoryValue !== undefined && prevMemoryValue !== null && prevMemoryValue !== cellData.data;
-                        if (dataChanged)
-                            applyDataChangedTransition(config, d3cell);
-                    });
-                    d3cells.attr("data-memory-value", function (cd) { return cd.data; });
-                }
-            });
-            d3rows.order();
-        }
-        // Slow on IE (~130-210ms), not much faster than doUpdateTableD3
-        function doUpdateTableD3Hybrid(memoryElement, config, rows) {
-            var d3table = d3.select(memoryElement).select("table");
-            if (d3table.empty()) {
-                memoryElement.innerText = ""; // Clear possible previous text nodes
-                d3table = d3.select(memoryElement).append("table").style("border-collapse", "collapse");
-            }
-            var d3rows = d3table.selectAll("tr").data(rows);
-            d3rows.enter().append("tr");
-            d3rows.exit().remove();
-            d3rows.each(function (row) {
-                var rowElement = this;
-                var d3cells = d3.select(rowElement).selectAll("td").data(row);
-                d3cells.exit().remove();
-                d3cells.enter().append("td");
-                d3cells.each(function (cell) {
-                    var cellElement = this;
-                    cellElement.textContent = cell.display;
-                });
-            });
-            d3rows.order();
-        }
-        var htmlEntityMap = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;',
-            '/': '&#x2F;',
-            '`': '&#x60;',
-            '=': '&#x3D;'
-        };
-        function escapeHtml(text) { return String(text).replace(/[&<>"'`=\/]/g, function (fragment) { return htmlEntityMap[fragment]; }); }
-        // Faster than doUpdateTableD3 et all (~30±5 ms on IE) but could be faster
-        function doUpdateTableHtml(memoryElement, config, rows) {
-            var html = "";
-            html += "<table style=\"border-collapse: collapse\">\n";
-            rows.forEach(function (row) {
-                html += "\t<tr>";
-                row.forEach(function (cell) {
-                    html += "<td>";
-                    html += escapeHtml(cell.display);
-                    html += "</td>";
-                });
-                html += "</tr>\n";
-            });
-            memoryElement.innerHTML = html;
-        }
-        // Sufficiently fast on IE (~15ms±3 ms on IE)
-        var prevRows = [];
-        function updateCellChanged(col, row, value) {
-            var prevRow = prevRows[row] = prevRows[row] || [];
-            var changed = prevRow[col] !== value;
-            prevRow[col] = value;
-            return changed;
-        }
-        function doUpdateTableCanvas(memoryElement, config, rows) {
-            var d3canvas = d3.select(memoryElement).select("canvas");
-            if (d3canvas.empty()) {
-                memoryElement.innerText = ""; // Clear possible previous text nodes
-                d3canvas = d3.select(memoryElement).append("canvas");
-            }
-            var font = "8pt Consolas, Courier New, Courier, monospace";
-            //let font = "8pt Consolas"
-            var canvas = d3canvas[0][0];
-            var context = canvas.getContext("2d");
-            context.font = font;
-            // Layout
-            var colWidths = [];
-            //let rowHeights = []; // XXX: measureText().width is all we can rely on for now
-            rows.forEach(function (row, rowI) {
-                row.forEach(function (cell, cellI) {
-                    var m = context.measureText(cell.display);
-                    colWidths[cellI] = Math.max((colWidths[cellI] | 0), m.width);
-                });
-            });
-            var totalWidth = 0;
-            colWidths.forEach(function (w) { return totalWidth += w; });
-            //let rowHeight = 16; // Arbitrary
-            var rowHeight = 13; // Arbitrary
-            var totalHeight = rows.length * rowHeight - 3;
-            // DOM Layout
-            canvas.width = canvas.clientWidth = totalWidth;
-            canvas.height = canvas.clientHeight = totalHeight;
-            context = canvas.getContext("2d"); // XXX: Not sure if this is necessary
-            context.font = font;
-            // Render
-            context.fillStyle = 'rgba(0,0,0,0.0)';
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            var y = 0;
-            rows.forEach(function (row, rowI) {
-                //let rowHeight = rowHeight;
-                var x = 0;
-                row.forEach(function (cell, cellI) {
-                    var colWidth = colWidths[cellI];
-                    if (updateCellChanged(cellI, rowI, cell.data)) {
-                        context.fillStyle = '#F66';
-                        context.fillRect(x, y - 1, colWidth, rowHeight);
-                    }
-                    context.fillStyle = '#000';
-                    context.fillText(cell.display, x, y + rowHeight - 3, colWidth);
-                    x += colWidth;
-                });
-                y += rowHeight;
-            });
-        }
-        // Fucking fast (~1±1ms on IE)
-        function doUpdateTableText(memoryElement, config, rows) {
-            var text = "";
-            rows.forEach(function (row) {
-                row.forEach(function (cell) {
-                    text += cell.display;
-                });
-                text += "\n";
-            });
-            memoryElement.innerText = text;
-        }
-        var updateD3TooSlowThreshhold = 30; // ms
-        var updateD3TooSlow = false;
-        function doUpdateTableSmart(memoryElement, config, rows) {
-            if (!updateD3TooSlow) {
-                var s = Date.now();
-                doUpdateTableD3(memoryElement, config, rows);
-                var e = Date.now() - s;
-                if (e >= updateD3TooSlowThreshhold && !updateD3TooSlow) {
-                    console.warn("doUpdateTableD3 took too long (" + e + "ms >= " + updateD3TooSlowThreshhold + "ms) to execute, falling back on doUpdateTableText & doUpdateTableCanvas");
-                    updateD3TooSlow = true;
-                }
-            }
-            else if (config.dataChangedDisplay) {
-                doUpdateTableCanvas(memoryElement, config, rows);
-            }
-            else {
-                doUpdateTableText(memoryElement, config, rows);
-            }
-        }
-        //export const updateTable = debounce(measure(doUpdateTableSmart, "updateTable"), 10);
-        Memory.updateTable = debounce(doUpdateTableSmart, 10);
-        function applyDataChangedTransition(config, d3cell) {
-            var transitionId = "highlight-changed";
-            d3cell.interrupt(transitionId);
-            d3cell.style("background-color", "#F44");
-            switch (config.dataChangedDisplay) {
-                case Memory.DataChangedDisplay.DelayHighlight:
-                    d3cell
-                        .transition(transitionId).delay(30).duration(0).style("background-color", "#FAA")
-                        .transition().delay(30).duration(0).style("background-color", "#ECC")
-                        .transition().delay(30).duration(0).style("background-color", undefined);
-                    break;
-                case Memory.DataChangedDisplay.DurationHighlight:
-                    d3cell
-                        .transition(transitionId).duration(100).style("background-color", "#FAA")
-                        .transition().duration(100).style("background-color", "#DDD")
-                        .transition().style("background-color", undefined);
-                    break;
-            }
-        }
-    })(Memory = UI.Memory || (UI.Memory = {}));
-})(UI || (UI = {}));
-var UI;
-(function (UI) {
-    var Memory;
-    (function (Memory) {
-        (function (DataChangedDisplay) {
-            DataChangedDisplay[DataChangedDisplay["None"] = 0] = "None";
-            DataChangedDisplay[DataChangedDisplay["DelayHighlight"] = 1] = "DelayHighlight";
-            DataChangedDisplay[DataChangedDisplay["DurationHighlight"] = 2] = "DurationHighlight";
-        })(Memory.DataChangedDisplay || (Memory.DataChangedDisplay = {}));
-        var DataChangedDisplay = Memory.DataChangedDisplay;
-        function isDataChangedDisplayOK() {
-            // Chrome (FAST):	navigator.userAgent == "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"
-            // IE 11 (SLOW):	navigator.userAgent == "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; rv:11.0) like Gecko"
-            return true;
-        }
-        Memory.isDataChangedDisplayOK = isDataChangedDisplayOK;
-        function getMemoryViewConfig(el) {
-            var bool = function (k) { var value = el.dataset[k]; console.assert(value !== undefined && value !== null); return value === "1" || value === "true"; };
-            var string = function (k) { var value = el.dataset[k]; console.assert(value !== undefined && value !== null); return value; };
-            var int = function (k) { var value = parseInt(el.dataset[k]); console.assert(value !== undefined && value !== null && !isNaN(value) && isFinite(value)); return value; };
-            return {
-                baseAddress: int("address"),
-                colSize: int("colSize"),
-                cols: int("cols"),
-                rows: int("rows"),
-                showLittleEndian: bool("littleEndian"),
-                showAddress: bool("showAddress"),
-                showHex: bool("showHex"),
-                showData: bool("showData"),
-                forceChangedDisplay: bool("forceChangedDisplay"),
-                dataChangedDisplay: DataChangedDisplay[string("changedDisplay")],
-            };
-        }
-        Memory.getMemoryViewConfig = getMemoryViewConfig;
-    })(Memory = UI.Memory || (UI.Memory = {}));
-})(UI || (UI = {}));
-var UI;
-(function (UI) {
-    var Memory;
-    (function (Memory) {
-        var updatePrefix = "mmide-memory-update-";
-        var listenerPrefix = "mmide-memory-listener-";
-        function getListeners() { return ITC.peekAll(listenerPrefix); }
-        function getUpdates() { return ITC.peekAll(updatePrefix); }
-        // Local update of memory
-        function update(localDebugger) {
-            if (!localDebugger)
-                return;
-            getUpdates(); // Just clear old responses
-            getListeners().forEach(function (req) {
-                var response = {
-                    baseAddress: req.baseAddress,
-                    data: localDebugger.memory(req.baseAddress, req.size),
-                };
-                ITC.sendTo(req.responseKey, response);
-            });
-        }
-        Memory.update = update;
-        // Ensure we recieve remote updates of memory
-        function sendUpdateRequest() {
-            ITC.sendToByClassName("memory", listenerPrefix, function (args) {
-                var config = Memory.getMemoryViewConfig(args.element);
-                var listenNotice = {
-                    baseAddress: config.baseAddress,
-                    size: config.cols * config.rows * config.colSize,
-                    responseKey: updatePrefix + args.itcKey,
-                };
-                return listenNotice;
-            });
-        }
-        addEventListener("load", function (ev) {
-            // Remote update of memory
-            ITC.listenToByClassName("memory", updatePrefix, function (ev) {
-                var config = Memory.getMemoryViewConfig(ev.element);
-                var table = Memory.collectTableCells(config, ev.header.baseAddress, ev.header.data);
-                Memory.updateTable(ev.element, config, table);
-            });
-            sendUpdateRequest();
-            setInterval(sendUpdateRequest, 1000); // Keepalive
-        });
-    })(Memory = UI.Memory || (UI.Memory = {}));
-})(UI || (UI = {}));
-var UI;
-(function (UI) {
-    var Output;
-    (function (Output) {
-        var maxCol = 180;
-        var NamedOutput = (function () {
-            function NamedOutput(postfix) {
-                var className = this.className = "output-" + postfix;
-                var itcKey = this.itcKey = "mmide-output-" + postfix;
-                this.col = 0;
-                this.buffer = "";
-                this.lineBuffer = "";
-                this.dirty = false;
-                this.animated = false;
-                ITC.listenTo(itcKey, function (ev) { return UI.byClassName(className).forEach(function (el) {
-                    //let s = Date.now();
-                    el.textContent = ev.buffer;
-                    //console.log(Date.now()-s,"ms to update output");
-                }); });
-            }
-            NamedOutput.prototype.doSend = function () {
-                var nextEol = this.lineBuffer.indexOf("\n");
-                while (nextEol != -1) {
-                    while (nextEol > maxCol) {
-                        this.buffer += this.lineBuffer.substr(0, maxCol) + "\n";
-                        this.lineBuffer = this.lineBuffer.substr(maxCol);
-                        nextEol -= maxCol;
-                    }
-                    this.buffer += this.lineBuffer.substr(0, nextEol) + "\n";
-                    this.lineBuffer = this.lineBuffer.substr(nextEol + 1);
-                    nextEol = this.lineBuffer.indexOf("\n");
-                }
-                while (this.lineBuffer.length > maxCol) {
-                    this.buffer += this.lineBuffer.substr(0, maxCol) + "\n";
-                    this.lineBuffer = this.lineBuffer.substr(maxCol);
-                }
-                ITC.sendTo(this.itcKey, { buffer: this.buffer + this.lineBuffer });
-            };
-            NamedOutput.prototype.perFrame = function () {
-                var _this = this;
-                requestAnimationFrame(function () { return _this.perFrame(); });
-                if (this.dirty)
-                    this.doSend();
-                this.dirty = false;
-            };
-            NamedOutput.prototype.kickoffSend = function () {
-                var _this = this;
-                this.dirty = true;
-                if (this.animated)
-                    return;
-                this.animated = true;
-                requestAnimationFrame(function () { return _this.perFrame(); });
-                setInterval(function () { return _this.kickoffSend(); }, 1000);
-            };
-            NamedOutput.prototype.clear = function () {
-                this.buffer = this.lineBuffer = "";
-                this.kickoffSend();
-            };
-            NamedOutput.prototype.write = function (data) {
-                if (this.buffer.length + this.lineBuffer.length >= 1000000)
-                    return;
-                this.lineBuffer += data;
-                this.kickoffSend();
-            };
-            return NamedOutput;
-        })();
-        Output.NamedOutput = NamedOutput;
-        function lazyishNamedOutput(id) {
-            var no = undefined;
-            var callback = function () { if (!no)
-                no = new NamedOutput(id); return no; };
-            addEventListener("load", callback);
-            return callback;
-        }
-        Output.stdio = lazyishNamedOutput("stdio");
-    })(Output = UI.Output || (UI.Output = {}));
-})(UI || (UI = {}));
-var UI;
-(function (UI) {
-    var Registers;
-    (function (Registers) {
-        //const log = (m,...a) => console.log(m,...a);
-        var log = function (m) {
-            var a = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                a[_i - 1] = arguments[_i];
-            }
-        };
-        function update(localDebugger) {
-            if (!localDebugger)
-                return;
-            var registers = localDebugger.threads()[0].registers();
-            if (!registers)
-                return;
-            var msg = { registers: registers };
-            log("Sending registers...");
-            ITC.sendTo("mmide-registers", msg);
-        }
-        Registers.update = update;
-        addEventListener("load", function (loadEvent) { return ITC.listenTo("mmide-registers", function (update) {
-            log("Recieving registers...");
-            var els = UI.byClassName("registers");
-            if (!els)
-                return;
-            log("Elements to update...");
-            var registers = update.registers;
-            var flat = "";
-            var lpad = "";
-            var rpad = "                 ";
-            registers.forEach(function (reg) {
-                if (!reg[1])
-                    flat += reg[0] + "\n";
-                else
-                    flat += reg[0] + lpad.substring(reg[0].length) + " := " + rpad.substring(reg[1].length) + reg[1] + "\n";
-            });
-            flat = flat.substr(0, flat.length - 1);
-            els.forEach(function (el) { return el.textContent = flat; });
-        }); });
-    })(Registers = UI.Registers || (UI.Registers = {}));
-})(UI || (UI = {}));
-var _ui_document = this["document"];
-var UI;
-(function (UI) {
-    function byClassName(className) {
-        if (!_ui_document)
-            return []; // Webworker context
-        var e = [];
-        var els = document.getElementsByClassName(className);
-        for (var i = 0; i < els.length; ++i)
-            e.push(els.item(i));
-        return e;
-    }
-    UI.byClassName = byClassName;
-    function byId(elementId) {
-        if (!_ui_document)
-            return null; // Webworker context
-        var e = document.getElementById(elementId);
-        return e;
-    }
-    UI.byId = byId;
-})(UI || (UI = {}));
 function measure(callback, label) {
     var wrapped = function () {
         var args = [];
@@ -1945,4 +1870,25 @@ function measure(callback, label) {
     };
     return wrapped;
 }
+var _ui_document = this["document"];
+var UI;
+(function (UI) {
+    function byClassName(className) {
+        if (!_ui_document)
+            return [];
+        var e = [];
+        var els = document.getElementsByClassName(className);
+        for (var i = 0; i < els.length; ++i)
+            e.push(els.item(i));
+        return e;
+    }
+    UI.byClassName = byClassName;
+    function byId(elementId) {
+        if (!_ui_document)
+            return null;
+        var e = document.getElementById(elementId);
+        return e;
+    }
+    UI.byId = byId;
+})(UI || (UI = {}));
 //# sourceMappingURL=mmide.js.map

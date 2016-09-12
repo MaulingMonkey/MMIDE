@@ -35,6 +35,9 @@
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="src\lang\brainfuck\AST\Error.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\AST\Node.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\AST\SystemCall.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\createAsyncDebugger.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\Program\compileProgram.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\Program\createSymbolLookup.ts" />
@@ -52,8 +55,8 @@
     <TypeScriptCompile Include="ext\d3\d3.d.ts" />
     <TypeScriptCompile Include="src\util\events.ts" />
     <TypeScriptCompile Include="src\util\itc.ts" />
-    <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_ast.ts" />
-    <TypeScriptCompile Include="src\lang\brainfuck\brainfuck_ast_optimize.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\AST\parse.ts" />
+    <TypeScriptCompile Include="src\lang\brainfuck\AST\optimize.ts" />
     <TypeScriptCompile Include="src\lang\brainfuck\VmCompiler\createDebugger.ts" />
     <TypeScriptCompile Include="src\lang\_debugger.ts" />
     <TypeScriptCompile Include="src\ui\debug-state.ts" />
