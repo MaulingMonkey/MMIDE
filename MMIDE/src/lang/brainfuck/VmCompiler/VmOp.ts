@@ -1,5 +1,14 @@
 ﻿module Brainfuck {
 	export module VmCompiler {
+		export enum VmOpType {
+			AddDataPtr,
+			AddData,
+			AddMulData,
+			SetData,
+			SystemCall,
+			JumpIf,
+			JumpIfNot,
+		}
 		export interface VmOp {
 			type:			VmOpType;
 			dataOffset:		number;
