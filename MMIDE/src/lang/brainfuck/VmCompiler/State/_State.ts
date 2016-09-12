@@ -15,7 +15,7 @@
 		}
 
 		export function createInitState(program: Program): State {
-			return {
+			let s : State = {
 				program:	program,
 				loadedCode:	program.ops.map(op=>op),
 
@@ -28,6 +28,7 @@
 				runTime:	0,
 				wallStart:	Date.now()
 			};
+			return s;
 		}
 	}
 }
