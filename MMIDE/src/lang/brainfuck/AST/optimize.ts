@@ -37,6 +37,7 @@
 							changes = true;
 							break;
 						}
+					//} else if (a.childScope.every(c => (c.type === NodeType.AddData) || (c.type === NodeType.SetData))) { // XXX: Makes conditional set unconditional, bug!
 					} else if (a.childScope.every(c => c.type === NodeType.AddData)) {
 						// Optimize this common pattern:
 						// while (data[0] != 0)
@@ -45,14 +46,21 @@
 						//		data[4] += 5
 						//		data[5] += 2
 						//		data[6] += 1
-						let data0	= a.childScope.filter(c => !c.dataOffset);
-						let dataNZ	= a.childScope.filter(c => !!c.dataOffset);
-						if (data0.length === 1 && data0[0].value === -1) { // [-......] - could optimize [+.......] as well?
-							let mulNZ = dataNZ.map(d =>{
-								return { type: NodeType.AddMulData, value: d.value, dataOffset: d.dataOffset, location: d.location };
+
+						var dependsOnZero = (n: Node) => !(n.dataOffset) || ((n.type === NodeType.AddMulData) && !n.srcOffset);
+						var independantOfZero = (n: Node) => !dependsOnZero(n);
+
+						let data0	= a.childScope.filter(dependsOnZero);
+						let dataNZ	= a.childScope.filter(independantOfZero);
+						if ((data0.length === 1) && (data0[0].type === NodeType.AddData) && (!(data0[0].dataOffset)) && (data0[0].value === -1)) { // [-......] - could optimize [+.......] as well?
+							let mutNZ = dataNZ.map(d =>{
+								switch (d.type) {
+								case NodeType.AddData:		return { type: NodeType.AddMulData,		value: d.value, dataOffset: d.dataOffset, location: d.location };
+								case NodeType.SetData:		return { type: NodeType.SetData,		value: d.value, dataOffset: d.dataOffset, location: d.location };
+								}
 							});
 							let set0 = { type: NodeType.SetData, value: 0, dataOffset: 0, location: data0[0].location };
-							replace(...mulNZ, set0);
+							replace(...mutNZ, set0);
 						}
 					}
 					break;
@@ -116,8 +124,9 @@
 					switch (r.type) {
 					case NodeType.AddData: // e.g. >>>>++++
 					case NodeType.SetData: // e.g. >>>>[-]+++
-						replace({ type: r.type, location: r.location, dataOffset: (r.dataOffset|0) + l.value, value: r.value },
-								{ type: l.type, location: l.location, dataOffset: l.dataOffset, value: l.value });
+					case NodeType.AddMulData:
+						replace({ type: r.type, location: r.location, dataOffset: (r.dataOffset|0) + l.value,	srcOffset: (r.srcOffset|0) + l.value,	value: r.value },
+								l);
 						break;
 					}
 				}
@@ -180,7 +189,8 @@
 			args.ast.forEach(node => { if (node.childScope) node.childScope = optimize({ ast: node.childScope, onError: args.onError }); });
 
 			//let optimizations = [pairOptimizations, singleOptimizations, triOptimizations];
-			let optimizations = [pairOptimizations, singleOptimizations, triOptimizations, shiftMutsLeft];
+			//let optimizations = [pairOptimizations, singleOptimizations, triOptimizations, shiftMutsLeft];
+			let optimizations = [singleOptimizations, pairOptimizations, triOptimizations, shiftMutsLeft];
 
 			for (var optimizeAttempt=0; optimizeAttempt<100; ++optimizeAttempt) {
 				if(!optimizations.some(o => o(args))) break; // Optimizations done

@@ -1,3 +1,65 @@
+var Examples;
+(function (Examples) {
+    function LoadExample(example) {
+        UI.Editor.setScript(example);
+    }
+    addEventListener("load", function (e) {
+        if (UI.Editor.isAvailable()) {
+            LoadBrainfuckMandelbrot();
+            UI.Debug.Start(false);
+        }
+    });
+    function LoadBrainfuckMandelbrot() {
+        LoadExample("Mandelbrot Set Brainfuck Example:\n\n+++++++++++++[->++>>>+++++>++>+<<<<<<]>>>>>++++++>--->>>>>>>>>>+++++++++++++++[[\n>>>>>>>>>]+[<<<<<<<<<]>>>>>>>>>-]+[>>>>>>>>[-]>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>[-]+\n<<<<<<<+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>>+>>>>>>>>>>>>>>>>>>>>>>>>>>\n>+<<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+[>>>>>>[>>>>>>>[-]>>]<<<<<<<<<[<<<<<<<<<]>>\n>>>>>[-]+<<<<<<++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>+<<<<<<+++++++[-[->>>\n>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>+<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[[-]>>>>>>[>>>>>\n>>[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>\n[>>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<\n<<]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]>>>>>>>>>+++++++++++++++[[\n>>>>>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[\n>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>[\n-<<+>>]<<[->>+>>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<\n<<[>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<\n[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>\n>>>>[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+\n<<<<<<[->>>[-<<<+>>>]<<<[->>>+>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>\n>>>>>>>]<<<<<<<<<[>>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<<]>>[->>>>>>>>>+<<<<<<<<<]<<\n+>>>>>>>>]<<<<<<<<<[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<\n<]<+<<<<<<<<<]>>>>>>>>>[>>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>\n>>>>>>>>>>>>>>>>>>>>>>>]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>\n>>>>>]<<<<<<<<<-<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+>>>>>>>>>>>>>>>>>>>>>+<<<[<<<<<<\n<<<]>>>>>>>>>[>>>[-<<<->>>]+<<<[->>>->[-<<<<+>>>>]<<<<[->>>>+<<<<<<<<<<<<<[<<<<<\n<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>[-<<<<->>>>]+<<<<[->>>>-<[-<<<+>>>]<<<[->\n>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<\n<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]<<<<<<<[->+>>>-<<<<]>>>>>>>>>+++++++++++++++++++\n+++++++>>[-<<<<+>>>>]<<<<[->>>>+<<[-]<<]>>[<<<<<<<+<[-<+>>>>+<<[-]]>[-<<[->+>>>-\n<<<<]>>>]>>>>>>>>>>>>>[>>[-]>[-]>[-]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-]>>>>>>[>>>>>\n[-<<<<+>>>>]<<<<[->>>>+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>[-<<<<<<<<\n<+>>>>>>>>>]>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>>>>>>]+>[-\n]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>+>>>>>>>>]<<<\n<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<[->>[-<<+>>]<\n<[->>+>+<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>[->>>>\n>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-]<->>>\n[-<<<+>[<->-<<<<<<<+>>>>>>>]<[->+<]>>>]<<[->>+<<]<+<<<<<<<<<]>>>>>>>>>[>>>>>>[-<\n<<<<+>>>>>]<<<<<[->>>>>+<<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>+>>>>>>>>\n]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<[->>[-<<+\n>>]<<[->>+>>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>\n[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-\n]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>>>>>\n[>>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>]>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>++++++++\n+++++++[[>>>>>>>>>]<<<<<<<<<-<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>>>>>>>>[-<<<<<<<+\n>>>>>>>]<<<<<<<[->>>>>>>+<<<<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[\n-]>>>]<<<<<<<<<[<<<<<<<<<]>>>>+>[-<-<<<<+>>>>>]>[-<<<<<<[->>>>>+<++<<<<]>>>>>[-<\n<<<<+>>>>>]<->+>]<[->+<]<<<<<[->>>>>+<<<<<]>>>>>>[-]<<<<<<+>>>>[-<<<<->>>>]+<<<<\n[->>>>->>>>>[>>[-<<->>]+<<[->>->[-<<<+>>>]<<<[->>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]\n+>>>>>>[>>>>>>>>>]>+<]]+>>>[-<<<->>>]+<<<[->>>-<[-<<+>>]<<[->>+<<<<<<<<<<<[<<<<<\n<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<\n[<<<<<<<<<]>>>>[-<<<<+>>>>]<<<<[->>>>+>>>>>[>+>>[-<<->>]<<[->>+<<]>>>>>>>>]<<<<<\n<<<+<[>[->>>>>+<<<<[->>>>-<<<<<<<<<<<<<<+>>>>>>>>>>>[->>>+<<<]<]>[->>>-<<<<<<<<<\n<<<<<+>>>>>>>>>>>]<<]>[->>>>+<<<[->>>-<<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>>+<<<]<<\n<<<<<<<<<<]>>>>[-]<<<<]>>>[-<<<+>>>]<<<[->>>+>>>>>>[>+>[-<->]<[->+<]>>>>>>>>]<<<\n<<<<<+<[>[->>>>>+<<<[->>>-<<<<<<<<<<<<<<+>>>>>>>>>>[->>>>+<<<<]>]<[->>>>-<<<<<<<\n<<<<<<<+>>>>>>>>>>]<]>>[->>>+<<<<[->>>>-<<<<<<<<<<<<<<+>>>>>>>>>>]>]<[->>>>+<<<<\n]<<<<<<<<<<<]>>>>>>+<<<<<<]]>>>>[-<<<<+>>>>]<<<<[->>>>+>>>>>[>>>>>>>>>]<<<<<<<<<\n[>[->>>>>+<<<<[->>>>-<<<<<<<<<<<<<<+>>>>>>>>>>>[->>>+<<<]<]>[->>>-<<<<<<<<<<<<<<\n+>>>>>>>>>>>]<<]>[->>>>+<<<[->>>-<<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>>+<<<]<<<<<<<\n<<<<<]]>[-]>>[-]>[-]>>>>>[>>[-]>[-]>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-<\n<<<+>>>>]<<<<[->>>>+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[\n[>>>>>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+\n[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>\n[-<<+>>]<<[->>+>+<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<\n<[>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[\n>[-]<->>>[-<<<+>[<->-<<<<<<<+>>>>>>>]<[->+<]>>>]<<[->>+<<]<+<<<<<<<<<]>>>>>>>>>[\n>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>]>\n>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>[-]>>>>+++++++++++++++[[>>>>>>>>>]<<<<<<<<<-<<<<<\n<<<<[<<<<<<<<<]>>>>>>>>>-]+[>>>[-<<<->>>]+<<<[->>>->[-<<<<+>>>>]<<<<[->>>>+<<<<<\n<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>[-<<<<->>>>]+<<<<[->>>>-<[-\n<<<+>>>]<<<[->>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>\n>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-<<<+>>>]<<<[->>>+>>>>>>[>+>>>\n[-<<<->>>]<<<[->>>+<<<]>>>>>>>>]<<<<<<<<+<[>[->+>[-<-<<<<<<<<<<+>>>>>>>>>>>>[-<<\n+>>]<]>[-<<-<<<<<<<<<<+>>>>>>>>>>>>]<<<]>>[-<+>>[-<<-<<<<<<<<<<+>>>>>>>>>>>>]<]>\n[-<<+>>]<<<<<<<<<<<<<]]>>>>[-<<<<+>>>>]<<<<[->>>>+>>>>>[>+>>[-<<->>]<<[->>+<<]>>\n>>>>>>]<<<<<<<<+<[>[->+>>[-<<-<<<<<<<<<<+>>>>>>>>>>>[-<+>]>]<[-<-<<<<<<<<<<+>>>>\n>>>>>>>]<<]>>>[-<<+>[-<-<<<<<<<<<<+>>>>>>>>>>>]>]<[-<+>]<<<<<<<<<<<<]>>>>>+<<<<<\n]>>>>>>>>>[>>>[-]>[-]>[-]>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-]>[-]>>>>>[>>>>>>>[-<<<<<\n<+>>>>>>]<<<<<<[->>>>>>+<<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>+>[-<-<<<<+>>>>\n>]>>[-<<<<<<<[->>>>>+<++<<<<]>>>>>[-<<<<<+>>>>>]<->+>>]<<[->>+<<]<<<<<[->>>>>+<<\n<<<]+>>>>[-<<<<->>>>]+<<<<[->>>>->>>>>[>>>[-<<<->>>]+<<<[->>>-<[-<<+>>]<<[->>+<<\n<<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>[-<<->>]+<<[->>->[-<<<+>>>]<\n<<[->>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<\n<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-<<<+>>>]<<<[->>>+>>>>>>[>+>[-<->]<[->+\n<]>>>>>>>>]<<<<<<<<+<[>[->>>>+<<[->>-<<<<<<<<<<<<<+>>>>>>>>>>[->>>+<<<]>]<[->>>-\n<<<<<<<<<<<<<+>>>>>>>>>>]<]>>[->>+<<<[->>>-<<<<<<<<<<<<<+>>>>>>>>>>]>]<[->>>+<<<\n]<<<<<<<<<<<]>>>>>[-]>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]]>>>>[-<<<<+>\n>>>]<<<<[->>>>+>>>>>[>+>>[-<<->>]<<[->>+<<]>>>>>>>>]<<<<<<<<+<[>[->>>>+<<<[->>>-\n<<<<<<<<<<<<<+>>>>>>>>>>>[->>+<<]<]>[->>-<<<<<<<<<<<<<+>>>>>>>>>>>]<<]>[->>>+<<[\n->>-<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>+<<]<<<<<<<<<<<<]]>>>>[-]<<<<]>>>>[-<<<<+>>\n>>]<<<<[->>>>+>[-]>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]>>>>>>>>>[>>>>>>\n>>>]<<<<<<<<<[>[->>>>+<<<[->>>-<<<<<<<<<<<<<+>>>>>>>>>>>[->>+<<]<]>[->>-<<<<<<<<\n<<<<<+>>>>>>>>>>>]<<]>[->>>+<<[->>-<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>+<<]<<<<<<<<\n<<<<]]>>>>>>>>>[>>[-]>[-]>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-]>[-]>>>>>[>>>>>[-<<<<+\n>>>>]<<<<[->>>>+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[-<<<<<+>>>>>\n]<<<<<[->>>>>+<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>\n>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>+>>\n>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>[-<<+\n>>]<<[->>+>>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>\n[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-\n]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>>>>>\n[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<\n<<[->>>[-<<<+>>>]<<<[->>>+>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>\n>>>]<<<<<<<<<[>>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<<]>>[->>>>>>>>>+<<<<<<<<<]<<+>>>\n>>>>>]<<<<<<<<<[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+\n<<<<<<<<<]>>>>>>>>>[>>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>>\n>>>>>>>>>>>>>>>>>>>]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>>>>>\n>]<<<<<<<<<-<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+>>>>>>>>>>>>>>>>>>>>>+<<<[<<<<<<<<<]\n>>>>>>>>>[>>>[-<<<->>>]+<<<[->>>->[-<<<<+>>>>]<<<<[->>>>+<<<<<<<<<<<<<[<<<<<<<<<\n]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>[-<<<<->>>>]+<<<<[->>>>-<[-<<<+>>>]<<<[->>>+<\n<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>\n>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>->>[-<<<<+>>>>]<<<<[->>>>+<<[-]<<]>>]<<+>>>>[-<<<<\n->>>>]+<<<<[->>>>-<<<<<<.>>]>>>>[-<<<<<<<.>>>>>>>]<<<[-]>[-]>[-]>[-]>[-]>[-]>>>[\n>[-]>[-]>[-]>[-]>[-]>[-]>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-]>>>>]<<<<<<<<<\n[<<<<<<<<<]>+++++++++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>+>>>>>>>>>+<<<<<<<<\n<<<<<<[<<<<<<<<<]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+[-]>>[>>>>>>>>>]<<<<<\n<<<<[>>>>>>>[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<<<<<<[<<<<<<<<<]>>>>>>>[-]+>>>]<<<<\n<<<<<<]]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+>>[>+>>>>[-<<<<->>>>]<<<<[->>>\n>+<<<<]>>>>>>>>]<<+<<<<<<<[>>>>>[->>+<<]<<<<<<<<<<<<<<]>>>>>>>>>[>>>>>>>>>]<<<<<\n<<<<[>[-]<->>>>>>>[-<<<<<<<+>[<->-<<<+>>>]<[->+<]>>>>>>>]<<<<<<[->>>>>>+<<<<<<]<\n+<<<<<<<<<]>>>>>>>-<<<<[-]+<<<]+>>>>>>>[-<<<<<<<->>>>>>>]+<<<<<<<[->>>>>>>->>[>>\n>>>[->>+<<]>>>>]<<<<<<<<<[>[-]<->>>>>>>[-<<<<<<<+>[<->-<<<+>>>]<[->+<]>>>>>>>]<<\n<<<<[->>>>>>+<<<<<<]<+<<<<<<<<<]>+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>+<<<\n<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-<<<<<->>>>>]+<<<<<[->>>>>->>[-<<<<<<<+>>>>>>>]<<<<\n<<<[->>>>>>>+<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>>>>[-<\n<<<<<<->>>>>>>]+<<<<<<<[->>>>>>>-<<[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<<<<<<<<<[<<<\n<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<\n<<[<<<<<<<<<]>>>>[-]<<<+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>-<<<<<[<<<<<<<\n<<]]>>>]<<<<.>>>>>>>>>>[>>>>>>[-]>>>]<<<<<<<<<[<<<<<<<<<]>++++++++++[-[->>>>>>>>\n>+<<<<<<<<<]>>>>>>>>>]>>>>>+>>>>>>>>>+<<<<<<<<<<<<<<<[<<<<<<<<<]>>>>>>>>[-<<<<<<\n<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+[-]>[>>>>>>>>>]<<<<<<<<<[>>>>>>>>[-<<<<<<<+>>>>>>\n>]<<<<<<<[->>>>>>>+<<<<<<<<[<<<<<<<<<]>>>>>>>>[-]+>>]<<<<<<<<<<]]>>>>>>>>[-<<<<<\n<<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+>[>+>>>>>[-<<<<<->>>>>]<<<<<[->>>>>+<<<<<]>>>>>>\n>>]<+<<<<<<<<[>>>>>>[->>+<<]<<<<<<<<<<<<<<<]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>[-]<-\n>>>>>>>>[-<<<<<<<<+>[<->-<<+>>]<[->+<]>>>>>>>>]<<<<<<<[->>>>>>>+<<<<<<<]<+<<<<<<\n<<<]>>>>>>>>-<<<<<[-]+<<<]+>>>>>>>>[-<<<<<<<<->>>>>>>>]+<<<<<<<<[->>>>>>>>->[>>>\n>>>[->>+<<]>>>]<<<<<<<<<[>[-]<->>>>>>>>[-<<<<<<<<+>[<->-<<+>>]<[->+<]>>>>>>>>]<<\n<<<<<[->>>>>>>+<<<<<<<]<+<<<<<<<<<]>+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>\n+>>>>>>>>>>>>>>>>>>>>>>>>>>>+<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[-<<<<<<->>>>>>]+<\n<<<<<[->>>>>>->>[-<<<<<<<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+<<<<<<<<<<<<<<<<<[<<<<<<<\n<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>>>>>[-<<<<<<<<->>>>>>>>]+<<<<<<<<[->>>>>>>>\n-<<[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>\n>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>[-]<<<++++\n+[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>->>>>>>>>>>>>>>>>>>>>>>>>>>>-<<<<<<[<<<<\n<<<<<]]>>>]");
+    }
+    Examples.LoadBrainfuckMandelbrot = LoadBrainfuckMandelbrot;
+    function LoadBrainfuckHelloWorld() {
+        LoadExample("Hello World Brainfuck Example:\n\n++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.");
+    }
+    Examples.LoadBrainfuckHelloWorld = LoadBrainfuckHelloWorld;
+})(Examples || (Examples = {}));
+var Debugger;
+(function (Debugger) {
+    (function (State) {
+        State[State["Detatched"] = 0] = "Detatched";
+        State[State["Paused"] = 1] = "Paused";
+        State[State["Running"] = 2] = "Running";
+        State[State["Done"] = 3] = "Done";
+    })(Debugger.State || (Debugger.State = {}));
+    var State = Debugger.State;
+    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
+    Debugger.cloneSourceLocation = cloneSourceLocation;
+    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
+    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
+    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
+    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
+    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
+    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
+    var reFileLine = /^(.+)(?:(?:\((\d+)\))|(?:\:(\d+)))$/;
+    function parseSourceLocation(text) {
+        var m = reFileLine.exec(text);
+        if (!m)
+            return null;
+        var file = m[1];
+        var line = parseInt(m[2] || m[3]);
+        return { file: m[1], line: parseInt(m[2] || m[3]), column: 0 };
+    }
+    Debugger.parseSourceLocation = parseSourceLocation;
+    function sourceLocationToString(sl) {
+        var s = sl.file;
+        if (sl.line) {
+            s += "(";
+            s += sl.line.toString();
+            if (sl.column) {
+                s += ",";
+                s += sl.column.toString();
+            }
+            s += ")";
+        }
+        return s;
+    }
+    Debugger.sourceLocationToString = sourceLocationToString;
+})(Debugger || (Debugger = {}));
 var Brainfuck;
 (function (Brainfuck) {
     var AST;
@@ -82,6 +144,285 @@ var Brainfuck;
 (function (Brainfuck) {
     var AST;
     (function (AST) {
+        function sign(a) { return a > 0 ? +1 : a < 0 ? -1 : 0; }
+        function singleOptimizations(args) {
+            var changes = false;
+            var ast = args.ast;
+            for (var i = 0; i <= ast.length - 1; ++i) {
+                var a = ast[i + 0];
+                var replace = function () {
+                    var nodes = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        nodes[_i - 0] = arguments[_i];
+                    }
+                    ast.splice.apply(ast, [i, 1].concat(nodes));
+                    --i;
+                    changes = true;
+                };
+                switch (a.type) {
+                    case AST.NodeType.Loop:
+                        if (a.childScope.length === 0) {
+                            replace({ type: AST.NodeType.BreakIf, location: a.location });
+                        }
+                        else if (a.childScope.length === 1) {
+                            var c = a.childScope[0];
+                            switch (c.type) {
+                                case AST.NodeType.AddData:
+                                    if (!!c.dataOffset)
+                                        break;
+                                    if ((c.value & 1) === 0)
+                                        args.onError({ description: "Infinite loop if *data is even, *data = 0 otherwise.  If you just want to set *data = 0, prefer [-] or [+]", location: c.location, severity: AST.ErrorSeverity.Warning });
+                                    replace({ type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: a.location });
+                                    break;
+                                case AST.NodeType.SetData:
+                                    if (!!c.dataOffset)
+                                        break;
+                                    if (c.value !== 0)
+                                        args.onError({ description: "Infinite loop if *data != 0 - prefer [] if intentional", location: c.location, severity: AST.ErrorSeverity.Warning });
+                                    replace({ type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: a.location });
+                                    changes = true;
+                                    break;
+                            }
+                        }
+                        else if (a.childScope.every(function (c) { return c.type === AST.NodeType.AddData; })) {
+                            var dependsOnZero = function (n) { return !(n.dataOffset) || ((n.type === AST.NodeType.AddMulData) && !n.srcOffset); };
+                            var independantOfZero = function (n) { return !dependsOnZero(n); };
+                            var data0 = a.childScope.filter(dependsOnZero);
+                            var dataNZ = a.childScope.filter(independantOfZero);
+                            if ((data0.length === 1) && (data0[0].type === AST.NodeType.AddData) && (!(data0[0].dataOffset)) && (data0[0].value === -1)) {
+                                var mutNZ = dataNZ.map(function (d) {
+                                    switch (d.type) {
+                                        case AST.NodeType.AddData: return { type: AST.NodeType.AddMulData, value: d.value, dataOffset: d.dataOffset, location: d.location };
+                                        case AST.NodeType.SetData: return { type: AST.NodeType.SetData, value: d.value, dataOffset: d.dataOffset, location: d.location };
+                                    }
+                                });
+                                var set0 = { type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: data0[0].location };
+                                replace.apply(void 0, mutNZ.concat([set0]));
+                            }
+                        }
+                        break;
+                    case AST.NodeType.AddData:
+                        if (a.value === 0)
+                            replace();
+                        break;
+                    case AST.NodeType.AddDataPtr:
+                        if (a.value === 0)
+                            replace();
+                        break;
+                }
+            }
+            return changes;
+        }
+        function pairOptimizations(args) {
+            var changes = false;
+            var ast = args.ast;
+            for (var i = 0; i <= ast.length - 2; ++i) {
+                var l = ast[i + 0];
+                var r = ast[i + 1];
+                var replace = function () {
+                    var nodes = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        nodes[_i - 0] = arguments[_i];
+                    }
+                    ast.splice.apply(ast, [i, 2].concat(nodes));
+                    --i;
+                    changes = true;
+                };
+                if (l.type === r.type) {
+                    switch (l.type) {
+                        case AST.NodeType.AddDataPtr:
+                            l.value = (l.value + r.value);
+                            replace(l);
+                            break;
+                        case AST.NodeType.AddData:
+                            if ((l.dataOffset | 0) !== (r.dataOffset | 0))
+                                break;
+                            l.value = (l.value + r.value) & 0xFF;
+                            replace(l);
+                            break;
+                    }
+                }
+                else {
+                    if (l.type == AST.NodeType.SetData && r.type == AST.NodeType.AddData && (l.dataOffset | 0) === (r.dataOffset | 0)) {
+                        l.value = (l.value + r.value);
+                        replace(l);
+                    }
+                }
+            }
+            return changes;
+        }
+        function shiftMutsLeft(args) {
+            var changes = false;
+            var ast = args.ast;
+            for (var i = 0; i <= ast.length - 2; ++i) {
+                var l = ast[i + 0];
+                var r = ast[i + 1];
+                var replace = function () {
+                    var nodes = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        nodes[_i - 0] = arguments[_i];
+                    }
+                    ast.splice.apply(ast, [i, 2].concat(nodes));
+                    --i;
+                    changes = true;
+                };
+                if (l.type === AST.NodeType.AddDataPtr) {
+                    switch (r.type) {
+                        case AST.NodeType.AddData:
+                        case AST.NodeType.SetData:
+                        case AST.NodeType.AddMulData:
+                            replace({ type: r.type, location: r.location, dataOffset: (r.dataOffset | 0) + l.value, srcOffset: (r.srcOffset | 0) + l.value, value: r.value }, l);
+                            break;
+                    }
+                }
+            }
+            return changes;
+        }
+        function triOptimizations(args) {
+            var changes = false;
+            var ast = args.ast;
+            for (var i = 0; i <= ast.length - 3; ++i) {
+                var l = ast[i + 0];
+                var meat = ast[i + 1];
+                var r = ast[i + 2];
+                var replace = function () {
+                    var nodes = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        nodes[_i - 0] = arguments[_i];
+                    }
+                    ast.splice.apply(ast, [i, 3].concat(nodes));
+                    --i;
+                    changes = true;
+                };
+                if (l.type === AST.NodeType.AddDataPtr && r.type === AST.NodeType.AddDataPtr && sign(l.value) !== sign(r.value)) {
+                    var minMag = Math.min(Math.abs(l.value), Math.abs(r.value));
+                    var maxMag = Math.max(Math.abs(l.value), Math.abs(r.value));
+                    var diffMag = maxMag - minMag;
+                    if (l.value === -r.value) {
+                        switch (meat.type) {
+                            case AST.NodeType.SetData:
+                            case AST.NodeType.AddData:
+                                replace({ type: meat.type, location: l.location, dataOffset: l.value + (meat.dataOffset | 0), value: meat.value });
+                                break;
+                        }
+                    }
+                    else if (Math.abs(l.value) > Math.abs(r.value)) {
+                        switch (meat.type) {
+                            case AST.NodeType.SetData:
+                            case AST.NodeType.AddData:
+                                replace({ type: l.type, location: l.location, dataOffset: l.dataOffset, value: sign(l.value) * diffMag }, { type: meat.type, location: l.location, dataOffset: sign(l.value) * minMag + (meat.dataOffset | 0), value: meat.value });
+                                break;
+                        }
+                    }
+                    else if (Math.abs(l.value) < Math.abs(r.value)) {
+                        switch (meat.type) {
+                            case AST.NodeType.SetData:
+                            case AST.NodeType.AddData:
+                                replace({ type: meat.type, location: l.location, dataOffset: sign(l.value) * minMag + (meat.dataOffset | 0), value: meat.value }, { type: r.type, location: r.location, dataOffset: r.dataOffset, value: sign(r.value) * diffMag });
+                                break;
+                        }
+                    }
+                }
+            }
+            return changes;
+        }
+        function optimize(args) {
+            args.ast.forEach(function (node) { if (node.childScope)
+                node.childScope = optimize({ ast: node.childScope, onError: args.onError }); });
+            var optimizations = [singleOptimizations, pairOptimizations, triOptimizations, shiftMutsLeft];
+            for (var optimizeAttempt = 0; optimizeAttempt < 100; ++optimizeAttempt) {
+                if (!optimizations.some(function (o) { return o(args); }))
+                    break;
+            }
+            return args.ast;
+        }
+        AST.optimize = optimize;
+    })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var AST;
+    (function (AST) {
+        function defaultOnError(error) {
+            if (!!error.location)
+                console.error("Error:", error.description, "@", error.location.file + "(" + error.location.line + ")");
+            else
+                console.error("Error:", error.description);
+        }
+        function parse(args) {
+            console.assert(!!args, "parse: args is not optional");
+            console.assert(args.code !== undefined, "parse: args.code is not optional");
+            console.assert(args.code !== null, "parse: args.code is not optional");
+            var location = { file: "memory.bf", line: 1, column: 1 };
+            var code = args.code;
+            var _onError = args.onError || defaultOnError;
+            var _root = [];
+            var _scopeStack = [_root];
+            var atLocation = function (tempLocation, action) { var origLocation = location; location = tempLocation; action(); location = origLocation; };
+            var info = function (desc) { return _onError({ severity: AST.ErrorSeverity.Info, description: desc, location: Debugger.cloneSourceLocation(location) }); };
+            var warning = function (desc) { return _onError({ severity: AST.ErrorSeverity.Warning, description: desc, location: Debugger.cloneSourceLocation(location) }); };
+            var error = function (desc) { return _onError({ severity: AST.ErrorSeverity.Error, description: desc, location: Debugger.cloneSourceLocation(location) }); };
+            var scope = function () { return _scopeStack[_scopeStack.length - 1]; };
+            var pushScope = function () { var scope = []; _scopeStack.push(scope); return scope; };
+            var popScope = function () { if (_scopeStack.length == 1)
+                error("Reached end of scope ']', but was already at the root scope!");
+            else
+                _scopeStack.pop(); };
+            for (var codeI = 0; codeI < code.length; ++codeI) {
+                var ch = code[codeI];
+                switch (ch) {
+                    case "<":
+                        scope().push({ type: AST.NodeType.AddDataPtr, value: -1, location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case ">":
+                        scope().push({ type: AST.NodeType.AddDataPtr, value: +1, location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case "+":
+                        scope().push({ type: AST.NodeType.AddData, value: +1, dataOffset: 0, location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case "-":
+                        scope().push({ type: AST.NodeType.AddData, value: -1, dataOffset: 0, location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case ",":
+                        scope().push({ type: AST.NodeType.SystemCall, systemCall: AST.SystemCall.Getch, location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case ".":
+                        scope().push({ type: AST.NodeType.SystemCall, systemCall: AST.SystemCall.Putch, location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case "[":
+                        scope().push({ type: AST.NodeType.Loop, childScope: pushScope(), location: Debugger.cloneSourceLocation(location) });
+                        break;
+                    case "]":
+                        popScope();
+                        break;
+                    default: break;
+                }
+                if (ch == "\n") {
+                    ++location.line;
+                    location.column = 1;
+                }
+                else {
+                    ++location.column;
+                }
+            }
+            scope().push({ type: AST.NodeType.SystemCall, systemCall: AST.SystemCall.TapeEnd, location: Debugger.cloneSourceLocation(location) });
+            if (_scopeStack.length > 1) {
+                for (var i = _scopeStack.length - 2; i >= 0; --i) {
+                    var badScopeNode = _scopeStack[i][_scopeStack[i].length - 1];
+                    atLocation(badScopeNode.location, function () { return error("Start of scope '[' not terminated before end of file!"); });
+                }
+                error("Unexpected end of file!");
+                return undefined;
+            }
+            return { ast: _root, optimizedAst: AST.optimize({ ast: AST.cloneNodes(_root), onError: args.onError }) };
+        }
+        AST.parse = parse;
+    })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var AST;
+    (function (AST) {
         (function (SystemCall) {
             SystemCall[SystemCall["Break"] = 0] = "Break";
             SystemCall[SystemCall["Putch"] = 1] = "Putch";
@@ -111,6 +452,7 @@ var Brainfuck;
                     errors = true; } });
             if (errors)
                 return undefined;
+            parseResult.optimizedAst.forEach(function (node) { return Brainfuck.AST.logAst(node, ""); });
             var program = VmCompiler.compileProgram(parseResult.optimizedAst);
             var vm = VmCompiler.createInitState(program);
             var state = Debugger.State.Paused;
@@ -236,6 +578,49 @@ var Brainfuck;
 (function (Brainfuck) {
     var VmCompiler;
     (function (VmCompiler) {
+        function createDebugger(code, stdout) {
+            var errors = false;
+            var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
+                    errors = true; } });
+            if (errors)
+                return undefined;
+            var program = VmCompiler.compileProgram(parseResult.optimizedAst);
+            var vm = VmCompiler.createInitState(program);
+            var runHandle = undefined;
+            var doPause = function () { if (runHandle !== undefined)
+                clearInterval(runHandle); runHandle = undefined; };
+            var doContinue = function () { if (runHandle === undefined)
+                runHandle = setInterval(function () { return VmCompiler.runSome(vm, 100000); }, 0); };
+            var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
+            var doStep = function () { return VmCompiler.runOne(vm); };
+            var getMemory = function (start, size) { return vm.data.slice(start, start + size); };
+            var getState = function () {
+                return vm === undefined ? Debugger.State.Detatched
+                    : vm.codePtr >= vm.program.locs.length ? Debugger.State.Done
+                        : runHandle !== undefined ? Debugger.State.Running
+                            : Debugger.State.Paused;
+            };
+            vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { stdout(String.fromCharCode(vm.data[vm.dataPtr])); ++vm.codePtr; return true; };
+            vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { doStop(); return false; };
+            return {
+                symbols: VmCompiler.createSymbolLookup(program),
+                breakpoints: null,
+                state: getState,
+                threads: function () { return VmCompiler.getThreads(vm, code); },
+                memory: getMemory,
+                pause: doPause,
+                continue: doContinue,
+                stop: doStop,
+                step: doStep,
+            };
+        }
+        VmCompiler.createDebugger = createDebugger;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
         function compileProgram(ast) {
             var program = { ops: [], locs: [] };
             compile(program, ast);
@@ -251,31 +636,31 @@ var Brainfuck;
                 };
                 switch (node.type) {
                     case Brainfuck.AST.NodeType.AddDataPtr:
-                        push({ type: VmCompiler.VmOpType.AddDataPtr, value: node.value || 0, dataOffset: 0, srcOffset: 0 });
+                        push({ type: VmCompiler.VmOpType.AddDataPtr, value: node.value || 0, dataOffset: node.dataOffset || 0, srcOffset: node.srcOffset || 0 });
                         break;
                     case Brainfuck.AST.NodeType.AddData:
-                        push({ type: VmCompiler.VmOpType.AddData, value: node.value || 0, dataOffset: node.dataOffset || 0, srcOffset: 0 });
+                        push({ type: VmCompiler.VmOpType.AddData, value: node.value || 0, dataOffset: node.dataOffset || 0, srcOffset: node.srcOffset || 0 });
                         break;
                     case Brainfuck.AST.NodeType.AddMulData:
-                        push({ type: VmCompiler.VmOpType.AddMulData, value: node.value || 0, dataOffset: node.dataOffset || 0, srcOffset: 0 });
+                        push({ type: VmCompiler.VmOpType.AddMulData, value: node.value || 0, dataOffset: node.dataOffset || 0, srcOffset: node.srcOffset || 0 });
                         break;
                     case Brainfuck.AST.NodeType.SetData:
-                        push({ type: VmCompiler.VmOpType.SetData, value: node.value || 0, dataOffset: node.dataOffset || 0, srcOffset: 0 });
+                        push({ type: VmCompiler.VmOpType.SetData, value: node.value || 0, dataOffset: node.dataOffset || 0, srcOffset: node.srcOffset || 0 });
                         break;
                     case Brainfuck.AST.NodeType.SystemCall:
-                        push({ type: VmCompiler.VmOpType.SystemCall, value: node.systemCall || 0, dataOffset: 0, srcOffset: 0 });
+                        push({ type: VmCompiler.VmOpType.SystemCall, value: node.systemCall || 0, dataOffset: node.dataOffset || 0, srcOffset: node.srcOffset || 0 });
                         break;
                     case Brainfuck.AST.NodeType.BreakIf:
                         var afterSystemCall = program.ops.length + 2;
-                        push({ type: VmCompiler.VmOpType.JumpIfNot, value: afterSystemCall, dataOffset: 0, srcOffset: 0 });
-                        push({ type: VmCompiler.VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: 0, srcOffset: 0 });
+                        push({ type: VmCompiler.VmOpType.JumpIfNot, value: afterSystemCall, dataOffset: node.dataOffset || 0, srcOffset: node.srcOffset || 0 });
+                        push({ type: VmCompiler.VmOpType.SystemCall, value: Brainfuck.AST.SystemCall.Break, dataOffset: node.dataOffset || 0, srcOffset: node.srcOffset || 0 });
                         break;
                     case Brainfuck.AST.NodeType.Loop:
-                        var firstJump = { type: VmCompiler.VmOpType.JumpIfNot, value: undefined, dataOffset: 0, srcOffset: 0 };
+                        var firstJump = { type: VmCompiler.VmOpType.JumpIfNot, value: undefined, dataOffset: node.dataOffset || 0, srcOffset: node.srcOffset || 0 };
                         push(firstJump);
                         var afterFirstJump = program.ops.length;
                         compile(program, node.childScope);
-                        var lastJump = { type: VmCompiler.VmOpType.JumpIf, value: afterFirstJump, dataOffset: 0, srcOffset: 0 };
+                        var lastJump = { type: VmCompiler.VmOpType.JumpIf, value: afterFirstJump, dataOffset: node.dataOffset || 0, srcOffset: node.srcOffset || 0 };
                         push(lastJump);
                         var afterLastJump = program.ops.length;
                         firstJump.value = afterLastJump;
@@ -305,6 +690,27 @@ var Brainfuck;
             };
         }
         VmCompiler.createSymbolLookup = createSymbolLookup;
+    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
+})(Brainfuck || (Brainfuck = {}));
+var Brainfuck;
+(function (Brainfuck) {
+    var VmCompiler;
+    (function (VmCompiler) {
+        function createInitState(program) {
+            var s = {
+                program: program,
+                loadedCode: program.ops.map(function (op) { return op; }),
+                data: [],
+                codePtr: 0,
+                dataPtr: 0,
+                sysCalls: [],
+                insRan: 0,
+                runTime: 0,
+                wallStart: Date.now()
+            };
+            return s;
+        }
+        VmCompiler.createInitState = createInitState;
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
 var Brainfuck;
@@ -412,27 +818,6 @@ var Brainfuck;
             vm.runTime += (tStop - tStart) / 1000;
         }
         VmCompiler.runSome = runSome;
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        function createInitState(program) {
-            var s = {
-                program: program,
-                loadedCode: program.ops.map(function (op) { return op; }),
-                data: [],
-                codePtr: 0,
-                dataPtr: 0,
-                sysCalls: [],
-                insRan: 0,
-                runTime: 0,
-                wallStart: Date.now()
-            };
-            return s;
-        }
-        VmCompiler.createInitState = createInitState;
     })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
 })(Brainfuck || (Brainfuck = {}));
 var Brainfuck;
@@ -649,528 +1034,6 @@ var UI;
         });
     })(Breakpoints = UI.Breakpoints || (UI.Breakpoints = {}));
 })(UI || (UI = {}));
-function debounce(callback, waitMS) {
-    var _this = this;
-    var callNext = undefined;
-    var wrapped = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i - 0] = arguments[_i];
-        }
-        if (callNext === undefined) {
-            setTimeout(function () {
-                callNext.call.apply(callNext, [_this].concat(args));
-                callNext = undefined;
-            }, waitMS);
-        }
-        callNext = callback;
-    };
-    return wrapped;
-}
-var Examples;
-(function (Examples) {
-    function LoadExample(example) {
-        UI.Editor.setScript(example);
-    }
-    addEventListener("load", function (e) {
-        if (UI.Editor.isAvailable()) {
-            LoadBrainfuckMandelbrot();
-            UI.Debug.Start(false);
-        }
-    });
-    function LoadBrainfuckMandelbrot() {
-        LoadExample("Mandelbrot Set Brainfuck Example:\n\n+++++++++++++[->++>>>+++++>++>+<<<<<<]>>>>>++++++>--->>>>>>>>>>+++++++++++++++[[\n>>>>>>>>>]+[<<<<<<<<<]>>>>>>>>>-]+[>>>>>>>>[-]>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>[-]+\n<<<<<<<+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>>+>>>>>>>>>>>>>>>>>>>>>>>>>>\n>+<<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+[>>>>>>[>>>>>>>[-]>>]<<<<<<<<<[<<<<<<<<<]>>\n>>>>>[-]+<<<<<<++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>+<<<<<<+++++++[-[->>>\n>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>>+<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[[-]>>>>>>[>>>>>\n>>[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>\n[>>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<\n<<]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]>>>>>>>>>+++++++++++++++[[\n>>>>>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[\n>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>[\n-<<+>>]<<[->>+>>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<\n<<[>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<\n[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>\n>>>>[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+\n<<<<<<[->>>[-<<<+>>>]<<<[->>>+>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>\n>>>>>>>]<<<<<<<<<[>>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<<]>>[->>>>>>>>>+<<<<<<<<<]<<\n+>>>>>>>>]<<<<<<<<<[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<\n<]<+<<<<<<<<<]>>>>>>>>>[>>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>\n>>>>>>>>>>>>>>>>>>>>>>>]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>\n>>>>>]<<<<<<<<<-<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+>>>>>>>>>>>>>>>>>>>>>+<<<[<<<<<<\n<<<]>>>>>>>>>[>>>[-<<<->>>]+<<<[->>>->[-<<<<+>>>>]<<<<[->>>>+<<<<<<<<<<<<<[<<<<<\n<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>[-<<<<->>>>]+<<<<[->>>>-<[-<<<+>>>]<<<[->\n>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<\n<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]<<<<<<<[->+>>>-<<<<]>>>>>>>>>+++++++++++++++++++\n+++++++>>[-<<<<+>>>>]<<<<[->>>>+<<[-]<<]>>[<<<<<<<+<[-<+>>>>+<<[-]]>[-<<[->+>>>-\n<<<<]>>>]>>>>>>>>>>>>>[>>[-]>[-]>[-]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-]>>>>>>[>>>>>\n[-<<<<+>>>>]<<<<[->>>>+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>[-<<<<<<<<\n<+>>>>>>>>>]>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>>>>>>]+>[-\n]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>+>>>>>>>>]<<<\n<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<[->>[-<<+>>]<\n<[->>+>+<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>[->>>>\n>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-]<->>>\n[-<<<+>[<->-<<<<<<<+>>>>>>>]<[->+<]>>>]<<[->>+<<]<+<<<<<<<<<]>>>>>>>>>[>>>>>>[-<\n<<<<+>>>>>]<<<<<[->>>>>+<<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>+>>>>>>>>\n]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<[->>[-<<+\n>>]<<[->>+>>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>\n[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-\n]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>>>>>\n[>>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>]>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>++++++++\n+++++++[[>>>>>>>>>]<<<<<<<<<-<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>>>>>>>>[-<<<<<<<+\n>>>>>>>]<<<<<<<[->>>>>>>+<<<<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[\n-]>>>]<<<<<<<<<[<<<<<<<<<]>>>>+>[-<-<<<<+>>>>>]>[-<<<<<<[->>>>>+<++<<<<]>>>>>[-<\n<<<<+>>>>>]<->+>]<[->+<]<<<<<[->>>>>+<<<<<]>>>>>>[-]<<<<<<+>>>>[-<<<<->>>>]+<<<<\n[->>>>->>>>>[>>[-<<->>]+<<[->>->[-<<<+>>>]<<<[->>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]\n+>>>>>>[>>>>>>>>>]>+<]]+>>>[-<<<->>>]+<<<[->>>-<[-<<+>>]<<[->>+<<<<<<<<<<<[<<<<<\n<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<\n[<<<<<<<<<]>>>>[-<<<<+>>>>]<<<<[->>>>+>>>>>[>+>>[-<<->>]<<[->>+<<]>>>>>>>>]<<<<<\n<<<+<[>[->>>>>+<<<<[->>>>-<<<<<<<<<<<<<<+>>>>>>>>>>>[->>>+<<<]<]>[->>>-<<<<<<<<<\n<<<<<+>>>>>>>>>>>]<<]>[->>>>+<<<[->>>-<<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>>+<<<]<<\n<<<<<<<<<<]>>>>[-]<<<<]>>>[-<<<+>>>]<<<[->>>+>>>>>>[>+>[-<->]<[->+<]>>>>>>>>]<<<\n<<<<<+<[>[->>>>>+<<<[->>>-<<<<<<<<<<<<<<+>>>>>>>>>>[->>>>+<<<<]>]<[->>>>-<<<<<<<\n<<<<<<<+>>>>>>>>>>]<]>>[->>>+<<<<[->>>>-<<<<<<<<<<<<<<+>>>>>>>>>>]>]<[->>>>+<<<<\n]<<<<<<<<<<<]>>>>>>+<<<<<<]]>>>>[-<<<<+>>>>]<<<<[->>>>+>>>>>[>>>>>>>>>]<<<<<<<<<\n[>[->>>>>+<<<<[->>>>-<<<<<<<<<<<<<<+>>>>>>>>>>>[->>>+<<<]<]>[->>>-<<<<<<<<<<<<<<\n+>>>>>>>>>>>]<<]>[->>>>+<<<[->>>-<<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>>+<<<]<<<<<<<\n<<<<<]]>[-]>>[-]>[-]>>>>>[>>[-]>[-]>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-<\n<<<+>>>>]<<<<[->>>>+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[\n[>>>>>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+\n[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>\n[-<<+>>]<<[->>+>+<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<\n<[>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[\n>[-]<->>>[-<<<+>[<->-<<<<<<<+>>>>>>>]<[->+<]>>>]<<[->>+<<]<+<<<<<<<<<]>>>>>>>>>[\n>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>]>\n>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>[-]>>>>+++++++++++++++[[>>>>>>>>>]<<<<<<<<<-<<<<<\n<<<<[<<<<<<<<<]>>>>>>>>>-]+[>>>[-<<<->>>]+<<<[->>>->[-<<<<+>>>>]<<<<[->>>>+<<<<<\n<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>[-<<<<->>>>]+<<<<[->>>>-<[-\n<<<+>>>]<<<[->>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>\n>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-<<<+>>>]<<<[->>>+>>>>>>[>+>>>\n[-<<<->>>]<<<[->>>+<<<]>>>>>>>>]<<<<<<<<+<[>[->+>[-<-<<<<<<<<<<+>>>>>>>>>>>>[-<<\n+>>]<]>[-<<-<<<<<<<<<<+>>>>>>>>>>>>]<<<]>>[-<+>>[-<<-<<<<<<<<<<+>>>>>>>>>>>>]<]>\n[-<<+>>]<<<<<<<<<<<<<]]>>>>[-<<<<+>>>>]<<<<[->>>>+>>>>>[>+>>[-<<->>]<<[->>+<<]>>\n>>>>>>]<<<<<<<<+<[>[->+>>[-<<-<<<<<<<<<<+>>>>>>>>>>>[-<+>]>]<[-<-<<<<<<<<<<+>>>>\n>>>>>>>]<<]>>>[-<<+>[-<-<<<<<<<<<<+>>>>>>>>>>>]>]<[-<+>]<<<<<<<<<<<<]>>>>>+<<<<<\n]>>>>>>>>>[>>>[-]>[-]>[-]>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-]>[-]>>>>>[>>>>>>>[-<<<<<\n<+>>>>>>]<<<<<<[->>>>>>+<<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>+>[-<-<<<<+>>>>\n>]>>[-<<<<<<<[->>>>>+<++<<<<]>>>>>[-<<<<<+>>>>>]<->+>>]<<[->>+<<]<<<<<[->>>>>+<<\n<<<]+>>>>[-<<<<->>>>]+<<<<[->>>>->>>>>[>>>[-<<<->>>]+<<<[->>>-<[-<<+>>]<<[->>+<<\n<<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>[-<<->>]+<<[->>->[-<<<+>>>]<\n<<[->>>+<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<\n<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-<<<+>>>]<<<[->>>+>>>>>>[>+>[-<->]<[->+\n<]>>>>>>>>]<<<<<<<<+<[>[->>>>+<<[->>-<<<<<<<<<<<<<+>>>>>>>>>>[->>>+<<<]>]<[->>>-\n<<<<<<<<<<<<<+>>>>>>>>>>]<]>>[->>+<<<[->>>-<<<<<<<<<<<<<+>>>>>>>>>>]>]<[->>>+<<<\n]<<<<<<<<<<<]>>>>>[-]>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]]>>>>[-<<<<+>\n>>>]<<<<[->>>>+>>>>>[>+>>[-<<->>]<<[->>+<<]>>>>>>>>]<<<<<<<<+<[>[->>>>+<<<[->>>-\n<<<<<<<<<<<<<+>>>>>>>>>>>[->>+<<]<]>[->>-<<<<<<<<<<<<<+>>>>>>>>>>>]<<]>[->>>+<<[\n->>-<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>+<<]<<<<<<<<<<<<]]>>>>[-]<<<<]>>>>[-<<<<+>>\n>>]<<<<[->>>>+>[-]>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+<<+<<<<<]>>>>>>>>>[>>>>>>\n>>>]<<<<<<<<<[>[->>>>+<<<[->>>-<<<<<<<<<<<<<+>>>>>>>>>>>[->>+<<]<]>[->>-<<<<<<<<\n<<<<<+>>>>>>>>>>>]<<]>[->>>+<<[->>-<<<<<<<<<<<<<+>>>>>>>>>>>]<]>[->>+<<]<<<<<<<<\n<<<<]]>>>>>>>>>[>>[-]>[-]>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>[-]>[-]>>>>>[>>>>>[-<<<<+\n>>>>]<<<<[->>>>+<<<+<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[-<<<<<+>>>>>\n]<<<<<[->>>>>+<<<+<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>\n>>>>>]+>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]>[-]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+[>+>>\n>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>[-<<<<+>>>>]<<<<[->>>>+<<<<<[->>[-<<+\n>>]<<[->>+>>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>\n[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<]>[->>>>>>>>>+<<<<<<<<<]<+>>>>>>>>]<<<<<<<<<[>[-\n]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+<<<<<<<<<]>>>>>>>>>\n[>+>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>->>>>>[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<\n<<[->>>[-<<<+>>>]<<<[->>>+>+<<<<]+>>>>>>>>>]<<<<<<<<[<<<<<<<<<]]>>>>>>>>>[>>>>>>\n>>>]<<<<<<<<<[>>[->>>>>>>>>+<<<<<<<<<]<<<<<<<<<<<]>>[->>>>>>>>>+<<<<<<<<<]<<+>>>\n>>>>>]<<<<<<<<<[>[-]<->>>>[-<<<<+>[<->-<<<<<<+>>>>>>]<[->+<]>>>>]<<<[->>>+<<<]<+\n<<<<<<<<<]>>>>>>>>>[>>>>[-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<+>>>>>>>>>>>>>>>>>\n>>>>>>>>>>>>>>>>>>>]>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>+++++++++++++++[[>>>>>>>>\n>]<<<<<<<<<-<<<<<<<<<[<<<<<<<<<]>>>>>>>>>-]+>>>>>>>>>>>>>>>>>>>>>+<<<[<<<<<<<<<]\n>>>>>>>>>[>>>[-<<<->>>]+<<<[->>>->[-<<<<+>>>>]<<<<[->>>>+<<<<<<<<<<<<<[<<<<<<<<<\n]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>[-<<<<->>>>]+<<<<[->>>>-<[-<<<+>>>]<<<[->>>+<\n<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>\n>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>->>[-<<<<+>>>>]<<<<[->>>>+<<[-]<<]>>]<<+>>>>[-<<<<\n->>>>]+<<<<[->>>>-<<<<<<.>>]>>>>[-<<<<<<<.>>>>>>>]<<<[-]>[-]>[-]>[-]>[-]>[-]>>>[\n>[-]>[-]>[-]>[-]>[-]>[-]>>>]<<<<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-]>>>>]<<<<<<<<<\n[<<<<<<<<<]>+++++++++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>+>>>>>>>>>+<<<<<<<<\n<<<<<<[<<<<<<<<<]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+[-]>>[>>>>>>>>>]<<<<<\n<<<<[>>>>>>>[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<<<<<<[<<<<<<<<<]>>>>>>>[-]+>>>]<<<<\n<<<<<<]]>>>>>>>[-<<<<<<<+>>>>>>>]<<<<<<<[->>>>>>>+>>[>+>>>>[-<<<<->>>>]<<<<[->>>\n>+<<<<]>>>>>>>>]<<+<<<<<<<[>>>>>[->>+<<]<<<<<<<<<<<<<<]>>>>>>>>>[>>>>>>>>>]<<<<<\n<<<<[>[-]<->>>>>>>[-<<<<<<<+>[<->-<<<+>>>]<[->+<]>>>>>>>]<<<<<<[->>>>>>+<<<<<<]<\n+<<<<<<<<<]>>>>>>>-<<<<[-]+<<<]+>>>>>>>[-<<<<<<<->>>>>>>]+<<<<<<<[->>>>>>>->>[>>\n>>>[->>+<<]>>>>]<<<<<<<<<[>[-]<->>>>>>>[-<<<<<<<+>[<->-<<<+>>>]<[->+<]>>>>>>>]<<\n<<<<[->>>>>>+<<<<<<]<+<<<<<<<<<]>+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>+<<<\n<<[<<<<<<<<<]>>>>>>>>>[>>>>>[-<<<<<->>>>>]+<<<<<[->>>>>->>[-<<<<<<<+>>>>>>>]<<<<\n<<<[->>>>>>>+<<<<<<<<<<<<<<<<[<<<<<<<<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>>>>[-<\n<<<<<<->>>>>>>]+<<<<<<<[->>>>>>>-<<[-<<<<<+>>>>>]<<<<<[->>>>>+<<<<<<<<<<<<<<[<<<\n<<<<<<]>>>[-]+>>>>>>[>>>>>>>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<\n<<[<<<<<<<<<]>>>>[-]<<<+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>-<<<<<[<<<<<<<\n<<]]>>>]<<<<.>>>>>>>>>>[>>>>>>[-]>>>]<<<<<<<<<[<<<<<<<<<]>++++++++++[-[->>>>>>>>\n>+<<<<<<<<<]>>>>>>>>>]>>>>>+>>>>>>>>>+<<<<<<<<<<<<<<<[<<<<<<<<<]>>>>>>>>[-<<<<<<\n<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+[-]>[>>>>>>>>>]<<<<<<<<<[>>>>>>>>[-<<<<<<<+>>>>>>\n>]<<<<<<<[->>>>>>>+<<<<<<<<[<<<<<<<<<]>>>>>>>>[-]+>>]<<<<<<<<<<]]>>>>>>>>[-<<<<<\n<<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+>[>+>>>>>[-<<<<<->>>>>]<<<<<[->>>>>+<<<<<]>>>>>>\n>>]<+<<<<<<<<[>>>>>>[->>+<<]<<<<<<<<<<<<<<<]>>>>>>>>>[>>>>>>>>>]<<<<<<<<<[>[-]<-\n>>>>>>>>[-<<<<<<<<+>[<->-<<+>>]<[->+<]>>>>>>>>]<<<<<<<[->>>>>>>+<<<<<<<]<+<<<<<<\n<<<]>>>>>>>>-<<<<<[-]+<<<]+>>>>>>>>[-<<<<<<<<->>>>>>>>]+<<<<<<<<[->>>>>>>>->[>>>\n>>>[->>+<<]>>>]<<<<<<<<<[>[-]<->>>>>>>>[-<<<<<<<<+>[<->-<<+>>]<[->+<]>>>>>>>>]<<\n<<<<<[->>>>>>>+<<<<<<<]<+<<<<<<<<<]>+++++[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>\n+>>>>>>>>>>>>>>>>>>>>>>>>>>>+<<<<<<[<<<<<<<<<]>>>>>>>>>[>>>>>>[-<<<<<<->>>>>>]+<\n<<<<<[->>>>>>->>[-<<<<<<<<+>>>>>>>>]<<<<<<<<[->>>>>>>>+<<<<<<<<<<<<<<<<<[<<<<<<<\n<<]>>>>[-]+>>>>>[>>>>>>>>>]>+<]]+>>>>>>>>[-<<<<<<<<->>>>>>>>]+<<<<<<<<[->>>>>>>>\n-<<[-<<<<<<+>>>>>>]<<<<<<[->>>>>>+<<<<<<<<<<<<<<<[<<<<<<<<<]>>>[-]+>>>>>>[>>>>>>\n>>>]>[-]+<]]+>[-<[>>>>>>>>>]<<<<<<<<]>>>>>>>>]<<<<<<<<<[<<<<<<<<<]>>>>[-]<<<++++\n+[-[->>>>>>>>>+<<<<<<<<<]>>>>>>>>>]>>>>>->>>>>>>>>>>>>>>>>>>>>>>>>>>-<<<<<<[<<<<\n<<<<<]]>>>]");
-    }
-    Examples.LoadBrainfuckMandelbrot = LoadBrainfuckMandelbrot;
-    function LoadBrainfuckHelloWorld() {
-        LoadExample("Hello World Brainfuck Example:\n\n++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.");
-    }
-    Examples.LoadBrainfuckHelloWorld = LoadBrainfuckHelloWorld;
-})(Examples || (Examples = {}));
-addEventListener("load", function () {
-    setTimeout(function () {
-        dispatchEvent(new CustomEvent("lateLoaded"));
-    }, 2000);
-});
-var _itc_root = this;
-var ITC;
-(function (ITC) {
-    var log = function (m) {
-        var a = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            a[_i - 1] = arguments[_i];
-        }
-        return console.log.apply(console, [m].concat(a));
-    };
-    var htmlRefresh = 100;
-    var noShortcut = true;
-    function genSessionId() { return Math.random().toString(36).substr(2, 5); }
-    function newSession() { tabSessionId = genSessionId(); console.log("Generating a new tab session:", tabSessionId); localStorage.setItem("current-session", tabSessionId); }
-    ITC.newSession = newSession;
-    if (_itc_root["localStorage"])
-        addEventListener("focus", function (focusEvent) { console.log("Switching to", tabSessionId); localStorage.setItem("current-session", tabSessionId); });
-    var tabSessionId = _itc_root["localStorage"] ? localStorage.getItem("current-session") : undefined;
-    function cullHeaders() {
-        var now = Date.now();
-        for (var i = 0; i < localStorage.length; ++i) {
-            var key = localStorage.key(i);
-            if (key == "current-session")
-                continue;
-            var header = JSON.parse(localStorage.getItem(key));
-            if (Math.abs(header._itc_last_updated - now) > 3000) {
-                localStorage.removeItem(key);
-                log(key, "timed out and removed");
-            }
-            else {
-            }
-        }
-    }
-    if (_itc_root["localStorage"]) {
-        cullHeaders();
-        addEventListener("load", function (loadEvent) {
-            setInterval(function () { return cullHeaders(); }, 10000);
-        });
-    }
-    function peekAll(prefix) {
-        prefix = tabSessionId + "-" + prefix;
-        var now = Date.now();
-        var headers = [];
-        for (var i = 0; i < localStorage.length; ++i) {
-            var key = localStorage.key(i);
-            var matchesPrefix = key.substr(0, prefix.length) == prefix;
-            if (matchesPrefix) {
-                var header = JSON.parse(localStorage.getItem(key));
-                headers.push(header);
-            }
-        }
-        return headers;
-    }
-    ITC.peekAll = peekAll;
-    function sendTo(key, header) {
-        header._itc_last_updated = Date.now();
-        var local = localOnHeader[key];
-        if (local)
-            local(header);
-        if (!local || noShortcut)
-            localStorage.setItem(tabSessionId + "-" + key, JSON.stringify(header));
-    }
-    ITC.sendTo = sendTo;
-    function listenTo(key, onHeader) {
-        localOnHeader[key] = onHeader;
-        var existing = localStorage.getItem(tabSessionId + "-" + key);
-        if (existing)
-            onHeader(JSON.parse(existing));
-    }
-    ITC.listenTo = listenTo;
-    function sendToByClassName(className, keyPrefix, eachElement) {
-        var elements = UI.byClassName(className);
-        elements.forEach(function (e) {
-            var itcKey = getItcKey(e);
-            sendTo(keyPrefix + itcKey, eachElement({ itcKey: itcKey, element: e }));
-        });
-    }
-    ITC.sendToByClassName = sendToByClassName;
-    function listenToByClassName(className, keyPrefix, onHeader) {
-        var listening = [];
-        var update = function () {
-            var m = {};
-            var elements = UI.byClassName(className);
-            elements.forEach(function (e) {
-                var itcKey = getItcKey(e);
-                m[itcKey] = true;
-                localOnHeader[keyPrefix + itcKey] = function (h) { return onHeader({ header: h, element: e }); };
-            });
-            listening.forEach(function (e) {
-                var itcKey = getItcKey(e);
-                if (!m[itcKey])
-                    delete localOnHeader[keyPrefix + itcKey];
-            });
-            listening = elements;
-        };
-        update();
-        setInterval(update, htmlRefresh);
-    }
-    ITC.listenToByClassName = listenToByClassName;
-    var localOnHeader = {};
-    function getItcKey(e) {
-        var a = e;
-        var key = a["__itc_key__"];
-        if (key)
-            return key;
-        key = a["__itc_key__"] = Math.random().toString(36).substr(2, 5);
-        return key;
-    }
-    addEventListener("storage", function (ev) {
-        var tabSessionIdPrefix = tabSessionId + "-";
-        if (ev.key.substr(0, tabSessionIdPrefix.length) != tabSessionIdPrefix)
-            return;
-        if (!ev.newValue)
-            return;
-        var key = ev.key.substr(tabSessionIdPrefix.length);
-        var local = localOnHeader[key];
-        if (!local)
-            return;
-        local(JSON.parse(ev.newValue));
-    });
-})(ITC || (ITC = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var AST;
-    (function (AST) {
-        function defaultOnError(error) {
-            if (!!error.location)
-                console.error("Error:", error.description, "@", error.location.file + "(" + error.location.line + ")");
-            else
-                console.error("Error:", error.description);
-        }
-        function parse(args) {
-            console.assert(!!args, "parse: args is not optional");
-            console.assert(args.code !== undefined, "parse: args.code is not optional");
-            console.assert(args.code !== null, "parse: args.code is not optional");
-            var location = { file: "memory.bf", line: 1, column: 1 };
-            var code = args.code;
-            var _onError = args.onError || defaultOnError;
-            var _root = [];
-            var _scopeStack = [_root];
-            var atLocation = function (tempLocation, action) { var origLocation = location; location = tempLocation; action(); location = origLocation; };
-            var info = function (desc) { return _onError({ severity: AST.ErrorSeverity.Info, description: desc, location: Debugger.cloneSourceLocation(location) }); };
-            var warning = function (desc) { return _onError({ severity: AST.ErrorSeverity.Warning, description: desc, location: Debugger.cloneSourceLocation(location) }); };
-            var error = function (desc) { return _onError({ severity: AST.ErrorSeverity.Error, description: desc, location: Debugger.cloneSourceLocation(location) }); };
-            var scope = function () { return _scopeStack[_scopeStack.length - 1]; };
-            var pushScope = function () { var scope = []; _scopeStack.push(scope); return scope; };
-            var popScope = function () { if (_scopeStack.length == 1)
-                error("Reached end of scope ']', but was already at the root scope!");
-            else
-                _scopeStack.pop(); };
-            for (var codeI = 0; codeI < code.length; ++codeI) {
-                var ch = code[codeI];
-                switch (ch) {
-                    case "<":
-                        scope().push({ type: AST.NodeType.AddDataPtr, value: -1, location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case ">":
-                        scope().push({ type: AST.NodeType.AddDataPtr, value: +1, location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case "+":
-                        scope().push({ type: AST.NodeType.AddData, value: +1, dataOffset: 0, location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case "-":
-                        scope().push({ type: AST.NodeType.AddData, value: -1, dataOffset: 0, location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case ",":
-                        scope().push({ type: AST.NodeType.SystemCall, systemCall: AST.SystemCall.Getch, location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case ".":
-                        scope().push({ type: AST.NodeType.SystemCall, systemCall: AST.SystemCall.Putch, location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case "[":
-                        scope().push({ type: AST.NodeType.Loop, childScope: pushScope(), location: Debugger.cloneSourceLocation(location) });
-                        break;
-                    case "]":
-                        popScope();
-                        break;
-                    default: break;
-                }
-                if (ch == "\n") {
-                    ++location.line;
-                    location.column = 1;
-                }
-                else {
-                    ++location.column;
-                }
-            }
-            scope().push({ type: AST.NodeType.SystemCall, systemCall: AST.SystemCall.TapeEnd, location: Debugger.cloneSourceLocation(location) });
-            if (_scopeStack.length > 1) {
-                for (var i = _scopeStack.length - 2; i >= 0; --i) {
-                    var badScopeNode = _scopeStack[i][_scopeStack[i].length - 1];
-                    atLocation(badScopeNode.location, function () { return error("Start of scope '[' not terminated before end of file!"); });
-                }
-                error("Unexpected end of file!");
-                return undefined;
-            }
-            return { ast: _root, optimizedAst: AST.optimize({ ast: AST.cloneNodes(_root), onError: args.onError }) };
-        }
-        AST.parse = parse;
-    })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var AST;
-    (function (AST) {
-        function sign(a) { return a > 0 ? +1 : a < 0 ? -1 : 0; }
-        function singleOptimizations(args) {
-            var changes = false;
-            var ast = args.ast;
-            for (var i = 0; i <= ast.length - 1; ++i) {
-                var a = ast[i + 0];
-                var replace = function () {
-                    var nodes = [];
-                    for (var _i = 0; _i < arguments.length; _i++) {
-                        nodes[_i - 0] = arguments[_i];
-                    }
-                    ast.splice.apply(ast, [i, 1].concat(nodes));
-                    --i;
-                    changes = true;
-                };
-                switch (a.type) {
-                    case AST.NodeType.Loop:
-                        if (a.childScope.length === 0) {
-                            replace({ type: AST.NodeType.BreakIf, location: a.location });
-                        }
-                        else if (a.childScope.length === 1) {
-                            var c = a.childScope[0];
-                            switch (c.type) {
-                                case AST.NodeType.AddData:
-                                    if (!!c.dataOffset)
-                                        break;
-                                    if ((c.value & 1) === 0)
-                                        args.onError({ description: "Infinite loop if *data is even, *data = 0 otherwise.  If you just want to set *data = 0, prefer [-] or [+]", location: c.location, severity: AST.ErrorSeverity.Warning });
-                                    replace({ type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: a.location });
-                                    break;
-                                case AST.NodeType.SetData:
-                                    if (!!c.dataOffset)
-                                        break;
-                                    if (c.value !== 0)
-                                        args.onError({ description: "Infinite loop if *data != 0 - prefer [] if intentional", location: c.location, severity: AST.ErrorSeverity.Warning });
-                                    replace({ type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: a.location });
-                                    changes = true;
-                                    break;
-                            }
-                        }
-                        else if (a.childScope.every(function (c) { return c.type === AST.NodeType.AddData; })) {
-                            var data0 = a.childScope.filter(function (c) { return !c.dataOffset; });
-                            var dataNZ = a.childScope.filter(function (c) { return !!c.dataOffset; });
-                            if (data0.length === 1 && data0[0].value === -1) {
-                                var mulNZ = dataNZ.map(function (d) {
-                                    return { type: AST.NodeType.AddMulData, value: d.value, dataOffset: d.dataOffset, location: d.location };
-                                });
-                                var set0 = { type: AST.NodeType.SetData, value: 0, dataOffset: 0, location: data0[0].location };
-                                replace.apply(void 0, mulNZ.concat([set0]));
-                            }
-                        }
-                        break;
-                    case AST.NodeType.AddData:
-                        if (a.value === 0)
-                            replace();
-                        break;
-                    case AST.NodeType.AddDataPtr:
-                        if (a.value === 0)
-                            replace();
-                        break;
-                }
-            }
-            return changes;
-        }
-        function pairOptimizations(args) {
-            var changes = false;
-            var ast = args.ast;
-            for (var i = 0; i <= ast.length - 2; ++i) {
-                var l = ast[i + 0];
-                var r = ast[i + 1];
-                var replace = function () {
-                    var nodes = [];
-                    for (var _i = 0; _i < arguments.length; _i++) {
-                        nodes[_i - 0] = arguments[_i];
-                    }
-                    ast.splice.apply(ast, [i, 2].concat(nodes));
-                    --i;
-                    changes = true;
-                };
-                if (l.type === r.type) {
-                    switch (l.type) {
-                        case AST.NodeType.AddDataPtr:
-                            l.value = (l.value + r.value);
-                            replace(l);
-                            break;
-                        case AST.NodeType.AddData:
-                            if ((l.dataOffset | 0) !== (r.dataOffset | 0))
-                                break;
-                            l.value = (l.value + r.value) & 0xFF;
-                            replace(l);
-                            break;
-                    }
-                }
-                else {
-                    if (l.type == AST.NodeType.SetData && r.type == AST.NodeType.AddData && (l.dataOffset | 0) === (r.dataOffset | 0)) {
-                        l.value = (l.value + r.value);
-                        replace(l);
-                    }
-                }
-            }
-            return changes;
-        }
-        function shiftMutsLeft(args) {
-            var changes = false;
-            var ast = args.ast;
-            for (var i = 0; i <= ast.length - 2; ++i) {
-                var l = ast[i + 0];
-                var r = ast[i + 1];
-                var replace = function () {
-                    var nodes = [];
-                    for (var _i = 0; _i < arguments.length; _i++) {
-                        nodes[_i - 0] = arguments[_i];
-                    }
-                    ast.splice.apply(ast, [i, 2].concat(nodes));
-                    --i;
-                    changes = true;
-                };
-                if (l.type === AST.NodeType.AddDataPtr) {
-                    switch (r.type) {
-                        case AST.NodeType.AddData:
-                        case AST.NodeType.SetData:
-                            replace({ type: r.type, location: r.location, dataOffset: (r.dataOffset | 0) + l.value, value: r.value }, { type: l.type, location: l.location, dataOffset: l.dataOffset, value: l.value });
-                            break;
-                    }
-                }
-            }
-            return changes;
-        }
-        function triOptimizations(args) {
-            var changes = false;
-            var ast = args.ast;
-            for (var i = 0; i <= ast.length - 3; ++i) {
-                var l = ast[i + 0];
-                var meat = ast[i + 1];
-                var r = ast[i + 2];
-                var replace = function () {
-                    var nodes = [];
-                    for (var _i = 0; _i < arguments.length; _i++) {
-                        nodes[_i - 0] = arguments[_i];
-                    }
-                    ast.splice.apply(ast, [i, 3].concat(nodes));
-                    --i;
-                    changes = true;
-                };
-                if (l.type === AST.NodeType.AddDataPtr && r.type === AST.NodeType.AddDataPtr && sign(l.value) !== sign(r.value)) {
-                    var minMag = Math.min(Math.abs(l.value), Math.abs(r.value));
-                    var maxMag = Math.max(Math.abs(l.value), Math.abs(r.value));
-                    var diffMag = maxMag - minMag;
-                    if (l.value === -r.value) {
-                        switch (meat.type) {
-                            case AST.NodeType.SetData:
-                            case AST.NodeType.AddData:
-                                replace({ type: meat.type, location: l.location, dataOffset: l.value + (meat.dataOffset | 0), value: meat.value });
-                                break;
-                        }
-                    }
-                    else if (Math.abs(l.value) > Math.abs(r.value)) {
-                        switch (meat.type) {
-                            case AST.NodeType.SetData:
-                            case AST.NodeType.AddData:
-                                replace({ type: l.type, location: l.location, dataOffset: l.dataOffset, value: sign(l.value) * diffMag }, { type: meat.type, location: l.location, dataOffset: sign(l.value) * minMag + (meat.dataOffset | 0), value: meat.value });
-                                break;
-                        }
-                    }
-                    else if (Math.abs(l.value) < Math.abs(r.value)) {
-                        switch (meat.type) {
-                            case AST.NodeType.SetData:
-                            case AST.NodeType.AddData:
-                                replace({ type: meat.type, location: l.location, dataOffset: sign(l.value) * minMag + (meat.dataOffset | 0), value: meat.value }, { type: r.type, location: r.location, dataOffset: r.dataOffset, value: sign(r.value) * diffMag });
-                                break;
-                        }
-                    }
-                }
-            }
-            return changes;
-        }
-        function optimize(args) {
-            args.ast.forEach(function (node) { if (node.childScope)
-                node.childScope = optimize({ ast: node.childScope, onError: args.onError }); });
-            var optimizations = [pairOptimizations, singleOptimizations, triOptimizations, shiftMutsLeft];
-            for (var optimizeAttempt = 0; optimizeAttempt < 100; ++optimizeAttempt) {
-                if (!optimizations.some(function (o) { return o(args); }))
-                    break;
-            }
-            return args.ast;
-        }
-        AST.optimize = optimize;
-    })(AST = Brainfuck.AST || (Brainfuck.AST = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Brainfuck;
-(function (Brainfuck) {
-    var VmCompiler;
-    (function (VmCompiler) {
-        function createDebugger(code, stdout) {
-            var errors = false;
-            var parseResult = Brainfuck.AST.parse({ code: code, onError: function (e) { if (e.severity == Brainfuck.AST.ErrorSeverity.Error)
-                    errors = true; } });
-            if (errors)
-                return undefined;
-            var program = VmCompiler.compileProgram(parseResult.optimizedAst);
-            var vm = VmCompiler.createInitState(program);
-            var runHandle = undefined;
-            var doPause = function () { if (runHandle !== undefined)
-                clearInterval(runHandle); runHandle = undefined; };
-            var doContinue = function () { if (runHandle === undefined)
-                runHandle = setInterval(function () { return VmCompiler.runSome(vm, 100000); }, 0); };
-            var doStop = function () { doPause(); vm.dataPtr = vm.data.length; };
-            var doStep = function () { return VmCompiler.runOne(vm); };
-            var getMemory = function (start, size) { return vm.data.slice(start, start + size); };
-            var getState = function () {
-                return vm === undefined ? Debugger.State.Detatched
-                    : vm.codePtr >= vm.program.locs.length ? Debugger.State.Done
-                        : runHandle !== undefined ? Debugger.State.Running
-                            : Debugger.State.Paused;
-            };
-            vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { stdout(String.fromCharCode(vm.data[vm.dataPtr])); ++vm.codePtr; return true; };
-            vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { doStop(); return false; };
-            return {
-                symbols: VmCompiler.createSymbolLookup(program),
-                breakpoints: null,
-                state: getState,
-                threads: function () { return VmCompiler.getThreads(vm, code); },
-                memory: getMemory,
-                pause: doPause,
-                continue: doContinue,
-                stop: doStop,
-                step: doStep,
-            };
-        }
-        VmCompiler.createDebugger = createDebugger;
-    })(VmCompiler = Brainfuck.VmCompiler || (Brainfuck.VmCompiler = {}));
-})(Brainfuck || (Brainfuck = {}));
-var Debugger;
-(function (Debugger) {
-    (function (State) {
-        State[State["Detatched"] = 0] = "Detatched";
-        State[State["Paused"] = 1] = "Paused";
-        State[State["Running"] = 2] = "Running";
-        State[State["Done"] = 3] = "Done";
-    })(Debugger.State || (Debugger.State = {}));
-    var State = Debugger.State;
-    function cloneSourceLocation(sl) { return { file: sl.file, line: sl.line, column: sl.column }; }
-    Debugger.cloneSourceLocation = cloneSourceLocation;
-    function sourceLocationEqualColumn(a, b) { return a.file === b.file && a.line === b.line && a.column === b.column; }
-    Debugger.sourceLocationEqualColumn = sourceLocationEqualColumn;
-    function sourceLocationEqualLine(a, b) { return a.file === b.file && a.line === b.line; }
-    Debugger.sourceLocationEqualLine = sourceLocationEqualLine;
-    function sourceLocationEqualFile(a, b) { return a.file === b.file; }
-    Debugger.sourceLocationEqualFile = sourceLocationEqualFile;
-    var reFileLine = /^(.+)(?:(?:\((\d+)\))|(?:\:(\d+)))$/;
-    function parseSourceLocation(text) {
-        var m = reFileLine.exec(text);
-        if (!m)
-            return null;
-        var file = m[1];
-        var line = parseInt(m[2] || m[3]);
-        return { file: m[1], line: parseInt(m[2] || m[3]), column: 0 };
-    }
-    Debugger.parseSourceLocation = parseSourceLocation;
-    function sourceLocationToString(sl) {
-        var s = sl.file;
-        if (sl.line) {
-            s += "(";
-            s += sl.line.toString();
-            if (sl.column) {
-                s += ",";
-                s += sl.column.toString();
-            }
-            s += ")";
-        }
-        return s;
-    }
-    Debugger.sourceLocationToString = sourceLocationToString;
-})(Debugger || (Debugger = {}));
 var UI;
 (function (UI) {
     var Debug;
@@ -1852,6 +1715,164 @@ var UI;
         }); });
     })(Registers = UI.Registers || (UI.Registers = {}));
 })(UI || (UI = {}));
+function debounce(callback, waitMS) {
+    var _this = this;
+    var callNext = undefined;
+    var wrapped = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i - 0] = arguments[_i];
+        }
+        if (callNext === undefined) {
+            setTimeout(function () {
+                callNext.call.apply(callNext, [_this].concat(args));
+                callNext = undefined;
+            }, waitMS);
+        }
+        callNext = callback;
+    };
+    return wrapped;
+}
+addEventListener("load", function () {
+    setTimeout(function () {
+        dispatchEvent(new CustomEvent("lateLoaded"));
+    }, 2000);
+});
+var _itc_root = this;
+var ITC;
+(function (ITC) {
+    var log = function (m) {
+        var a = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            a[_i - 1] = arguments[_i];
+        }
+        return console.log.apply(console, [m].concat(a));
+    };
+    var htmlRefresh = 100;
+    var noShortcut = true;
+    function genSessionId() { return Math.random().toString(36).substr(2, 5); }
+    function newSession() { tabSessionId = genSessionId(); console.log("Generating a new tab session:", tabSessionId); localStorage.setItem("current-session", tabSessionId); }
+    ITC.newSession = newSession;
+    if (_itc_root["localStorage"])
+        addEventListener("focus", function (focusEvent) { console.log("Switching to", tabSessionId); localStorage.setItem("current-session", tabSessionId); });
+    var tabSessionId = _itc_root["localStorage"] ? localStorage.getItem("current-session") : undefined;
+    function cullHeaders() {
+        var now = Date.now();
+        for (var i = 0; i < localStorage.length; ++i) {
+            var key = localStorage.key(i);
+            if (key == "current-session")
+                continue;
+            var header = JSON.parse(localStorage.getItem(key));
+            if (Math.abs(header._itc_last_updated - now) > 3000) {
+                localStorage.removeItem(key);
+                log(key, "timed out and removed");
+            }
+            else {
+            }
+        }
+    }
+    if (_itc_root["localStorage"]) {
+        cullHeaders();
+        addEventListener("load", function (loadEvent) {
+            setInterval(function () { return cullHeaders(); }, 10000);
+        });
+    }
+    function peekAll(prefix) {
+        prefix = tabSessionId + "-" + prefix;
+        var now = Date.now();
+        var headers = [];
+        for (var i = 0; i < localStorage.length; ++i) {
+            var key = localStorage.key(i);
+            var matchesPrefix = key.substr(0, prefix.length) == prefix;
+            if (matchesPrefix) {
+                var header = JSON.parse(localStorage.getItem(key));
+                headers.push(header);
+            }
+        }
+        return headers;
+    }
+    ITC.peekAll = peekAll;
+    function sendTo(key, header) {
+        header._itc_last_updated = Date.now();
+        var local = localOnHeader[key];
+        if (local)
+            local(header);
+        if (!local || noShortcut)
+            localStorage.setItem(tabSessionId + "-" + key, JSON.stringify(header));
+    }
+    ITC.sendTo = sendTo;
+    function listenTo(key, onHeader) {
+        localOnHeader[key] = onHeader;
+        var existing = localStorage.getItem(tabSessionId + "-" + key);
+        if (existing)
+            onHeader(JSON.parse(existing));
+    }
+    ITC.listenTo = listenTo;
+    function sendToByClassName(className, keyPrefix, eachElement) {
+        var elements = UI.byClassName(className);
+        elements.forEach(function (e) {
+            var itcKey = getItcKey(e);
+            sendTo(keyPrefix + itcKey, eachElement({ itcKey: itcKey, element: e }));
+        });
+    }
+    ITC.sendToByClassName = sendToByClassName;
+    function listenToByClassName(className, keyPrefix, onHeader) {
+        var listening = [];
+        var update = function () {
+            var m = {};
+            var elements = UI.byClassName(className);
+            elements.forEach(function (e) {
+                var itcKey = getItcKey(e);
+                m[itcKey] = true;
+                localOnHeader[keyPrefix + itcKey] = function (h) { return onHeader({ header: h, element: e }); };
+            });
+            listening.forEach(function (e) {
+                var itcKey = getItcKey(e);
+                if (!m[itcKey])
+                    delete localOnHeader[keyPrefix + itcKey];
+            });
+            listening = elements;
+        };
+        update();
+        setInterval(update, htmlRefresh);
+    }
+    ITC.listenToByClassName = listenToByClassName;
+    var localOnHeader = {};
+    function getItcKey(e) {
+        var a = e;
+        var key = a["__itc_key__"];
+        if (key)
+            return key;
+        key = a["__itc_key__"] = Math.random().toString(36).substr(2, 5);
+        return key;
+    }
+    addEventListener("storage", function (ev) {
+        var tabSessionIdPrefix = tabSessionId + "-";
+        if (ev.key.substr(0, tabSessionIdPrefix.length) != tabSessionIdPrefix)
+            return;
+        if (!ev.newValue)
+            return;
+        var key = ev.key.substr(tabSessionIdPrefix.length);
+        var local = localOnHeader[key];
+        if (!local)
+            return;
+        local(JSON.parse(ev.newValue));
+    });
+})(ITC || (ITC = {}));
+function measure(callback, label) {
+    var wrapped = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i - 0] = arguments[_i];
+        }
+        var s = Date.now();
+        var r = callback.call.apply(callback, [this].concat(args));
+        var e = Date.now() - s;
+        console.log(label, "took", e, "ms");
+        return r;
+    };
+    return wrapped;
+}
 var _ui_document = this["document"];
 var UI;
 (function (UI) {
@@ -1873,18 +1894,4 @@ var UI;
     }
     UI.byId = byId;
 })(UI || (UI = {}));
-function measure(callback, label) {
-    var wrapped = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i - 0] = arguments[_i];
-        }
-        var s = Date.now();
-        var r = callback.call.apply(callback, [this].concat(args));
-        var e = Date.now() - s;
-        console.log(label, "took", e, "ms");
-        return r;
-    };
-    return wrapped;
-}
 //# sourceMappingURL=mmide.js.map
