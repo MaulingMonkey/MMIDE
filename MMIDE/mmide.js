@@ -491,20 +491,20 @@ var Brainfuck;
                 pause: function () { return worker.postMessage({ desc: "pause" }); },
                 continue: function () { return worker.postMessage({ desc: "continue" }); },
                 stop: function () { return worker.postMessage({ desc: "stop" }); },
-                step: function () { return worker.postMessage({ desc: "step" }); },
+                step: function () { return worker.postMessage({ desc: "step" }); }
             };
             return debug;
         }
         VmCompiler.createAsyncDebugger = createAsyncDebugger;
         if (isWorker) {
-            var vm = undefined;
-            var runHandle = undefined;
-            var reply = _brainfuck_vm_global["postMessage"];
+            var vm_1 = undefined;
+            var runHandle_1 = undefined;
+            var reply_1 = _brainfuck_vm_global["postMessage"];
             function updateVm() {
-                reply({ desc: "update-vm-data", value: { data: vm.data, codePtr: vm.codePtr, dataPtr: vm.dataPtr, insRan: vm.insRan, runTime: vm.runTime } });
+                reply_1({ desc: "update-vm-data", value: { data: vm_1.data, codePtr: vm_1.codePtr, dataPtr: vm_1.dataPtr, insRan: vm_1.insRan, runTime: vm_1.runTime } });
             }
             function tick() {
-                VmCompiler.runSome(vm, 300000);
+                VmCompiler.runSome(vm_1, 300000);
                 updateVm();
             }
             function onInitMessage(ev) {
@@ -512,29 +512,29 @@ var Brainfuck;
                 if (ev.data.desc != "brainfuck-debugger-init")
                     return;
                 addEventListener("message", onMessage);
-                vm = ev.data.state;
-                vm.sysCalls[Brainfuck.AST.SystemCall.Break] = function (vm) {
+                vm_1 = ev.data.state;
+                vm_1.sysCalls[Brainfuck.AST.SystemCall.Break] = function (vm) {
                     var isInjectedBreak = vm.program.ops[vm.codePtr] !== vm.loadedCode[vm.codePtr];
-                    if (runHandle !== undefined)
-                        clearInterval(runHandle);
-                    runHandle = undefined;
-                    reply({ desc: "update-state", value: Debugger.State.Paused });
+                    if (runHandle_1 !== undefined)
+                        clearInterval(runHandle_1);
+                    runHandle_1 = undefined;
+                    reply_1({ desc: "update-state", value: Debugger.State.Paused });
                     return false;
                 };
-                vm.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { reply({ desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); ++vm.codePtr; return true; };
-                vm.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { reply({ desc: "system-call-tape-end" }); updateVm(); if (runHandle !== undefined)
-                    clearInterval(runHandle); runHandle = undefined; return false; };
+                vm_1.sysCalls[Brainfuck.AST.SystemCall.Putch] = function (vm) { reply_1({ desc: "system-call-stdout", value: String.fromCharCode(vm.data[vm.dataPtr]) }); ++vm.codePtr; return true; };
+                vm_1.sysCalls[Brainfuck.AST.SystemCall.TapeEnd] = function (vm) { reply_1({ desc: "system-call-tape-end" }); updateVm(); if (runHandle_1 !== undefined)
+                    clearInterval(runHandle_1); runHandle_1 = undefined; return false; };
             }
             function onMessage(ev) {
                 switch (ev.data.desc) {
                     case "breakpoints.set":
-                        if (!vm)
+                        if (!vm_1)
                             return;
                         var breakpoints = ev.data.data;
-                        var breakLocs = breakpoints.filter(function (bp) { return bp.enabled; }).map(function (bp) { return Debugger.parseSourceLocation(bp.location); }).filter(function (loc) { return !!loc; });
-                        vm.loadedCode = vm.program.ops.map(function (op, i) {
-                            var loc = vm.program.locs[i];
-                            var shouldBreak = breakLocs.some(function (bl) {
+                        var breakLocs_1 = breakpoints.filter(function (bp) { return bp.enabled; }).map(function (bp) { return Debugger.parseSourceLocation(bp.location); }).filter(function (loc) { return !!loc; });
+                        vm_1.loadedCode = vm_1.program.ops.map(function (op, i) {
+                            var loc = vm_1.program.locs[i];
+                            var shouldBreak = breakLocs_1.some(function (bl) {
                                 if (bl.file && bl.file !== loc.file)
                                     return false;
                                 if (bl.line && bl.line !== loc.line)
@@ -548,24 +548,24 @@ var Brainfuck;
                         });
                         break;
                     case "pause":
-                        if (runHandle !== undefined)
-                            clearInterval(runHandle);
-                        runHandle = undefined;
-                        reply({ desc: "update-state", value: Debugger.State.Paused });
+                        if (runHandle_1 !== undefined)
+                            clearInterval(runHandle_1);
+                        runHandle_1 = undefined;
+                        reply_1({ desc: "update-state", value: Debugger.State.Paused });
                         break;
                     case "continue":
-                        if (runHandle === undefined)
-                            runHandle = setInterval(tick, 0);
-                        reply({ desc: "update-state", value: Debugger.State.Running });
+                        if (runHandle_1 === undefined)
+                            runHandle_1 = setInterval(tick, 0);
+                        reply_1({ desc: "update-state", value: Debugger.State.Running });
                         break;
                     case "stop":
-                        if (runHandle !== undefined)
-                            clearInterval(runHandle);
-                        runHandle = undefined;
-                        reply({ desc: "update-state", value: Debugger.State.Done });
+                        if (runHandle_1 !== undefined)
+                            clearInterval(runHandle_1);
+                        runHandle_1 = undefined;
+                        reply_1({ desc: "update-state", value: Debugger.State.Done });
                         break;
                     case "step":
-                        VmCompiler.runOne(vm);
+                        VmCompiler.runOne(vm_1);
                         updateVm();
                         break;
                 }
@@ -611,7 +611,7 @@ var Brainfuck;
                 pause: doPause,
                 continue: doContinue,
                 stop: doStop,
-                step: doStep,
+                step: doStep
             };
         }
         VmCompiler.createDebugger = createDebugger;
@@ -686,7 +686,7 @@ var Brainfuck;
                             return i;
                         }
                     }
-                },
+                }
             };
         }
         VmCompiler.createSymbolLookup = createSymbolLookup;
@@ -751,7 +751,7 @@ var Brainfuck;
         function getThreads(vm, src) {
             return [{
                     registers: function () { return VmCompiler.getRegistersList(vm, src); },
-                    currentPos: function () { return vm.codePtr; },
+                    currentPos: function () { return vm.codePtr; }
                 }];
         }
         VmCompiler.getThreads = getThreads;
@@ -945,7 +945,7 @@ var UI;
                 enabled: eEnabled,
                 location: eLocation,
                 condition: eCondition,
-                onHit: eOnHit,
+                onHit: eOnHit
             };
             return breakpointElements;
         }
@@ -964,7 +964,7 @@ var UI;
                     enabled: elements.enabled.checked,
                     location: elements.location.value,
                     condition: elements.condition.value,
-                    onHit: elements.onHit.value,
+                    onHit: elements.onHit.value
                 };
             });
         }
@@ -990,9 +990,9 @@ var UI;
                 newBreakpointRow(tableElement, undefined);
             }
             else {
-                var lastBreakpoint = breakpoints[breakpoints.length - 1];
-                breakpoints.filter(function (bp) { return isBreakpointBlank(bp) && !isBreakpointFocused(bp) && bp != lastBreakpoint; }).forEach(function (e) { return e.elements.row.remove(); });
-                if (!isBreakpointBlank(lastBreakpoint))
+                var lastBreakpoint_1 = breakpoints[breakpoints.length - 1];
+                breakpoints.filter(function (bp) { return isBreakpointBlank(bp) && !isBreakpointFocused(bp) && bp != lastBreakpoint_1; }).forEach(function (e) { return e.elements.row.remove(); });
+                if (!isBreakpointBlank(lastBreakpoint_1))
                     newBreakpointRow(tableElement, undefined);
             }
         }
@@ -1195,7 +1195,7 @@ var UI;
                 row: error.location.line - 1,
                 column: error.location.column - 1,
                 text: error.description,
-                type: errorType,
+                type: errorType
             };
             return a;
         }
@@ -1274,7 +1274,7 @@ var UI;
                 errors = [];
                 Brainfuck.AST.parse({
                     code: newScript,
-                    onError: function (e) { return errors.push(e); },
+                    onError: function (e) { return errors.push(e); }
                 });
                 setErrors(errors);
             }, 100);
@@ -1549,7 +1549,7 @@ var UI;
                 showHex: bool("showHex"),
                 showData: bool("showData"),
                 forceChangedDisplay: bool("forceChangedDisplay"),
-                dataChangedDisplay: DataChangedDisplay[string("changedDisplay")],
+                dataChangedDisplay: DataChangedDisplay[string("changedDisplay")]
             };
         }
         Memory.getMemoryViewConfig = getMemoryViewConfig;
@@ -1570,7 +1570,7 @@ var UI;
             getListeners().forEach(function (req) {
                 var response = {
                     baseAddress: req.baseAddress,
-                    data: localDebugger.memory(req.baseAddress, req.size),
+                    data: localDebugger.memory(req.baseAddress, req.size)
                 };
                 ITC.sendTo(req.responseKey, response);
             });
@@ -1582,7 +1582,7 @@ var UI;
                 var listenNotice = {
                     baseAddress: config.baseAddress,
                     size: config.cols * config.rows * config.colSize,
-                    responseKey: updatePrefix + args.itcKey,
+                    responseKey: updatePrefix + args.itcKey
                 };
                 return listenNotice;
             });
@@ -1661,7 +1661,7 @@ var UI;
                 this.kickoffSend();
             };
             return NamedOutput;
-        })();
+        }());
         Output.NamedOutput = NamedOutput;
         function lazyishNamedOutput(id) {
             var no = undefined;
@@ -1750,17 +1750,20 @@ var ITC;
     };
     var htmlRefresh = 100;
     var noShortcut = true;
+    var keyCurrentSession = "mmide-current-session";
     function genSessionId() { return Math.random().toString(36).substr(2, 5); }
-    function newSession() { tabSessionId = genSessionId(); console.log("Generating a new tab session:", tabSessionId); localStorage.setItem("current-session", tabSessionId); }
+    function newSession() { tabSessionId = genSessionId(); console.log("Generating a new tab session:", tabSessionId); localStorage.setItem(keyCurrentSession, tabSessionId); }
     ITC.newSession = newSession;
     if (_itc_root["localStorage"])
-        addEventListener("focus", function (focusEvent) { console.log("Switching to", tabSessionId); localStorage.setItem("current-session", tabSessionId); });
-    var tabSessionId = _itc_root["localStorage"] ? localStorage.getItem("current-session") : undefined;
+        addEventListener("focus", function (focusEvent) { console.log("Switching to", tabSessionId); localStorage.setItem(keyCurrentSession, tabSessionId); });
+    var tabSessionId = _itc_root["localStorage"] ? localStorage.getItem(keyCurrentSession) : undefined;
     function cullHeaders() {
         var now = Date.now();
         for (var i = 0; i < localStorage.length; ++i) {
             var key = localStorage.key(i);
-            if (key == "current-session")
+            if (key === keyCurrentSession)
+                continue;
+            if (key.indexOf("-mmide-") === -1)
                 continue;
             var header = JSON.parse(localStorage.getItem(key));
             if (Math.abs(header._itc_last_updated - now) > 3000) {

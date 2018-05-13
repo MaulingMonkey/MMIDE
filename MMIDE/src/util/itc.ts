@@ -5,11 +5,12 @@ module ITC {
 	const log = (m, ...a) => console.log(m, ...a);
 	const htmlRefresh = 100;
 	const noShortcut = true;
+	const keyCurrentSession = "mmide-current-session";
 
 	function genSessionId() { return Math.random().toString(36).substr(2,5); }
-	export function newSession() { tabSessionId = genSessionId(); console.log("Generating a new tab session:",tabSessionId); localStorage.setItem("current-session", tabSessionId); }
-	if (_itc_root["localStorage"]) addEventListener("focus", focusEvent => { console.log("Switching to",tabSessionId); localStorage.setItem("current-session", tabSessionId); });
-	let tabSessionId = _itc_root["localStorage"] ? localStorage.getItem("current-session") : undefined;
+	export function newSession() { tabSessionId = genSessionId(); console.log("Generating a new tab session:",tabSessionId); localStorage.setItem(keyCurrentSession, tabSessionId); }
+	if (_itc_root["localStorage"]) addEventListener("focus", focusEvent => { console.log("Switching to",tabSessionId); localStorage.setItem(keyCurrentSession, tabSessionId); });
+	let tabSessionId = _itc_root["localStorage"] ? localStorage.getItem(keyCurrentSession) : undefined;
 
 
 
@@ -22,7 +23,8 @@ module ITC {
 
 		for (let i=0; i<localStorage.length; ++i) {
 			let key = localStorage.key(i);
-			if (key == "current-session") continue;
+			if (key === keyCurrentSession) continue;
+			if (key.indexOf("-mmide-") === -1) continue; // Only want to delete "tabid-mmide-registers" etc.
 			let header = <AgingHeader>JSON.parse(localStorage.getItem(key));
 			if (Math.abs(header._itc_last_updated-now) > 3000) {
 				localStorage.removeItem(key); // Timeout
